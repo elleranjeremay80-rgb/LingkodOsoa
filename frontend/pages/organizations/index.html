@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LINGKOD | Organization Directory</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../../css/common.css?v=2">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<!-- Public, guest-accessible page - deliberately does NOT load js/common.js
+     (it auth-redirects anyone without a session to Login) or js/auth.js.
+     Only js/supabase.js, for a plain anon-role Supabase client. -->
+
+<div class="org-browse-page">
+
+<div class="org-browse-topbar">
+
+<div class="org-browse-brand">
+<i class="fa-solid fa-building-columns"></i>
+<span>LINGKOD Organization Directory</span>
+</div>
+
+<div class="org-browse-topbar-links">
+
+<a href="../document-library/index.html" class="org-browse-back-btn">
+<i class="fa-solid fa-file-lines"></i> Browse Documents
+</a>
+
+<a href="../login/index.html" class="org-browse-back-btn">
+<i class="fa-solid fa-arrow-left"></i> Back to Login
+</a>
+
+</div>
+
+</div>
+
+<div class="org-browse-hero">
+<h1>Browse Student Organizations</h1>
+<p>Explore accredited student organizations of the Office of Student Organization and Activities (OSOA) — Bulacan State University, Meneses Campus — before registering or logging in.</p>
+</div>
+
+<div class="org-browse-filters">
+
+<div class="search">
+<input type="text" id="orgBrowseSearch" placeholder="🔍 Search organizations by name or acronym...">
+</div>
+
+<select id="orgBrowseCategoryFilter">
+<option value="">All Categories</option>
+<option value="Academic">Academic</option>
+<option value="Civic">Civic</option>
+<option value="Religious">Religious</option>
+<option value="Sports">Sports</option>
+<option value="Cultural">Cultural</option>
+<option value="Special Interest">Special Interest</option>
+</select>
+
+</div>
+
+<div class="org-browse-grid" id="orgBrowseGrid"></div>
+
+<div class="org-browse-empty hidden" id="orgBrowseEmpty">
+<i class="fa-solid fa-folder-open"></i>
+<p id="orgBrowseEmptyMessage">No organizations available at the moment.</p>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

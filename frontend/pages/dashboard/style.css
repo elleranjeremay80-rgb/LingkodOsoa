@@ -1,0 +1,680 @@
+.topbar{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    margin-bottom:30px;
+    background:#fff;
+    padding:16px 24px;
+    border-radius:16px;
+    box-shadow:0 4px 16px rgba(54,42,93,.06);
+}
+
+/* .user is an <a> (whole avatar+name section links to Profile) rather
+   than a plain div - reset the global a{text-decoration:none} anchor's
+   own hover/focus look isn't otherwise a concern here since nothing else
+   about an <a> renders unless styled, but redeclared explicitly so this
+   never silently depends on that global rule alone. */
+.user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:600;
+    color:var(--color-text);
+    text-decoration:none;
+    transform:none;
+    box-shadow:none;
+}
+
+.user:hover{
+    color:var(--color-text);
+    transform:none;
+    box-shadow:none;
+    opacity:.85;
+}
+
+/* Built by lingkodBuildAvatarElement() (js/common.js) - a real photo
+   (avatar_url) renders as an <img>; no photo falls back to this same
+   div showing the user's initials, exactly like every other avatar in
+   the app (member tables, Directory, Profile). */
+.topbar-avatar{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--color-primary);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    overflow:hidden;
+    box-shadow:0 0 0 2px rgba(63,81,181,.15);
+}
+
+.topbar-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.welcome{
+    background:linear-gradient(135deg,#ffffff,#FDEEF2);
+    padding:40px;
+    border-radius:16px;
+    margin-bottom:30px;
+    box-shadow:0 5px 15px rgba(54,42,93,.06);
+}
+
+.welcome h1{
+    color:var(--color-heading);
+    margin-bottom:10px;
+}
+
+.services{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:#fff;
+    padding:25px;
+    border-radius:16px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    transition:transform .3s ease, box-shadow .3s ease;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 14px 28px rgba(54,42,93,.14);
+}
+
+.card i{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:60px;
+    height:60px;
+    margin:0 auto 15px;
+    border-radius:50%;
+    font-size:24px;
+    color:#fff;
+    background:var(--color-primary);
+}
+
+.services .card:nth-child(1) i{ background:var(--color-primary); }
+.services .card:nth-child(2) i{ background:var(--color-secondary); }
+.services .card:nth-child(3) i{ background:var(--color-accent); }
+.services .card:nth-child(4) i{ background:var(--color-highlight); }
+.services .card:nth-child(5) i{ background:var(--color-primary-dark); }
+
+.card h3{
+    margin-bottom:10px;
+}
+
+.bottom{
+    display:grid;
+    grid-template-columns:7fr 3fr;
+    gap:20px;
+    margin-bottom:28px;
+}
+
+.announcements,
+.requests{
+    background:#fff;
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+}
+
+.requests{
+    margin-bottom:28px;
+}
+
+.announcements ul{
+    margin-top:15px;
+}
+
+table{
+    margin-top:15px;
+}
+
+.pending{
+    background:#FFF4E0;
+    color:#B8790B;
+    padding:5px 12px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:13px;
+}
+
+.approved{
+    background:#E6F7EC;
+    color:#1E8A4C;
+    padding:5px 12px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:13px;
+}
+
+.rejected{
+    background:#FDEAEC;
+    color:#C23B4B;
+    padding:5px 12px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:13px;
+}
+
+.needs_revision{
+    background:#E5F0FF;
+    color:#1D5FBF;
+    padding:5px 12px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:13px;
+}
+
+.quick-review-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:6px 12px;
+    font-size:12.5px;
+    border-radius:8px;
+    background:var(--color-secondary);
+    color:#fff;
+    text-decoration:none;
+    transition:background .2s ease;
+}
+
+.quick-review-link:hover{
+    background:var(--color-secondary-dark);
+}
+
+.view-all-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:16px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-secondary);
+    text-decoration:none;
+}
+
+.view-all-link:hover{
+    color:var(--color-secondary-dark);
+}
+
+/* ================= STUDENT DASHBOARD ================= */
+
+.student-grid{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:20px;
+    margin-bottom:28px;
+}
+
+.student-grid.four-col,
+.student-grid.three-col{
+    grid-template-columns:1fr;
+    gap:28px;
+}
+
+/* ================= ONGOING PROJECTS (dashboard showcase) =================
+   Its own full-width panel (not one of the compact stacked preview
+   panels below it) - a real card grid instead of the scrollable
+   compact-item list every other category still uses. */
+
+.ongoing-projects-panel{
+    margin-bottom:28px;
+}
+
+.ongoing-projects-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+}
+
+@media(max-width:1100px){
+    .ongoing-projects-grid{ grid-template-columns:repeat(2, 1fr); }
+}
+
+@media(max-width:700px){
+    .ongoing-projects-grid{ grid-template-columns:1fr; }
+}
+
+.ongoing-project-card{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    overflow:hidden;
+    transition:transform .3s ease, box-shadow .3s ease;
+}
+
+.ongoing-project-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 24px rgba(54,42,93,.14);
+}
+
+.ongoing-project-cover{
+    width:100%;
+    aspect-ratio:16/10;
+    object-fit:cover;
+    display:block;
+}
+
+.ongoing-project-cover-placeholder{
+    width:100%;
+    aspect-ratio:16/10;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--color-bg-stripe);
+    color:var(--color-border);
+    font-size:36px;
+}
+
+.ongoing-project-body{
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    padding:20px;
+}
+
+.ongoing-project-body h3{
+    color:var(--color-heading);
+    font-size:16px;
+    margin-bottom:8px;
+}
+
+.ongoing-project-body p{
+    color:var(--color-text-muted);
+    font-size:13.5px;
+    line-height:1.6;
+    margin-bottom:14px;
+    flex:1;
+}
+
+.ongoing-project-org{
+    font-size:13px;
+    color:var(--color-secondary);
+    font-weight:600;
+    margin-bottom:14px;
+}
+
+.ongoing-project-org i{
+    margin-right:6px;
+}
+
+.ongoing-project-status-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.ongoing-project-status-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.status.not-started{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.status.ongoing{
+    background:#FFF4E0;
+    color:#B8790B;
+}
+
+.status.done{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.panel{
+    background:#fff;
+    padding:22px;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    min-width:0;
+}
+
+.panel h2{
+    color:var(--color-heading);
+    font-size:16px;
+    margin-bottom:16px;
+}
+
+.panel h2 i{
+    color:var(--color-secondary);
+    margin-right:8px;
+}
+
+/* Scrollable announcements */
+
+.scroll-list{
+    max-height:320px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding-right:6px;
+}
+
+.mini-item{
+    border-left:3px solid var(--color-accent);
+    padding:6px 0 6px 14px;
+}
+
+.mini-date{
+    font-size:11px;
+    font-weight:700;
+    color:var(--color-secondary);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+}
+
+.mini-item h4{
+    color:var(--color-text);
+    font-size:14px;
+    margin:4px 0;
+}
+
+.mini-item p{
+    color:var(--color-text-muted);
+    font-size:13px;
+    line-height:1.5;
+}
+
+/* Calendar */
+
+.calendar-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-weight:700;
+    color:var(--color-heading);
+    margin-bottom:12px;
+}
+
+.calendar-title-text{
+    flex:1;
+    text-align:center;
+}
+
+.calendar-nav{
+    width:30px;
+    height:30px;
+    padding:0;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border-radius:50%;
+    font-size:12px;
+}
+
+.calendar-nav:hover{
+    background:var(--color-accent);
+    color:#fff;
+}
+
+.calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    text-align:center;
+}
+
+.day-label{
+    font-size:11px;
+    font-weight:700;
+    color:var(--color-text-muted);
+    padding-bottom:6px;
+}
+
+.day{
+    font-size:12.5px;
+    padding:7px 0;
+    border-radius:8px;
+    color:var(--color-text);
+}
+
+.day.empty{
+    visibility:hidden;
+}
+
+.day.event{
+    background:var(--color-highlight);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.day.event:hover{
+    background:var(--color-highlight-dark);
+}
+
+.day.today{
+    outline:2px solid var(--color-secondary);
+    outline-offset:-2px;
+}
+
+.calendar-legend{
+    list-style:none;
+    margin-top:16px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:150px;
+    overflow-y:auto;
+}
+
+.calendar-legend li{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.calendar-legend li.calendar-legend-item{
+    cursor:pointer;
+}
+
+.calendar-legend li.calendar-legend-item:hover{
+    color:var(--color-text);
+}
+
+.calendar-legend .dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--color-highlight);
+    flex-shrink:0;
+}
+
+/* ================= EVENT DETAIL MODAL CONTENT ================= */
+
+.modal-announcement-list{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.modal-announcement + .modal-announcement{
+    border-top:1px solid var(--color-border);
+    padding-top:18px;
+}
+
+.modal-announcement h3{
+    color:var(--color-heading);
+    margin:10px 0;
+}
+
+.modal-announcement .badge{
+    background:var(--color-primary);
+    color:#fff;
+    padding:5px 14px;
+    border-radius:30px;
+    font-size:12px;
+}
+
+.modal-announcement-details{
+    display:grid;
+    gap:8px;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    font-size:13.5px;
+    color:#555;
+}
+
+.modal-announcement-details i,
+.modal-announcement-meta i{
+    color:var(--color-heading);
+    margin-right:6px;
+    width:14px;
+    text-align:center;
+}
+
+.modal-announcement-desc{
+    color:#555;
+    line-height:1.6;
+    margin-bottom:12px;
+}
+
+.modal-announcement-meta{
+    display:grid;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--color-text-muted);
+}
+
+/* Preview panels */
+
+.preview-panel{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.preview-panel-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-height:520px;
+    overflow-y:auto;
+    padding-right:4px;
+}
+
+.preview-item{
+    background:var(--color-bg-stripe);
+    padding:14px;
+    border-radius:12px;
+    min-width:0;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    overflow:hidden;
+}
+
+/* Dashboard preview panels are deliberately compact (up to 4 items in a
+   scrollable list) - a full 700-900px Facebook-post-sized square here
+   would break that, so this keeps the same square/never-crop treatment
+   (aspect-ratio 1:1, object-fit:contain) at a size that still fits a
+   glance-able list. Full-size viewing lives one click away on each
+   dedicated activity page. */
+.preview-item-cover{
+    width:calc(100% + 28px);
+    aspect-ratio:1/1;
+    max-height:200px;
+    object-fit:contain;
+    display:block;
+    margin:-14px -14px 10px;
+    background:#f5f5f5;
+}
+
+.preview-item h4{
+    color:var(--color-text);
+    font-size:13.5px;
+    margin-bottom:8px;
+}
+
+.preview-item .file-action-btn{
+    display:flex;
+    margin-top:8px;
+}
+
+.preview-meta{
+    font-size:12px;
+    color:var(--color-text-muted);
+}
+
+.preview-empty{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    text-align:center;
+    padding:14px 0;
+}
+
+@media(max-width:900px){
+
+.bottom{
+    grid-template-columns:1fr;
+}
+
+.student-grid{
+    grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:768px){
+
+.services{
+    grid-template-columns:1fr;
+}
+
+.topbar{
+    padding:14px 18px;
+}
+
+.welcome{
+    padding:28px;
+}
+
+.preview-panel-list{
+    max-height:360px;
+}
+
+/* ================= DARK MODE ================= */
+
+/* .welcome's own hardcoded white-to-pink gradient (not a plain
+   background:#fff, so it isn't covered by css/common.css's shared
+   card-surface override list) was left fully unthemed - white/near-
+   white behind white body text made the whole hero card unreadable. */
+[data-theme="dark"] .welcome{
+    background:linear-gradient(135deg,var(--color-surface),#2A2440);
+}
+
+[data-theme="dark"] .welcome p{
+    color:var(--color-text-muted);
+}
+
+[data-theme="dark"] .modal-announcement-details,
+[data-theme="dark"] .modal-announcement-desc{
+    color:var(--color-text-muted);
+}
+
+}

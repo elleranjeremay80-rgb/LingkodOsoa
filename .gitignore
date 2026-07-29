@@ -1,0 +1,4 @@
+.env
+.env.local
+database/.temp/
+node_modules/

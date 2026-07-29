@@ -1,0 +1,211 @@
+.hidden{
+    display:none;
+}
+
+body{
+    background:var(--color-bg);
+}
+
+.doclib-page{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px 30px 60px;
+}
+
+/* ================= TOPBAR ================= */
+
+.doclib-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:30px;
+}
+
+.doclib-topbar-links{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.doclib-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--color-primary);
+    font-size:18px;
+    font-weight:700;
+}
+
+.doclib-brand i{
+    font-size:22px;
+}
+
+.doclib-back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    width:auto;
+    padding:10px 18px;
+    border-radius:30px;
+    background:#fff;
+    color:var(--color-heading);
+    font-size:13.5px;
+    font-weight:600;
+    text-decoration:none;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+    transition:background .2s ease, transform .2s ease;
+}
+
+.doclib-back-btn:hover{
+    background:var(--color-border);
+    transform:translateY(-1px);
+}
+
+/* ================= HERO ================= */
+
+.doclib-hero{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.doclib-hero h1{
+    color:var(--color-heading);
+    font-size:28px;
+    margin-bottom:10px;
+}
+
+.doclib-hero p{
+    color:var(--color-text-muted);
+    max-width:640px;
+    margin:0 auto;
+    font-size:14.5px;
+    line-height:1.6;
+}
+
+/* ================= FILTERS ================= */
+
+.doclib-filters{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:26px;
+}
+
+.doclib-filters .search{
+    flex:1;
+    min-width:240px;
+}
+
+.doclib-filters .search input{
+    padding:14px;
+}
+
+.doclib-filters select{
+    width:auto;
+    min-width:200px;
+    padding:14px;
+}
+
+/* ================= TABLE ================= */
+
+.doclib-table-wrap{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    overflow-x:auto;
+}
+
+.doclib-table-wrap table{
+    min-width:900px;
+}
+
+#doclibTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+.file-action-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:8px 14px;
+    font-size:12.5px;
+    border-radius:20px;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border:none;
+    box-shadow:none;
+}
+
+.file-action-btn:hover{
+    background:var(--color-border);
+    transform:none;
+    box-shadow:none;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.doclib-empty{
+    text-align:center;
+    color:var(--color-text-muted);
+    padding:80px 0;
+}
+
+.doclib-empty i{
+    display:block;
+    font-size:48px;
+    margin-bottom:16px;
+    color:var(--color-border);
+}
+
+.doclib-empty p{
+    font-size:15px;
+}
+
+/* ================= PREVIEW MODAL ================= */
+/* Reuses css/common.css's .modal-overlay/.modal/.modal-header/.modal-body
+   shell (loaded on this page). */
+
+.doclib-preview-panel{
+    min-height:200px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--color-bg);
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.doclib-preview-panel iframe{
+    width:100%;
+    height:70vh;
+    border:none;
+}
+
+.doclib-preview-panel img{
+    max-width:100%;
+    max-height:70vh;
+    display:block;
+}
+
+.preview-unavailable{
+    padding:40px 20px;
+    text-align:center;
+    color:var(--color-text-muted);
+    font-size:14px;
+}
+
+.preview-unavailable i{
+    display:block;
+    font-size:32px;
+    margin-bottom:12px;
+}
+
+@media(max-width:600px){
+    .doclib-page{ padding:18px 16px 40px; }
+    .doclib-topbar{ justify-content:center; text-align:center; }
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LINGKOD | Document Library</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../../css/common.css?v=2">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<!-- Public, guest-accessible page - deliberately does NOT load js/common.js
+     (it auth-redirects anyone without a session to Login) or js/auth.js.
+     Only js/supabase.js, for a plain anon-role Supabase client. Read-only
+     by construction: no insert/update/delete anywhere in script.js, and
+     even if attempted, documents' write RLS is authenticated-only. -->
+
+<div class="doclib-page">
+
+<div class="doclib-topbar">
+
+<div class="doclib-brand">
+<i class="fa-solid fa-file-lines"></i>
+<span>LINGKOD Document Library</span>
+</div>
+
+<div class="doclib-topbar-links">
+
+<a href="../organizations/index.html" class="doclib-back-btn">
+<i class="fa-solid fa-building-columns"></i> Browse Organizations
+</a>
+
+<a href="../login/index.html" class="doclib-back-btn">
+<i class="fa-solid fa-arrow-left"></i> Back to Login
+</a>
+
+</div>
+
+</div>
+
+<div class="doclib-hero">
+<h1>Browse Official Documents</h1>
+<p>Search official OSOA and student organization documents - memoranda, resolutions, financial reports, policies, forms, and more - without needing an account.</p>
+</div>
+
+<div class="doclib-filters">
+
+<div class="search">
+<input type="text" id="doclibSearch" placeholder="🔍 Search by title, category, organization, uploader, or document number...">
+</div>
+
+<select id="doclibCategoryFilter">
+<option value="">All Categories</option>
+<option value="memorandum">Memorandum</option>
+<option value="resolution">Resolution</option>
+<option value="financial_report">Financial Report</option>
+<option value="policy">Policy</option>
+<option value="form">Forms</option>
+<option value="organization_records">Organization Records</option>
+<option value="accreditation">Accreditation</option>
+<option value="constitution_bylaws">Constitution and By-Laws</option>
+<option value="activity_documents">Activity Documents</option>
+<option value="other">Others</option>
+</select>
+
+</div>
+
+<div class="doclib-table-wrap">
+
+<table>
+
+<tr>
+<th>Title</th>
+<th>Category</th>
+<th>Uploaded By</th>
+<th>Organization</th>
+<th>Upload Date</th>
+<th>File Size</th>
+<th>Preview</th>
+<th>Download</th>
+</tr>
+
+<tbody id="doclibTableBody">
+</tbody>
+
+</table>
+
+</div>
+
+<div class="doclib-empty hidden" id="doclibEmpty">
+<i class="fa-solid fa-folder-open"></i>
+<p id="doclibEmptyMessage">No documents uploaded yet.</p>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/document-categories.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

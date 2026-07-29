@@ -1,0 +1,380 @@
+.hidden{
+    display:none;
+}
+
+body{
+    background:var(--color-bg);
+}
+
+.org-browse-page{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px 30px 60px;
+}
+
+/* ================= TOPBAR ================= */
+
+.org-browse-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:30px;
+}
+
+.org-browse-topbar-links{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.org-browse-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--color-primary);
+    font-size:18px;
+    font-weight:700;
+}
+
+.org-browse-brand i{
+    font-size:22px;
+}
+
+.org-browse-back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    width:auto;
+    padding:10px 18px;
+    border-radius:30px;
+    background:#fff;
+    color:var(--color-heading);
+    font-size:13.5px;
+    font-weight:600;
+    text-decoration:none;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+    transition:background .2s ease, transform .2s ease;
+}
+
+.org-browse-back-btn:hover{
+    background:var(--color-border);
+    transform:translateY(-1px);
+}
+
+/* ================= HERO ================= */
+
+.org-browse-hero{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.org-browse-hero h1{
+    color:var(--color-heading);
+    font-size:28px;
+    margin-bottom:10px;
+}
+
+.org-browse-hero p{
+    color:var(--color-text-muted);
+    max-width:640px;
+    margin:0 auto;
+    font-size:14.5px;
+    line-height:1.6;
+}
+
+/* ================= FILTERS ================= */
+
+.org-browse-filters{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:26px;
+}
+
+.org-browse-filters .search{
+    flex:1;
+    min-width:240px;
+}
+
+.org-browse-filters .search input{
+    padding:14px;
+}
+
+.org-browse-filters select{
+    width:auto;
+    min-width:190px;
+    padding:14px;
+}
+
+/* ================= ORGANIZATION GRID ================= */
+
+.org-browse-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+}
+
+@media(min-width:1400px){
+    .org-browse-grid{ grid-template-columns:repeat(4, 1fr); }
+}
+
+@media(max-width:1000px){
+    .org-browse-grid{ grid-template-columns:repeat(2, 1fr); }
+}
+
+@media(max-width:600px){
+    .org-browse-grid{ grid-template-columns:1fr; }
+}
+
+.org-browse-card{
+    background:#fff;
+    border-radius:18px;
+    padding:26px 22px;
+    box-shadow:0 6px 18px rgba(54,42,93,.08);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transition:transform .28s ease, box-shadow .28s ease;
+}
+
+.org-browse-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 16px 30px rgba(54,42,93,.16);
+}
+
+.org-browse-logo{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    overflow:hidden;
+    margin-bottom:16px;
+    flex-shrink:0;
+}
+
+.org-browse-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.org-browse-card-name{
+    color:var(--color-heading);
+    font-size:15px;
+    font-weight:700;
+    line-height:1.4;
+    margin-bottom:6px;
+    min-height:42px;
+}
+
+.org-browse-card-acronym{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    margin-bottom:10px;
+}
+
+.org-browse-category-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:20px;
+    background:var(--color-bg);
+    color:var(--color-primary);
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:14px;
+}
+
+.org-browse-card-desc{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    line-height:1.5;
+    margin-bottom:18px;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    flex:1;
+}
+
+.org-browse-card-btn{
+    width:100%;
+    padding:10px;
+    border-radius:30px;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border:none;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    margin-top:auto;
+}
+
+.org-browse-card:hover .org-browse-card-btn{
+    background:var(--color-primary);
+    color:#fff;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.org-browse-empty{
+    text-align:center;
+    color:var(--color-text-muted);
+    padding:80px 0;
+}
+
+.org-browse-empty i{
+    display:block;
+    font-size:48px;
+    margin-bottom:16px;
+    color:var(--color-border);
+}
+
+.org-browse-empty p{
+    font-size:15px;
+}
+
+/* ================= SKELETON LOADING ================= */
+
+@keyframes orgBrowseSkeletonPulse{
+    0%, 100%{ opacity:.55; }
+    50%{ opacity:1; }
+}
+
+.org-browse-skeleton{
+    background:#fff;
+    border-radius:18px;
+    padding:26px 22px;
+    box-shadow:0 6px 18px rgba(54,42,93,.06);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.org-browse-skeleton-circle,
+.org-browse-skeleton-line{
+    background:var(--color-border);
+    border-radius:20px;
+    animation:orgBrowseSkeletonPulse 1.3s ease-in-out infinite;
+}
+
+.org-browse-skeleton-circle{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    margin-bottom:16px;
+}
+
+.org-browse-skeleton-line{
+    height:12px;
+    width:100%;
+    margin-bottom:10px;
+}
+
+/* ================= ORGANIZATION DETAILS MODAL ================= */
+/* Reuses css/common.css's .modal-overlay/.modal/.modal-header/.modal-body
+   shell (loaded on this page) - only the content inside .modal-body is
+   page-specific. */
+
+.org-detail-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:20px;
+}
+
+.org-detail-logo{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.org-detail-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.org-detail-title h3{
+    color:var(--color-heading);
+    font-size:17px;
+    margin-bottom:4px;
+}
+
+.org-detail-grid{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.org-detail-row{
+    padding:12px 14px;
+    background:var(--color-bg);
+    border-radius:10px;
+}
+
+.org-detail-label{
+    display:block;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--color-text-muted);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:5px;
+}
+
+.org-detail-value{
+    font-size:14px;
+    color:var(--color-text);
+    line-height:1.55;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.org-detail-social-link{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:8px 14px;
+    border-radius:30px;
+    background:#fff;
+    border:1px solid var(--color-border);
+    color:var(--color-primary);
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    transition:background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.org-detail-social-link:hover{
+    background:var(--color-primary);
+    color:#fff;
+    border-color:var(--color-primary);
+    transform:none;
+    box-shadow:none;
+}
+
+@media(max-width:600px){
+    .org-browse-page{ padding:18px 16px 40px; }
+    .org-browse-topbar{ justify-content:center; text-align:center; }
+}

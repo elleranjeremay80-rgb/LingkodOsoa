@@ -1,0 +1,102 @@
+.search{
+    margin:20px 0;
+}
+
+.search input{
+    padding:14px;
+}
+
+/* Summary */
+
+.summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.card{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.card i{
+    font-size:35px;
+    color:var(--color-heading);
+    margin-bottom:10px;
+}
+
+.card h2{
+    color:var(--color-heading);
+}
+
+.card p{
+    color:#666;
+}
+
+/* Repository Table */
+
+.repository{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.repository h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+/* Preview/Download cells use the shared .file-action-btn component (see
+   css/common.css) - only the Actions column's admin edit/delete links
+   (still <a> tags) need their own styling here. */
+
+.action a{
+    text-decoration:none;
+    padding:8px 15px;
+    border-radius:20px;
+    color:#fff;
+    margin-right:5px;
+    font-size:14px;
+}
+
+.admin-actions{
+    display:inline-flex;
+    gap:5px;
+}
+
+.edit{
+    background:var(--color-secondary);
+}
+
+.delete{
+    background:var(--color-highlight);
+}
+
+.manage-box{
+    background:#fff;
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    margin-bottom:25px;
+}
+
+.manage-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.manage-box form{
+    display:grid;
+    gap:15px;
+}
+
+/* See requests/style.css for why this exists: moving data rows into
+   their own <tbody> shifts nth-child parity vs. the old flat markup. */
+#repositoryTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}

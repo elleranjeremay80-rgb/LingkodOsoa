@@ -1,0 +1,9 @@
+{
+  "name": "lingkod-meneses",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LINGKOD Meneses - OSOA e-governance platform (static HTML/CSS/JS + Supabase, no build step).",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

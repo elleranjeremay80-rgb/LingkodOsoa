@@ -1,0 +1,235 @@
+.feedback-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+
+.feedback-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.feedback-box form{
+    display:grid;
+    gap:15px;
+}
+
+.feedback-box textarea{
+    height:140px;
+}
+
+.rating{
+    display:flex;
+    gap:10px;
+    font-size:24px;
+    color:#f4b400;
+    cursor:pointer;
+}
+
+/* ================= FULL NAME (read-only, auto-filled) ================= */
+
+.readonly-field label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.readonly-field input{
+    background:var(--color-bg);
+    color:var(--color-text);
+    cursor:not-allowed;
+}
+
+/* ================= "PLEASE SPECIFY" (shown only for Others) =================
+   Height-based transition (rather than display:none toggling) so it can
+   fade/slide in and out smoothly; grid-template-rows would be cleaner but
+   max-height is broadly supported and plenty smooth at this size. */
+
+.specify-field{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height .28s ease, opacity .28s ease, margin .28s ease;
+}
+
+.specify-field.visible{
+    max-height:110px;
+    opacity:1;
+}
+
+.specify-field label{
+    display:block;
+    margin-bottom:6px;
+    margin-top:4px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.field-error{
+    display:none;
+    margin-top:6px;
+    color:var(--color-highlight);
+    font-size:12px;
+    font-weight:600;
+}
+
+.field-error.visible{
+    display:block;
+}
+
+.table-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.table-box + .table-box{
+    margin-top:25px;
+}
+
+.table-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.feedback-datetime{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    font-size:13px;
+}
+
+.feedback-datetime .time{
+    color:var(--color-text-muted);
+    font-size:12px;
+}
+
+/* ================= STATUS BADGES =================
+   Received/Blue, Under Review/Orange, In Progress/Purple, Resolved/Green,
+   Closed/Gray. */
+
+.status.received{
+    background:#E5F0FF;
+    color:#1D5FBF;
+}
+
+.status.review{
+    background:#FFF4E0;
+    color:#B8790B;
+}
+
+.status.in-progress{
+    background:#F1E7FB;
+    color:#7B3FBF;
+}
+
+.status.resolved{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.status.closed{
+    background:#EEEEF0;
+    color:#5B5B66;
+}
+
+.view-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:8px 14px;
+    font-size:13px;
+    border-radius:8px;
+    background:var(--color-secondary);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+}
+
+.view-btn:hover{
+    background:var(--color-secondary-dark);
+}
+
+/* See requests/style.css for why this exists: moving data rows into
+   their own <tbody> shifts nth-child parity vs. the old flat markup. */
+#feedbackTableBody tr:nth-child(odd),
+#feedbackManageTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+/* ================= VIEW FEEDBACK MODAL ================= */
+/* .view-modal-field/.review-form follow the same layout used by the
+   Submission & Tracking review modal (submission/style.css), duplicated
+   here since that stylesheet isn't shared - kept visually consistent
+   across both modals on purpose. */
+
+.review-form{
+    display:grid;
+    gap:10px;
+}
+
+.view-modal-field{
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:3px;
+}
+
+.view-modal-field span{
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.feedback-view-rating{
+    color:#f4b400;
+    font-size:18px;
+    letter-spacing:2px;
+}
+
+.feedback-view-message{
+    white-space:pre-wrap;
+    line-height:1.6;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:14px;
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.feedback-manage-form{
+    display:grid;
+    gap:10px;
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid var(--color-border);
+}
+
+.feedback-manage-form label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.feedback-manage-form textarea{
+    height:80px;
+}
+
+.feedback-reply-note{
+    display:block;
+    margin-top:-4px;
+    color:var(--color-text-muted);
+    font-size:12px;
+    font-style:italic;
+}

@@ -1,0 +1,133 @@
+.settings-card{
+    background:#fff;
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.settings-card h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.setting{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid var(--color-border);
+}
+
+.setting:last-child{
+    border-bottom:none;
+}
+
+.setting-title h3{
+    color:var(--color-text);
+    margin-bottom:5px;
+}
+
+.setting-title p{
+    color:var(--color-text-muted);
+    font-size:14px;
+}
+
+.setting-note{
+    display:block;
+    margin-top:4px;
+    color:var(--color-text-muted);
+    font-size:12.5px;
+    font-style:italic;
+}
+
+/* Switch */
+
+.switch{
+    position:relative;
+    display:inline-block;
+    width:50px;
+    height:26px;
+}
+
+.switch input{
+    display:none;
+}
+
+.slider{
+    position:absolute;
+    cursor:pointer;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:#ccc;
+    transition:.28s;
+    border-radius:30px;
+}
+
+.slider:before{
+    position:absolute;
+    content:"";
+    height:20px;
+    width:20px;
+    left:3px;
+    bottom:3px;
+    background:#fff;
+    transition:.28s;
+    border-radius:50%;
+}
+
+input:checked + .slider{
+    background:var(--color-primary);
+}
+
+input:checked + .slider:before{
+    transform:translateX(24px);
+}
+
+.switch.is-saving{
+    opacity:.6;
+    pointer-events:none;
+}
+
+.toggle-spinner{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:14px;
+    height:14px;
+    margin:-7px 0 0 -7px;
+    border:2px solid rgba(255,255,255,.65);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:btnSpin .7s linear infinite;
+    pointer-events:none;
+}
+
+/* ================= 2FA ENROLLMENT MODAL ================= */
+
+.mfa-qr{
+    display:flex;
+    justify-content:center;
+    margin:16px 0;
+}
+
+.mfa-qr svg{
+    width:180px;
+    height:180px;
+    border-radius:10px;
+    border:1px solid var(--color-border);
+    padding:10px;
+    background:#fff;
+}
+
+@media(max-width:900px){
+
+.setting{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+}
+
+}

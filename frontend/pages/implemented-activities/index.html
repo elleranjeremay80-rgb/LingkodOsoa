@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LINGKOD | Implemented Activities and Projects</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../../css/common.css?v=2">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div class="container">
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<div class="logo">
+<h2><i class="fa-solid fa-building-columns"></i> LINGKOD</h2>
+<p>OSOA E-Governance Platform</p>
+</div>
+
+<ul class="menu">
+
+<li>
+<a href="../dashboard/index.html">
+<i class="fa-solid fa-house"></i>
+Dashboard
+</a>
+</li>
+
+<li>
+<a href="../announcements/index.html">
+<i class="fa-solid fa-bullhorn"></i>
+Announcements & Updates
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../submission/index.html">
+<i class="fa-solid fa-folder-open"></i>
+Submission & Tracking
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../reports/index.html">
+<i class="fa-solid fa-flag"></i>
+Reports
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../audit-logs/index.html">
+<i class="fa-solid fa-clock-rotate-left"></i>
+Audit Logs
+</a>
+</li>
+
+<li class="menu-parent" id="servicesMenuParent">
+
+<button type="button" class="menu-toggle" id="servicesToggleBtn" aria-expanded="false">
+<i class="fa-solid fa-layer-group"></i>
+<span>Services</span>
+<i class="fa-solid fa-chevron-down menu-toggle-arrow"></i>
+</button>
+
+<ul class="submenu" id="servicesSubmenu">
+
+<li>
+<a href="../requests/index.html">
+<i class="fa-solid fa-file-circle-plus"></i>
+Requests
+</a>
+</li>
+
+<li>
+<a href="../feedback/index.html">
+<i class="fa-solid fa-comments"></i>
+Feedback
+</a>
+</li>
+
+<li>
+<a href="../repository/index.html">
+<i class="fa-solid fa-box-archive"></i>
+Digital Repository
+</a>
+</li>
+
+<li>
+<a href="../ongoing-projects/index.html">
+<i class="fa-solid fa-diagram-project"></i>
+Ongoing Projects
+</a>
+</li>
+
+<li>
+<a href="../upcoming-activities/index.html">
+<i class="fa-solid fa-calendar-days"></i>
+Upcoming Activities
+</a>
+</li>
+
+<li>
+<a href="../implemented-activities/index.html">
+<i class="fa-solid fa-flag-checkered"></i>
+Implemented Activities and Projects
+</a>
+</li>
+
+<li>
+<a href="../income-projects/index.html">
+<i class="fa-solid fa-sack-dollar"></i>
+Income-Generating Projects
+</a>
+</li>
+
+</ul>
+
+</li>
+
+<li>
+<a href="../directory/index.html">
+<i class="fa-solid fa-address-book"></i>
+Directory
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../documents/index.html">
+<i class="fa-solid fa-file-lines"></i>
+Documents
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+List of Organizations
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../registered-users/index.html">
+<i class="fa-solid fa-users-gear"></i>
+Registered Users
+</a>
+</li>
+
+<li data-roles="staff">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-users"></i>
+List of Members
+</a>
+</li>
+
+<li data-roles="student">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+Organizations
+</a>
+</li>
+
+<li>
+<a href="../messages/index.html">
+<i class="fa-solid fa-message"></i>
+Messages
+</a>
+</li>
+
+<li>
+<a href="../profile/index.html">
+<i class="fa-solid fa-user"></i>
+Profile
+</a>
+</li>
+
+<li>
+<a href="../settings/index.html">
+<i class="fa-solid fa-gear"></i>
+Settings
+</a>
+</li>
+
+<li>
+<a href="../login/index.html">
+<i class="fa-solid fa-right-from-bracket"></i>
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+
+<!-- Main -->
+
+<div class="content">
+
+<div class="header">
+
+<h1>Implemented Activities and Projects</h1>
+
+<p>
+A record of completed activities and projects carried out by OSOA and recognized student organizations.
+</p>
+
+</div>
+
+<div class="manage-box" data-roles="admin staff">
+
+<h2>Add Completed Record</h2>
+
+<form id="implementedForm">
+
+<input type="text" name="title" placeholder="Activity or Project Title" required>
+
+<label class="field-label">Organization</label>
+<select name="organization" required>
+<option value="">Select Organization</option>
+</select>
+
+<input type="date" name="date">
+
+<textarea name="description" placeholder="Short description and outcome..."></textarea>
+
+<div class="image-field">
+<label class="field-label">Activity Cover Image</label>
+<input type="file" name="image" id="implementedImageInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+<div class="image-preview" id="implementedImagePreview" hidden>
+<img id="implementedImagePreviewImg" alt="Selected cover image preview">
+<button type="button" class="image-preview-remove" id="implementedImageRemoveBtn" aria-label="Remove selected image">
+<i class="fa-solid fa-xmark"></i>
+</button>
+</div>
+<small class="field-hint">Recommended image size: 1080 &times; 1080 pixels (Square / Facebook Post). JPG, PNG, or WEBP. Max 10 MB - non-square images are automatically center-cropped to a square.</small>
+</div>
+
+<button type="submit" id="implementedSubmitBtn">
+<i class="fa-solid fa-plus"></i>
+Add Record
+</button>
+
+</form>
+
+</div>
+
+<div class="items-grid" id="implementedGrid">
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/common.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

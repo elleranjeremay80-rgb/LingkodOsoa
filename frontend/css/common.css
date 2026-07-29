@@ -1,0 +1,1869 @@
+/* ===================================================
+   LINGKOD Meneses - Shared App Shell Styles
+   Used by every module inside the sidebar layout
+   (dashboard, announcements, submission, requests,
+   feedback, messages, repository, profile, settings)
+
+   Palette: deep purple (primary/sidebar), royal blue
+   (secondary/active nav), orange (accent/buttons &
+   highlights), pink-red (highlight accents), white
+   (neutral).
+   =================================================== */
+
+:root{
+    --color-primary:#362A5D;
+    --color-primary-dark:#241B40;
+    --color-secondary:#3F51B5;
+    --color-secondary-dark:#2F3D91;
+    --color-accent:#F0954D;
+    --color-accent-dark:#D97D34;
+    --color-highlight:#E15873;
+    --color-highlight-dark:#C33F5B;
+    --color-neutral:#FFFFFF;
+    --color-bg:#F5F4FA;
+    --color-bg-stripe:#F7F6FC;
+    --color-text:#2E2540;
+    --color-text-muted:#6B6478;
+    --color-border:#E4E1EE;
+
+    /* Card/panel/modal surfaces and heading text were hardcoded to #fff /
+       var(--color-primary) throughout every page's own stylesheet rather
+       than a shared variable - these two exist so dark mode (see the
+       [data-theme="dark"] block below) has something to redirect them to.
+       Defaulted to the exact values already used everywhere, so light
+       mode is visually unchanged. --color-input-bg/--color-text-secondary
+       both default to their nearest light-mode equivalent (plain white,
+       plain body text) since light mode never distinguished them from
+       --color-surface/--color-text either. */
+    --color-surface:#FFFFFF;
+    --color-input-bg:#FFFFFF;
+    --color-heading:var(--color-primary);
+    --color-text-secondary:var(--color-text);
+}
+
+/* ================= DARK MODE ================= */
+/* Toggled via Settings -> Dark Mode (see settings/script.js, which sets
+   documentElement.dataset.theme, and js/common.js's lingkodSyncThemeFrom
+   Database/lingkodApplyTheme, which persist/restore it). Applies across
+   every page that loads this stylesheet - sidebar/navbar/buttons/badges
+   are deliberately left on the fixed OSOA purple+orange palette either
+   way (same "keep the accent colors" request this is built from), so
+   only surfaces that were actually hardcoded to a light color need
+   redirecting here. Every page-specific stylesheet either already reads
+   these shared variables (most do, since var(--color-bg)/var(--color-
+   text)/var(--color-border) were already the established convention) or
+   is covered by a class listed in the selector groups below - the
+   handful of truly page-unique surfaces (Messages' chat bubbles/emoji
+   picker, List of Members' Organization Information "always a real
+   input" fields) that don't fit a shared class have their own small
+   [data-theme="dark"] block in that page's own stylesheet instead of
+   bloating this shared list with one-file-only selectors. Pre-auth pages
+   (login/register/reset-password) are deliberately out of scope - dark
+   mode is a Settings toggle behind a login wall, so there's no reachable
+   way to turn it on before authenticating, and those three pages already
+   use a fixed dark-purple card on a bright background rather than a
+   light-mode surface to begin with. */
+
+:root[data-theme="dark"]{
+    --color-bg:#121212;
+    --color-bg-stripe:#1A1A1A;
+    --color-surface:#1E1E2F;
+    --color-input-bg:#252538;
+    --color-text:#FFFFFF;
+    --color-text-secondary:#D1D5DB;
+    --color-text-muted:#9CA3AF;
+    --color-border:#3A3A4F;
+    --color-heading:#B7A9F2;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .announcements,
+[data-theme="dark"] .requests,
+[data-theme="dark"] .panel,
+[data-theme="dark"] .search-box,
+[data-theme="dark"] .manage-box,
+[data-theme="dark"] .upload-box,
+[data-theme="dark"] .table-box,
+[data-theme="dark"] .request-box,
+[data-theme="dark"] .repository,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .info,
+[data-theme="dark"] .settings-card,
+[data-theme="dark"] .header,
+[data-theme="dark"] .announcement-card,
+[data-theme="dark"] .modal,
+[data-theme="dark"] .toast,
+[data-theme="dark"] .locked-note,
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .cancel-edit-btn,
+[data-theme="dark"] .pagination button,
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .item-card,
+[data-theme="dark"] .ongoing-project-card,
+[data-theme="dark"] .doclib-table-wrap,
+[data-theme="dark"] .documents-panel,
+[data-theme="dark"] .feedback-box,
+[data-theme="dark"] .org-card,
+[data-theme="dark"] .org-card-skeleton,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .org-info-card,
+[data-theme="dark"] .org-browse-card,
+[data-theme="dark"] .org-browse-skeleton,
+[data-theme="dark"] .context-menu{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .card h2,
+[data-theme="dark"] .card h3,
+[data-theme="dark"] .info-box h2,
+[data-theme="dark"] .table-box h2,
+[data-theme="dark"] .repository h2,
+[data-theme="dark"] .settings-card h2,
+[data-theme="dark"] .header h1,
+[data-theme="dark"] .announcement-card h2,
+[data-theme="dark"] .profile-card h2,
+[data-theme="dark"] .upload-box h2,
+[data-theme="dark"] .manage-box h2,
+[data-theme="dark"] .modal-header h3,
+[data-theme="dark"] .panel h2,
+[data-theme="dark"] .welcome h1,
+[data-theme="dark"] .page-title h1,
+[data-theme="dark"] .request-box h2,
+[data-theme="dark"] .view-modal-info h4,
+[data-theme="dark"] .documents-panel h2,
+[data-theme="dark"] .feedback-box h2,
+[data-theme="dark"] .doclib-hero h1,
+[data-theme="dark"] .org-browse-hero h1{
+    color:var(--color-heading);
+}
+
+[data-theme="dark"] .card p,
+[data-theme="dark"] .profile-card p,
+[data-theme="dark"] .page-title p,
+[data-theme="dark"] .header p,
+[data-theme="dark"] .doclib-hero p,
+[data-theme="dark"] .org-browse-hero p{
+    color:var(--color-text-muted);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{
+    background:var(--color-input-bg);
+    color:var(--color-text);
+    border-color:var(--color-border);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder{
+    color:var(--color-text-muted);
+    opacity:1;
+}
+
+[data-theme="dark"] .filter-bar select,
+[data-theme="dark"] .filter-bar input[type="text"],
+[data-theme="dark"] .search input,
+[data-theme="dark"] .doclib-filters select,
+[data-theme="dark"] .org-browse-filters select{
+    background:var(--color-input-bg);
+    color:var(--color-text);
+}
+
+[data-theme="dark"] .info label{
+    color:var(--color-text-muted);
+}
+
+[data-theme="dark"] .info span{
+    color:var(--color-text);
+}
+
+/* Hardcoded plain-gray body/paragraph text (never themed because it
+   predates --color-text-muted becoming the convention) - unreadable
+   against a dark card otherwise. */
+[data-theme="dark"] .announcement-card .announcement-details span,
+[data-theme="dark"] .announcement-card p,
+[data-theme="dark"] .announcement-card .info{
+    color:var(--color-text-muted);
+}
+
+/* Status/type badges (requests, feedback, submissions - amber/blue/
+   orange/purple pastel chips) are deliberately left on their original
+   light pastel backgrounds in dark mode too - they already carry their
+   own strong background+text contrast independent of the page around
+   them, and colored chips popping against a dark card is the same
+   convention most dark-mode UIs already use for exactly this kind of
+   at-a-glance status label. */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--color-bg);
+    color:var(--color-text);
+    /* So the page background itself fades along with every themed child
+       element below when Dark Mode is toggled, instead of the body
+       snapping instantly while cards/inputs/etc. animate around it. */
+    transition:background .25s ease, color .25s ease;
+}
+
+a{
+    text-decoration:none;
+}
+
+a, button, .card, .menu li, input, select, textarea{
+    transition:background .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+
+/* ================= APP SHELL ================= */
+
+.container{
+    display:flex;
+}
+
+.sidebar{
+    width:300px;
+    height:100vh;
+    position:fixed;
+    top:0;
+    left:0;
+    background:linear-gradient(180deg,var(--color-primary),var(--color-primary-dark));
+    color:#fff;
+    padding:25px 20px;
+    transition:width .3s ease, padding .3s ease;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scroll-behavior:smooth;
+    z-index:500;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.25) transparent;
+}
+
+.sidebar::-webkit-scrollbar{
+    width:6px;
+}
+
+.sidebar::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.25);
+    border-radius:10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,.4);
+}
+
+.sidebar-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    background:rgba(255,255,255,.12);
+    border:none;
+    border-radius:10px;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+    margin-bottom:20px;
+    transition:background .25s ease;
+}
+
+.sidebar-toggle:hover{
+    background:rgba(255,255,255,.25);
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.logo h2{
+    font-size:28px;
+    white-space:nowrap;
+}
+
+.logo p{
+    color:rgba(255,255,255,.7);
+    font-size:14px;
+    white-space:nowrap;
+}
+
+.session-badge{
+    margin-top:12px;
+    display:inline-block;
+    background:rgba(255,255,255,.15);
+    color:#fff;
+    padding:5px 14px;
+    border-radius:20px;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+/* ================= NOTIFICATIONS =================
+   Bell button lives in the sidebar's fixed purple chrome (see
+   js/common.js's lingkodInitNotifications) so it stays the brand color
+   in both themes, same as the rest of the sidebar - the dropdown PANEL
+   underneath it is a normal surface and does follow theme. */
+
+.notification-bell-btn{
+    position:absolute;
+    top:22px;
+    right:18px;
+    width:36px;
+    height:36px;
+    padding:0;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:20;
+}
+
+.notification-bell-btn:hover{
+    background:rgba(255,255,255,.22);
+    transform:none;
+    box-shadow:none;
+}
+
+.notification-badge{
+    position:absolute;
+    top:-2px;
+    right:-2px;
+    min-width:16px;
+    height:16px;
+    padding:0 4px;
+    border-radius:10px;
+    background:var(--color-highlight);
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    line-height:16px;
+    text-align:center;
+}
+
+.notification-panel{
+    position:fixed;
+    top:70px;
+    left:330px;
+    width:330px;
+    max-height:70vh;
+    background:var(--color-surface);
+    color:var(--color-text);
+    border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    transform:translateY(-8px);
+    pointer-events:none;
+    transition:opacity .15s ease, transform .15s ease;
+    z-index:900;
+}
+
+.notification-panel.open{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.notification-panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 18px;
+    border-bottom:1px solid var(--color-border);
+}
+
+.notification-panel-header h4{
+    color:var(--color-heading);
+    font-size:15px;
+}
+
+.notification-mark-all{
+    width:auto;
+    background:none;
+    color:var(--color-secondary);
+    font-size:12px;
+    font-weight:600;
+    padding:4px 8px;
+}
+
+.notification-mark-all:hover{
+    background:var(--color-bg);
+    transform:none;
+    box-shadow:none;
+}
+
+.notification-list{
+    overflow-y:auto;
+    padding:6px;
+}
+
+.notification-item{
+    padding:10px 12px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.notification-item:hover{
+    background:var(--color-bg);
+}
+
+.notification-item.unread{
+    background:rgba(63,81,181,.07);
+}
+
+.notification-item.unread .notification-item-title::before{
+    content:"";
+    display:inline-block;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--color-secondary);
+    margin-right:6px;
+}
+
+.notification-item-title{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--color-text);
+    margin-bottom:2px;
+}
+
+.notification-item-body{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    margin-bottom:4px;
+}
+
+.notification-item-time{
+    font-size:11px;
+    color:var(--color-text-muted);
+}
+
+.notification-empty{
+    text-align:center;
+    color:var(--color-text-muted);
+    font-size:13px;
+    padding:30px 10px;
+}
+
+@media(max-width:900px){
+    .notification-panel{
+        left:16px;
+        right:16px;
+        width:auto;
+        top:80px;
+    }
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.menu li a{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 12px;
+    color:#fff;
+    text-decoration:none;
+    white-space:normal;
+    line-height:1.3;
+    font-size:14.5px;
+}
+
+.menu li i{
+    color:#fff;
+    width:20px;
+    text-align:center;
+    flex-shrink:0;
+    transition:transform .25s ease;
+}
+
+.menu li:hover{
+    background:rgba(255,255,255,.1);
+}
+
+.menu li:hover i{
+    transform:translateX(2px);
+}
+
+.menu li.active{
+    background:var(--color-highlight);
+    box-shadow:0 6px 16px rgba(225,88,115,.35);
+}
+
+/* ================= SERVICES SUBMENU ================= */
+
+.menu-parent{
+    margin:10px 0;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.menu-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:14px 12px;
+    background:none;
+    border:none;
+    border-radius:10px;
+    color:#fff;
+    font-size:14.5px;
+    font-family:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+
+.menu-toggle:hover{
+    background:rgba(255,255,255,.1);
+    transform:none;
+    box-shadow:none;
+}
+
+.menu-toggle > i:first-child{
+    width:20px;
+    text-align:center;
+    flex-shrink:0;
+    color:#fff;
+}
+
+.menu-toggle span{
+    flex:1;
+}
+
+.menu-toggle-arrow{
+    font-size:11px !important;
+    width:auto !important;
+    flex-shrink:0;
+    transition:transform .28s ease;
+}
+
+.menu-parent.expanded .menu-toggle-arrow{
+    transform:rotate(180deg);
+}
+
+.menu-parent.active > .menu-toggle{
+    background:rgba(255,255,255,.14);
+}
+
+.submenu{
+    list-style:none;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .28s ease;
+}
+
+.submenu li{
+    margin:4px 0 4px 14px;
+    border-radius:8px;
+    overflow:hidden;
+}
+
+.submenu li a{
+    padding:11px 12px 11px 20px;
+    font-size:13.5px;
+}
+
+.submenu li:hover{
+    background:rgba(255,255,255,.1);
+}
+
+.submenu li.active{
+    background:var(--color-highlight);
+    box-shadow:0 6px 16px rgba(225,88,115,.35);
+}
+
+.content{
+    flex:1;
+    margin-left:300px;
+    padding:30px;
+    transition:margin .3s ease;
+    animation:fadeInContent .4s ease;
+}
+
+@keyframes fadeInContent{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+.header{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    margin-bottom:25px;
+}
+
+.header h1{
+    color:var(--color-primary);
+    margin-bottom:10px;
+}
+
+.header p{
+    color:var(--color-text-muted);
+    line-height:1.7;
+}
+
+/* ================= COLLAPSED (DESKTOP) ================= */
+
+.sidebar.collapsed{
+    width:84px;
+    padding:25px 15px;
+}
+
+.sidebar.collapsed ~ .content{
+    margin-left:84px;
+}
+
+.sidebar.collapsed .logo p,
+.sidebar.collapsed .session-badge{
+    display:none;
+}
+
+.sidebar.collapsed .logo h2{
+    font-size:0;
+}
+
+.sidebar.collapsed .logo h2 i{
+    font-size:26px;
+}
+
+.sidebar.collapsed .menu li a{
+    font-size:0;
+    justify-content:center;
+    padding:15px 0;
+}
+
+.sidebar.collapsed .menu li i{
+    font-size:18px;
+}
+
+.sidebar.collapsed .sidebar-toggle{
+    margin-left:auto;
+    margin-right:auto;
+}
+
+/* Icon-only desktop rail has no room for a nested submenu's labels - force
+   it shut regardless of the Services menu's own remembered expand state.
+   Scoped to desktop only (never max-width:900px, where .sidebar.collapsed
+   is reused to mean "mobile flyout open," not "icon rail") so it can never
+   fight the JS-driven inline max-height that actually drives the submenu
+   on mobile. */
+@media(min-width:901px){
+
+.sidebar.collapsed .submenu{
+    max-height:0 !important;
+}
+
+.sidebar.collapsed .menu-toggle span,
+.sidebar.collapsed .menu-toggle-arrow{
+    display:none;
+}
+
+.sidebar.collapsed .menu-toggle{
+    justify-content:center;
+    padding:15px 0;
+}
+
+/* The bell's default position:absolute + top:22px/right:18px was tuned
+   for the 300px expanded sidebar - at the 84px collapsed width, right:18px
+   lands it almost exactly on top of the now horizontally-centered
+   .sidebar-toggle above (see the auto-margin rule for it above), instead
+   of below it. Switching to position:relative + margin:auto drops it
+   into normal document flow instead - centered regardless of the
+   collapsed rail's actual width (never hardcoded), and naturally placed
+   right after the toggle button, since js/common.js's
+   lingkodInitNotifications() inserts it immediately after that button in
+   the DOM specifically for this. position:relative (not static) is
+   required here, not just any non-positioned value - .notification-badge
+   is still position:absolute and needs the bell to remain its containing
+   block, or the unread count would detach and anchor to the sidebar
+   itself instead of the bell. */
+.sidebar.collapsed .notification-bell-btn{
+    position:relative;
+    top:auto;
+    right:auto;
+    margin:0 auto 20px;
+}
+
+/* The dropdown panel's left:330px (see its base rule) assumes the 300px
+   expanded sidebar plus a 30px gap - kept proportional here rather than
+   left pinned far away from an 84px-wide collapsed rail. */
+.sidebar.collapsed .notification-panel{
+    left:100px;
+}
+
+}
+
+/* ================= SHARED FORM ELEMENTS ================= */
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+    font-family:inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    outline:none;
+    border-color:var(--color-secondary);
+    box-shadow:0 0 0 3px rgba(63,81,181,.15);
+}
+
+textarea{
+    resize:none;
+}
+
+/* ================= SQUARE COVER IMAGES (Ongoing Projects, Upcoming
+   Activities, Implemented Activities, Income-Generating Projects) =====
+   Shared across all four project/activity pages - they all read/write
+   the same projects_activities.image_url column and the same
+   "project-images" Storage bucket, so the upload field and the resulting
+   card/preview treatment stay in one place instead of four. Facebook-post
+   style: the whole image is always visible (object-fit:contain) inside a
+   true 1:1 box - aspect-ratio, not a fixed height, so it's responsive at
+   any width with no extra breakpoints needed. */
+
+.field-hint{
+    color:var(--color-text-muted);
+    font-size:12px;
+}
+
+.field-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.image-field{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.image-preview{
+    position:relative;
+    width:100%;
+    max-width:240px;
+    border-radius:12px;
+    overflow:hidden;
+    background:#f5f5f5;
+}
+
+.image-preview img{
+    width:100%;
+    aspect-ratio:1/1;
+    object-fit:contain;
+    display:block;
+    background:#f5f5f5;
+}
+
+.image-preview-remove{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:28px;
+    height:28px;
+    padding:0;
+    border-radius:50%;
+    background:rgba(20,15,35,.65);
+    color:#fff;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.image-preview-remove:hover{
+    background:var(--color-highlight);
+}
+
+.item-card-cover{
+    display:block;
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+    aspect-ratio:1/1;
+    object-fit:contain;
+    background:#f5f5f5;
+}
+
+.item-card-cover-placeholder{
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+    aspect-ratio:1/1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
+    color:rgba(255,255,255,.5);
+    font-size:34px;
+}
+
+/* ================= CARD OPTIONS MENU (three-dot) =================
+   Shared by every activity/project grid card (see js/common.js's
+   lingkodBuildCardMenuButton/lingkodOpenCardMenu) - .item-card needs
+   position:relative so the trigger button can sit in its top-right
+   corner over the cover image/placeholder either way. */
+
+.item-card{
+    position:relative;
+}
+
+.card-menu-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:32px;
+    height:32px;
+    padding:0;
+    border-radius:50%;
+    border:none;
+    background:rgba(20,15,35,.65);
+    color:#fff;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:5;
+    box-shadow:none;
+}
+
+.card-menu-btn:hover,
+.card-menu-btn.active{
+    background:var(--color-highlight);
+    transform:none;
+    box-shadow:none;
+}
+
+/* Same fixed-position dropdown Messages uses for its own per-conversation
+   three-dot menu (messages/style.css keeps its own copy rather than
+   switching over - harmless redundancy, same convention as the Profile
+   View modal above) - defined here so every activity/project page can
+   share one copy instead of four. */
+
+.context-menu{
+    position:fixed;
+    z-index:800;
+    width:200px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 14px 34px rgba(54,42,93,.22);
+    padding:6px;
+    opacity:0;
+    transform:translateY(-6px) scale(.98);
+    transition:opacity .15s ease, transform .15s ease;
+    pointer-events:none;
+}
+
+.context-menu.open{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+}
+
+.context-menu-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:10px 12px;
+    background:none;
+    border:none;
+    border-radius:8px;
+    text-align:left;
+    font-size:13.5px;
+    color:var(--color-text);
+    cursor:pointer;
+}
+
+.context-menu-item:hover{
+    background:var(--color-bg);
+    transform:none;
+    box-shadow:none;
+}
+
+.context-menu-item i{
+    width:16px;
+    text-align:center;
+    color:var(--color-text-muted);
+}
+
+.context-menu-item.destructive{
+    color:var(--color-highlight-dark);
+}
+
+.context-menu-item.destructive i{
+    color:var(--color-highlight-dark);
+}
+
+button{
+    background:var(--color-accent);
+    color:#fff;
+    border:none;
+    padding:14px;
+    border-radius:8px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:var(--color-accent-dark);
+    transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(217,125,52,.3);
+}
+
+/* ================= SHARED TABLE ELEMENTS ================= */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:var(--color-primary);
+    color:#fff;
+}
+
+th,
+td{
+    padding:15px;
+    border-bottom:1px solid var(--color-border);
+    text-align:left;
+}
+
+table tr:nth-child(even){
+    background:var(--color-bg-stripe);
+}
+
+.status{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:13px;
+}
+
+/* The plain-gray "neutral" status variant (Closed/Inactive - background:
+   #EEEEF0, color:#5B5B66, in feedback/style.css and list-of-members/
+   style.css) is the one status pairing that isn't a saturated color
+   accent, so unlike the pastel amber/blue/purple/green badges (left
+   alone in dark mode - see the note above), this one really does read as
+   a stray light patch against a dark card and needs redirecting. */
+[data-theme="dark"] .status.closed,
+[data-theme="dark"] .status.inactive{
+    background:var(--color-input-bg);
+    color:var(--color-text-muted);
+}
+
+/* ================= EMPTY TABLE STATE ================= */
+
+.empty-row td{
+    text-align:center;
+    color:var(--color-text-muted);
+    padding:25px 15px;
+}
+
+/* ================= ROLE-LOCKED PLACEHOLDER ================= */
+
+.locked-note{
+    background:#faf9fc;
+    border:1px dashed var(--color-border);
+    padding:25px;
+    border-radius:10px;
+    color:var(--color-text-muted);
+    font-size:14px;
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.locked-note i{
+    color:var(--color-secondary);
+    margin-right:6px;
+}
+
+/* ================= TOAST NOTIFICATIONS ================= */
+/* Shared by every module (see js/common.js's lingkodToast) - not specific
+   to any one feature. */
+
+.toast-container{
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    z-index:900;
+}
+
+.toast{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#fff;
+    color:var(--color-text);
+    padding:14px 20px;
+    border-radius:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,.18);
+    border-left:5px solid var(--color-secondary);
+    font-size:14px;
+    max-width:340px;
+    animation:toastIn .25s ease;
+}
+
+.toast.leaving{
+    animation:toastOut .2s ease forwards;
+}
+
+.toast.success{
+    border-left-color:#1E8A4C;
+}
+
+.toast.error{
+    border-left-color:var(--color-highlight);
+}
+
+.toast i{
+    font-size:16px;
+}
+
+.toast.success i{
+    color:#1E8A4C;
+}
+
+.toast.error i{
+    color:var(--color-highlight);
+}
+
+@keyframes toastIn{
+    from{opacity:0; transform:translateX(20px)}
+    to{opacity:1; transform:translateX(0)}
+}
+
+@keyframes toastOut{
+    from{opacity:1; transform:translateX(0)}
+    to{opacity:0; transform:translateX(20px)}
+}
+
+/* ================= BUTTON LOADING SPINNER ================= */
+
+.btn-spinner{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border:2px solid rgba(255,255,255,.5);
+    border-top-color:#fff;
+    border-radius:50%;
+    margin-right:8px;
+    vertical-align:-2px;
+    animation:btnSpin .7s linear infinite;
+}
+
+@keyframes btnSpin{
+    to{transform:rotate(360deg)}
+}
+
+button:disabled{
+    opacity:.7;
+    cursor:not-allowed;
+    transform:none !important;
+}
+
+/* ================= MODAL ================= */
+/* Shared by every module (see js/common.js's lingkodOpenModal). */
+
+.modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(20,15,35,.55);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    z-index:600;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal-overlay.open{
+    display:flex;
+}
+
+.modal{
+    background:#fff;
+    border-radius:16px;
+    width:100%;
+    max-width:560px;
+    max-height:85vh;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+    animation:modalIn .28s cubic-bezier(.25,.8,.35,1);
+}
+
+/* Opt-in via lingkodOpenModal(title, node, "modal-wide") for content that
+   needs more room (e.g. a document preview panel) - the default .modal
+   width stays untouched for every other caller (calendar event details). */
+.modal-wide{
+    max-width:1000px;
+}
+
+/* Opt-in via lingkodOpenModal(title, node, "modal-confirm") - see
+   js/common.js's lingkodConfirmDelete. Narrower than the default .modal
+   since a Cancel/Delete confirmation never needs form-width room. */
+.modal-confirm{
+    max-width:400px;
+}
+
+@keyframes modalIn{
+    from{opacity:0; transform:scale(.9)}
+    to{opacity:1; transform:scale(1)}
+}
+
+/* Opt-in via the "closing" class js/common.js's lingkodCloseModal adds
+   for the duration of the fade-out (see the setTimeout there matching
+   this animation's length) - lets the backdrop/modal play a reverse of
+   modalIn instead of just vanishing the instant Cancel/Escape/outside-
+   click fires. Scoped to .closing rather than replacing modalIn outright
+   so document-library's and organizations' own separate modal
+   implementations (same .modal-overlay/.modal classes, their own close
+   functions) are unaffected unless they opt in the same way. */
+.modal-overlay.closing{
+    animation:modalOverlayOut .18s ease forwards;
+}
+
+.modal-overlay.closing .modal{
+    animation:modalOut .18s ease forwards;
+}
+
+@keyframes modalOut{
+    from{opacity:1; transform:scale(1)}
+    to{opacity:0; transform:scale(.9)}
+}
+
+@keyframes modalOverlayOut{
+    from{opacity:1}
+    to{opacity:0}
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 24px;
+    border-bottom:1px solid var(--color-border);
+}
+
+.modal-header h3{
+    color:var(--color-primary);
+    font-size:18px;
+}
+
+.modal-close{
+    width:34px;
+    height:34px;
+    padding:0;
+    background:var(--color-bg);
+    color:var(--color-text-muted);
+    border-radius:50%;
+    font-size:14px;
+}
+
+.modal-close:hover{
+    background:var(--color-highlight);
+    color:#fff;
+    transform:none;
+    box-shadow:none;
+}
+
+.modal-body{
+    padding:20px 24px;
+    overflow-y:auto;
+}
+
+/* ================= PROFILE VIEW MODAL / BUTTONS =================
+   Canonical shared version - Directory and Messages' View Profile action
+   each still carry their own page-local copy of this same block (kept as
+   harmless redundancy rather than risk touching already-working pages);
+   this is what Profile's own "view as others see it" and the avatar
+   cropper below actually rely on, since neither page has a local copy. */
+
+.profile-view{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+}
+
+.profile-view-avatar{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:38px;
+    font-weight:700;
+    margin-bottom:14px;
+    overflow:hidden;
+}
+
+.profile-view-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.profile-view-name{
+    color:var(--color-heading);
+}
+
+.profile-view-role,
+.profile-view-position{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-top:4px;
+}
+
+.profile-view-org{
+    font-size:13px;
+    color:var(--color-text-muted);
+    margin-bottom:16px;
+}
+
+.profile-view-grid{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    text-align:left;
+    margin-bottom:16px;
+}
+
+.profile-view-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 14px;
+    background:var(--color-bg);
+    border-radius:10px;
+    font-size:13px;
+}
+
+.profile-view-label{
+    color:var(--color-text-muted);
+    font-weight:600;
+    flex-shrink:0;
+}
+
+.profile-view-value{
+    color:var(--color-text);
+    text-align:right;
+    word-break:break-word;
+}
+
+.profile-view-private-note{
+    color:var(--color-text-muted);
+    font-size:13px;
+    padding:14px;
+    text-align:center;
+}
+
+.profile-view-actions{
+    width:100%;
+    display:flex;
+    gap:10px;
+}
+
+.profile-view-actions button{
+    flex:1;
+}
+
+.btn-secondary{
+    background:var(--color-bg);
+    color:var(--color-text);
+}
+
+.btn-secondary:hover{
+    background:var(--color-border);
+    box-shadow:none;
+    transform:none;
+}
+
+/* ================= DELETE CONFIRMATION MODAL =================
+   Shared by every activity/project page (see js/common.js's
+   lingkodConfirmDelete) - the pastel destructive icon background is
+   deliberately left as-is in dark mode, same convention as the status
+   badges above (a saturated chip against a dark card is fine on its
+   own). */
+
+.confirm-modal{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+}
+
+.confirm-modal-icon{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:#FDEAEC;
+    color:var(--color-highlight-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    margin-bottom:14px;
+}
+
+/* Opt-in via lingkodConfirmAction({..., destructive:false}) - for
+   confirmations that aren't actually dangerous (Archive Chat, etc.) so
+   the icon/button don't borrow Delete's red "this is destructive"
+   color language for a safe, reversible action. */
+.confirm-modal-icon-neutral{
+    background:#E8EAF6;
+    color:var(--color-secondary);
+}
+
+.confirm-modal-message{
+    color:var(--color-text-muted);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:22px;
+}
+
+.confirm-modal-actions{
+    display:flex;
+    gap:10px;
+    width:100%;
+}
+
+.confirm-modal-actions button{
+    flex:1;
+}
+
+/* Opt-in for a confirm modal offering more than Cancel/Confirm (e.g.
+   Remove Message's Remove for Me / Remove for Everyone / Cancel) - stacks
+   full-width instead of trying to cram 3 buttons into one row. */
+.confirm-modal-actions-stacked{
+    flex-direction:column;
+}
+
+.btn-danger{
+    background:var(--color-highlight);
+}
+
+.btn-danger:hover{
+    background:var(--color-highlight-dark);
+}
+
+.btn-primary-action{
+    background:var(--color-secondary);
+}
+
+.btn-primary-action:hover{
+    background:var(--color-secondary-dark);
+}
+
+/* ================= AVATAR CROPPER ================= */
+
+.avatar-cropper{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+}
+
+.avatar-cropper-stage{
+    width:300px;
+    max-width:100%;
+    border-radius:16px;
+    overflow:hidden;
+    background:#000;
+    cursor:grab;
+    touch-action:none;
+}
+
+.avatar-cropper-stage:active{
+    cursor:grabbing;
+}
+
+.avatar-cropper-stage canvas{
+    display:block;
+    width:100%;
+    height:auto;
+}
+
+.avatar-cropper-controls{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.avatar-cropper-zoom-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--color-text-muted);
+}
+
+.avatar-cropper-zoom-row input[type="range"]{
+    flex:1;
+    width:auto;
+}
+
+.avatar-cropper-rotate{
+    width:auto;
+    align-self:center;
+}
+
+/* ================= FILTERS ================= */
+/* Shared by every page with a filter/search toolbar above a list or
+   table (Announcements, the submissions review queue). */
+
+.filter-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:25px;
+}
+
+.filter-bar select,
+.filter-bar input[type="text"]{
+    width:auto;
+    background:#fff;
+    padding:10px 15px;
+    border:none;
+    border-radius:30px;
+    box-shadow:0 3px 10px rgba(0,0,0,.1);
+    font-size:13.5px;
+    color:var(--color-text);
+}
+
+.filter-bar input[type="text"]{
+    min-width:220px;
+}
+
+/* ================= PAGINATION ================= */
+/* Shared by every page that paginates a client-side-filtered list (see
+   js/common.js's lingkodRenderPagination). */
+
+.pagination{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-top:25px;
+}
+
+.pagination:empty{
+    display:none;
+}
+
+.pagination button{
+    width:auto;
+    padding:8px 14px;
+    font-size:13.5px;
+    background:#fff;
+    color:var(--color-heading);
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.pagination button:hover{
+    background:var(--color-accent);
+    color:#fff;
+}
+
+.pagination button.active{
+    background:var(--color-primary);
+    color:#fff;
+}
+
+.pagination button:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+/* ================= FILE PREVIEW / DOWNLOAD ================= */
+/* Shared by every page that shows an uploaded submission's file (see
+   js/common.js's lingkodBuildFileInfoCell/lingkodOpenSimpleFilePreview). */
+
+.download-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:8px 14px;
+    font-size:13px;
+    border-radius:8px;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    text-decoration:none;
+}
+
+.download-link:hover{
+    background:var(--color-border);
+}
+
+.view-modal-preview{
+    background:var(--color-bg);
+    border-radius:12px;
+    min-height:320px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.view-modal-preview iframe{
+    width:100%;
+    height:420px;
+    border:none;
+}
+
+.view-modal-preview img{
+    max-width:100%;
+    max-height:420px;
+    object-fit:contain;
+}
+
+.preview-unavailable{
+    color:var(--color-text-muted);
+    font-size:13.5px;
+    text-align:center;
+    padding:30px;
+}
+
+.preview-unavailable i{
+    display:block;
+    font-size:28px;
+    margin-bottom:10px;
+    color:var(--color-secondary);
+}
+
+.view-modal-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    border-top:1px solid var(--color-border);
+    padding-top:18px;
+    margin-top:18px;
+}
+
+.view-modal-actions button,
+.view-modal-actions a{
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 18px;
+    font-size:13.5px;
+    border-radius:8px;
+}
+
+/* Compact "file card" table cell - icon + name, type/size meta line,
+   View/Download actions. */
+
+.file-info-cell{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:180px;
+}
+
+.file-info-name{
+    font-size:13.5px;
+    color:var(--color-text);
+    font-weight:600;
+}
+
+.file-info-name i{
+    color:var(--color-heading);
+    margin-right:4px;
+}
+
+.file-info-meta{
+    font-size:12px;
+    color:var(--color-text-muted);
+}
+
+.file-info-actions{
+    display:flex;
+    gap:8px;
+}
+
+.file-action-btn{
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    font-size:12px;
+    border-radius:6px;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border:none;
+    cursor:pointer;
+}
+
+.file-action-btn:hover{
+    background:var(--color-border);
+}
+
+/* ================= ANNOUNCEMENT CARD ================= */
+/* Shared by every page that renders announcement cards (see js/common.js's
+   lingkodBuildAnnouncementCard). Named ".announcement-card" rather than the
+   generic ".card" some pages already use for unrelated tiles (e.g.
+   dashboard's service tiles) - everything below is scoped under it so it
+   can never collide with those. */
+
+.announcement-card{
+    background:#fff;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    transition:.3s;
+    border-left:8px solid var(--color-primary);
+}
+
+.announcement-card:hover{
+    transform:translateY(-5px);
+}
+
+.announcement-card .card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.announcement-card .badge{
+    background:var(--color-primary);
+    color:#fff;
+    padding:6px 15px;
+    border-radius:30px;
+    font-size:13px;
+}
+
+.announcement-card h2{
+    color:var(--color-primary);
+    margin-bottom:10px;
+}
+
+.announcement-card .announcement-details{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:10px 20px;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:15px;
+}
+
+.announcement-card .announcement-details span{
+    font-size:13.5px;
+    color:#555;
+}
+
+.announcement-card .announcement-details i{
+    color:var(--color-heading);
+    margin-right:6px;
+    width:14px;
+    text-align:center;
+}
+
+.announcement-card .announcement-details strong{
+    color:var(--color-text);
+}
+
+.announcement-card p{
+    color:#555;
+    line-height:1.7;
+}
+
+.announcement-card .info{
+    margin-top:20px;
+    display:flex;
+    justify-content:space-between;
+    color:#777;
+    font-size:14px;
+}
+
+.announcement-card .info i{
+    color:var(--color-heading);
+    margin-right:6px;
+}
+
+.announcement-card .card-actions{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+}
+
+.announcement-card .card-actions button{
+    flex:1;
+    padding:10px;
+    font-size:13px;
+}
+
+.announcement-card .edit-btn{
+    background:var(--color-secondary);
+}
+
+.announcement-card .edit-btn:hover{
+    background:var(--color-secondary-dark);
+}
+
+.announcement-card .delete-btn{
+    background:var(--color-highlight);
+}
+
+.announcement-card .delete-btn:hover{
+    background:var(--color-highlight-dark);
+}
+
+.empty-state{
+    background:#fff;
+    border-radius:15px;
+    padding:40px 25px;
+    text-align:center;
+    color:var(--color-text-muted);
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+@media(max-width:768px){
+
+.announcement-card .info{
+    flex-direction:column;
+    gap:10px;
+}
+
+}
+
+/* ================= MOBILE BACKDROP ================= */
+
+.sidebar-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(20,15,35,.5);
+    z-index:400;
+}
+
+.sidebar-backdrop.visible{
+    display:block;
+}
+
+.mobile-menu-btn{
+    display:none;
+}
+
+/* ================= RESPONSIVE SHELL ================= */
+
+@media(max-width:900px){
+
+.mobile-menu-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:fixed;
+    top:20px;
+    left:20px;
+    width:46px;
+    height:46px;
+    background:var(--color-primary);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-size:18px;
+    cursor:pointer;
+    z-index:450;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);
+    transition:background .25s ease, opacity .2s ease;
+}
+
+.mobile-menu-btn:hover{
+    background:var(--color-primary-dark);
+}
+
+.mobile-menu-btn.hide{
+    display:none;
+}
+
+.sidebar{
+    transform:translateX(-100%);
+    box-shadow:0 0 30px rgba(0,0,0,.3);
+}
+
+.sidebar.collapsed{
+    width:300px;
+    padding:25px 20px;
+}
+
+.sidebar.collapsed .logo p,
+.sidebar.collapsed .session-badge{
+    display:block;
+}
+
+.sidebar.collapsed .logo h2{
+    font-size:28px;
+}
+
+.sidebar.collapsed .menu li a{
+    font-size:14.5px;
+    justify-content:flex-start;
+    padding:14px 12px;
+}
+
+.sidebar.mobile-open{
+    transform:translateX(0);
+}
+
+.content{
+    width:100%;
+    margin-left:0;
+}
+
+table{
+    display:block;
+    overflow-x:auto;
+}
+
+}

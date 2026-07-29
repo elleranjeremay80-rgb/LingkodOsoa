@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LINGKOD | List of Members</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../../css/common.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
+
+</head>
+<body>
+
+<div class="container">
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<div class="logo">
+<h2><i class="fa-solid fa-building-columns"></i> LINGKOD</h2>
+<p>OSOA E-Governance Platform</p>
+</div>
+
+<ul class="menu">
+
+<li>
+<a href="../dashboard/index.html">
+<i class="fa-solid fa-house"></i>
+Dashboard
+</a>
+</li>
+
+<li>
+<a href="../announcements/index.html">
+<i class="fa-solid fa-bullhorn"></i>
+Announcements & Updates
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../submission/index.html">
+<i class="fa-solid fa-folder-open"></i>
+Submission & Tracking
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../reports/index.html">
+<i class="fa-solid fa-flag"></i>
+Reports
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../audit-logs/index.html">
+<i class="fa-solid fa-clock-rotate-left"></i>
+Audit Logs
+</a>
+</li>
+
+<li class="menu-parent" id="servicesMenuParent">
+
+<button type="button" class="menu-toggle" id="servicesToggleBtn" aria-expanded="false">
+<i class="fa-solid fa-layer-group"></i>
+<span>Services</span>
+<i class="fa-solid fa-chevron-down menu-toggle-arrow"></i>
+</button>
+
+<ul class="submenu" id="servicesSubmenu">
+
+<li>
+<a href="../requests/index.html">
+<i class="fa-solid fa-file-circle-plus"></i>
+Requests
+</a>
+</li>
+
+<li>
+<a href="../feedback/index.html">
+<i class="fa-solid fa-comments"></i>
+Feedback
+</a>
+</li>
+
+<li>
+<a href="../repository/index.html">
+<i class="fa-solid fa-box-archive"></i>
+Digital Repository
+</a>
+</li>
+
+<li>
+<a href="../ongoing-projects/index.html">
+<i class="fa-solid fa-diagram-project"></i>
+Ongoing Projects
+</a>
+</li>
+
+<li>
+<a href="../upcoming-activities/index.html">
+<i class="fa-solid fa-calendar-days"></i>
+Upcoming Activities
+</a>
+</li>
+
+<li>
+<a href="../implemented-activities/index.html">
+<i class="fa-solid fa-flag-checkered"></i>
+Implemented Activities and Projects
+</a>
+</li>
+
+<li>
+<a href="../income-projects/index.html">
+<i class="fa-solid fa-sack-dollar"></i>
+Income-Generating Projects
+</a>
+</li>
+
+</ul>
+
+</li>
+
+<li>
+<a href="../directory/index.html">
+<i class="fa-solid fa-address-book"></i>
+Directory
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../documents/index.html">
+<i class="fa-solid fa-file-lines"></i>
+Documents
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+List of Organizations
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../registered-users/index.html">
+<i class="fa-solid fa-users-gear"></i>
+Registered Users
+</a>
+</li>
+
+<li data-roles="staff">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-users"></i>
+List of Members
+</a>
+</li>
+
+<li data-roles="student">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+Organizations
+</a>
+</li>
+
+<li>
+<a href="../messages/index.html">
+<i class="fa-solid fa-message"></i>
+Messages
+</a>
+</li>
+
+<li>
+<a href="../profile/index.html">
+<i class="fa-solid fa-user"></i>
+Profile
+</a>
+</li>
+
+<li>
+<a href="../settings/index.html">
+<i class="fa-solid fa-gear"></i>
+Settings
+</a>
+</li>
+
+<li>
+<a href="../login/index.html">
+<i class="fa-solid fa-right-from-bracket"></i>
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+
+<!-- Main -->
+
+<div class="content" id="membersPageContent" data-roles="admin staff student">
+
+<!-- ================= VIEW 1: ORGANIZATION DIRECTORY ================= -->
+
+<div id="orgDirectoryView">
+
+<div class="header">
+
+<h1>List of Organizations</h1>
+
+<p>
+Browse every registered organization, then view members from there.
+</p>
+
+</div>
+
+<div class="org-grid" id="orgGrid">
+</div>
+
+<div class="pagination" id="orgPagination"></div>
+
+</div>
+
+<!-- ================= VIEW 2: SELECTED ORGANIZATION'S MEMBERS ================= -->
+
+<div id="orgMembersView" class="hidden">
+
+<div class="header">
+
+<button type="button" class="back-btn" id="backToOrgsBtn"><i class="fa-solid fa-arrow-left"></i> Back to Organizations</button>
+
+<div class="org-members-heading">
+<div id="selectedOrgLogoWrap"></div>
+<h1 id="selectedOrgName">Organization Name</h1>
+</div>
+
+</div>
+
+<div class="org-info-card" id="orgInfoCard">
+
+<div class="org-info-card-header">
+<h2>Organization Information</h2>
+<p class="org-info-card-subtitle">Update your organization details and ensure the information is accurate.</p>
+</div>
+
+<div class="org-info-grid" id="orgInfoGrid"></div>
+
+</div>
+
+<div class="stats-row" id="statsRow">
+
+<div class="stat-card">
+<div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+<div class="stat-body">
+<span class="stat-value" id="statTotal">0</span>
+<span class="stat-label">Total Members</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-icon stat-icon-active"><i class="fa-solid fa-user-check"></i></div>
+<div class="stat-body">
+<span class="stat-value" id="statActive">0</span>
+<span class="stat-label">Active Members</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-icon stat-icon-inactive"><i class="fa-solid fa-user-xmark"></i></div>
+<div class="stat-body">
+<span class="stat-value" id="statInactive">0</span>
+<span class="stat-label">Inactive Members</span>
+</div>
+</div>
+
+</div>
+
+<div class="table-box">
+
+<div class="members-toolbar">
+
+<div class="filters-row">
+
+<div class="search">
+<input type="text" id="membersSearch" placeholder="🔍 Search by name or student number...">
+</div>
+
+<select id="membersDeptFilter">
+<option value="all">All Departments</option>
+</select>
+
+<select id="membersPositionFilter">
+<option value="all">All Positions</option>
+</select>
+
+<select id="membersStatusFilter">
+<option value="all">All Statuses</option>
+<option value="active">Active</option>
+<option value="inactive">Inactive</option>
+</select>
+
+<select id="membersSort">
+<option value="name_asc">Sort: Name (A-Z)</option>
+<option value="name_desc">Sort: Name (Z-A)</option>
+<option value="recent">Sort: Recently Registered</option>
+<option value="oldest">Sort: Oldest Registered</option>
+</select>
+
+<select id="membersPageSize">
+<option value="10">10 per page</option>
+<option value="25">25 per page</option>
+<option value="50">50 per page</option>
+<option value="100">100 per page</option>
+</select>
+
+</div>
+
+<div class="toolbar-actions">
+<button type="button" class="toolbar-btn" id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+<button type="button" class="toolbar-btn" id="exportExcelBtn"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+</div>
+
+</div>
+
+<div class="members-table-wrap">
+
+<table class="members-table">
+
+<thead>
+<tr>
+<th>Profile Picture</th>
+<th>Student Number</th>
+<th>Full Name</th>
+<th>Username</th>
+<th>Department</th>
+<th>Position</th>
+<th>Contact Number</th>
+<th>Email Address</th>
+<th>Date Registered</th>
+<th>Account Status</th>
+</tr>
+</thead>
+
+<tbody id="membersTableBody">
+</tbody>
+
+</table>
+
+<div class="table-loading" id="membersLoading">
+<i class="fa-solid fa-spinner fa-spin"></i> Loading members...
+</div>
+
+</div>
+
+<div class="pagination" id="membersPagination"></div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/common.js"></script>
+<script src="script.js?v=3"></script>
+</body>
+</html>

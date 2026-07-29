@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINGKOD Meneses - Registration</title>
+<link rel="icon" href="../../pictures/BULSU.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+<div class="container">
+
+<div class="logo-badge">
+<img src="../../pictures/osoa logo clear bg.png" alt="OSOA Logo">
+</div>
+
+<h2>Create Account</h2>
+<p>Register to access LINGKOD Meneses.</p>
+
+<form id="registerForm">
+
+<div class="input-group">
+<label>Last Name</label>
+<input type="text" name="lastName" placeholder="Enter your last name" required>
+<small class="field-error" id="lastNameError"></small>
+</div>
+
+<div class="input-group">
+<label>First Name</label>
+<input type="text" name="firstName" placeholder="Enter your first name" required>
+<small class="field-error" id="firstNameError"></small>
+</div>
+
+<div class="input-group">
+<label>Middle Name</label>
+<input type="text" name="middleName" placeholder="Enter your middle name" required>
+<small class="field-error" id="middleNameError"></small>
+</div>
+
+<div class="input-group">
+<label>Student Number</label>
+<input type="text" name="studentNumber" placeholder="e.g. 2023123456" inputmode="numeric" maxlength="10" required>
+<small class="field-error" id="studentNumberError"></small>
+</div>
+
+<div class="input-group">
+<label>Department</label>
+<select name="department" required>
+<option value="" disabled selected>Select Department</option>
+<option value="information-technology">Information Technology</option>
+<option value="business-administration">Business Administration</option>
+<option value="hospitality-management">Hospitality Management</option>
+<option value="bit-culinary-food-processing">BIT Culinary and Food Processing Technology</option>
+<option value="bit-computer-technology">BIT Computer Technology</option>
+<option value="computer-engineering">Computer Engineering</option>
+<option value="teacher-education">Teacher Education</option>
+</select>
+<small class="field-error" id="departmentError"></small>
+</div>
+
+<div class="input-group">
+<label>Student Organization Name</label>
+<select name="organization" required>
+<option value="" disabled selected>Select Organization</option>
+<option value="rac-bmc">Rotaract Club of BulSU Meneses Campus (RAC BMC)</option>
+<option value="chem">Community Events of Hospitality Management (CHEM)</option>
+<option value="ba-org">Business Administration Organization (BA ORG)</option>
+<option value="sipnayan-society">Sipnayan Society Organization</option>
+<option value="rcyc-mc">Red Cross Youth Council – Meneses Campus (RCYC-MC)</option>
+<option value="sphere">Society of Physical Education and Recreation Enthusiast (SPHERE)</option>
+<option value="seed">Society of English Educators for Development (SEED)</option>
+<option value="cs-byte">Community of Students Bridging Youth and Technology for Evolution (CS BYTE)</option>
+<option value="kapinas-fil">Kapisanan ng mga Nagpapakadalubhasa sa Filipino (KaPinas-Fil)</option>
+<option value="bulakan-woodpushers">Bulakan Woodpushers</option>
+<option value="icpep-se-mc">Institute of Computer Engineers of the Philippines Student Edition – Bulacan State University Meneses Campus (ICpEP.SE-MC)</option>
+<option value="bulsu-maharlika">BulSU Maharlika</option>
+<option value="enc-bulsu-mc">Every Nation Campus: Bulacan State University – Meneses Campus (ENC: BulSU-MC)</option>
+<option value="soar">BulSU Uprising Soar Esports – Meneses Campus (SOAR)</option>
+<option value="samaka">Samahan ng mga Mag-aaral na Katoliko (SAMAKA)</option>
+<option value="sda">Sovereign Dance Athletics (SDA)</option>
+<option value="osoa-meneses">Office of Student Organization and Activities (OSOA) – Meneses Campus</option>
+</select>
+<small class="field-error" id="organizationError"></small>
+</div>
+
+<div class="input-group">
+<label>Position in the Student Organization</label>
+<select name="position" id="positionSelect" required disabled>
+<option value="" disabled selected>Select an organization first</option>
+</select>
+<small class="field-error" id="positionError"></small>
+</div>
+
+<div class="input-group">
+<label>Email Address</label>
+<input type="email" name="email" placeholder="example@email.com" required>
+<small class="field-error" id="emailError"></small>
+</div>
+
+<div class="input-group">
+<label>Password</label>
+<div class="password-field">
+<input type="password" id="password" placeholder="Enter password" required>
+<button type="button" class="toggle-password" data-target="password" aria-label="Show password">
+<i class="fa-regular fa-eye"></i>
+</button>
+</div>
+<small class="field-hint" id="passwordHint">Must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.</small>
+<small class="field-error" id="passwordError"></small>
+</div>
+
+<div class="input-group">
+<label>Confirm Password</label>
+<div class="password-field">
+<input type="password" id="confirmPassword" placeholder="Re-enter password" required>
+<button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Show password">
+<i class="fa-regular fa-eye"></i>
+</button>
+</div>
+<small class="field-error" id="confirmPasswordError"></small>
+</div>
+
+<div class="form-status" id="formStatus"></div>
+
+<button type="submit">Register</button>
+</form>
+
+<div class="login-link">
+Already have an account?
+<a href="../login/index.html">Log In</a>
+</div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/validators.js"></script>
+<script src="../../js/auth-forms.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

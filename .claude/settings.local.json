@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/c/Users/Jeremay Elleran/OneDrive/Documents/MATH/lingkod meneses\" && mkdir -p css js login register dashboard announcements submission requests feedback messages repository profile settings && ls -la)",
+      "Bash(pkill -f \"http-server -p 5501\")",
+      "Bash(pkill -f \"http-server -p 5500\")",
+      "Bash(pkill -f \"http-server -p 5502\")",
+      "Read(//c/Users/JEREMA~1/AppData/Local/Temp/claude/c--Users-Jeremay-Elleran-OneDrive-Documents-MATH-lingkod-meneses/f86a5921-aefc-49e1-bb5b-7099160cd04b/scratchpad/**)",
+      "Bash(node role-check.js)",
+      "Bash(pkill -f \"http-server -p 5503\")",
+      "Bash(node rename-check.js)",
+      "Bash(pkill -f \"http-server -p 5504\")",
+      "Bash(node redesign-check.js)",
+      "Bash(node extra-check.js)",
+      "Bash(pkill -f \"http-server -p 5506\")",
+      "Bash(node -e ' *)",
+      "Bash(node update-sidebars.js)",
+      "Bash(node full-check.js)",
+      "Bash(pkill -f \"http-server -p 5510\")",
+      "Bash(node msg-check.js)",
+      "Bash(pkill -f \"http-server -p 5520\")",
+      "Bash(npx --yes supabase --version)",
+      "Bash(npx --yes supabase db push --help)",
+      "Bash(nslookup google.com)",
+      "Bash(nslookup aws-0-us-east-1.pooler.supabase.com)",
+      "Bash(nslookup db.ydfmxqiqozapsyxfisog.supabase.co)",
+      "Bash(curl -sI --max-time 5 https://registry.npmjs.org)",
+      "Bash(curl -6 -sI --max-time 5 https://ipv6.google.com)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(node pw-toggle-check.js)",
+      "Bash(pkill -f \"http-server -p 5530\")"
+    ]
+  }
+}

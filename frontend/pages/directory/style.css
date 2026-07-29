@@ -1,0 +1,574 @@
+.filters-row{
+    display:flex;
+    gap:15px;
+    margin:20px 0 25px;
+    flex-wrap:wrap;
+}
+
+.search{
+    flex:1;
+    min-width:220px;
+}
+
+.search input{
+    padding:14px;
+}
+
+.filters-row select{
+    width:auto;
+    min-width:190px;
+    padding:14px;
+}
+
+/* ================= CARD GRID =================
+   Same items-grid/item-card treatment as Ongoing Projects (see
+   ongoing-projects/style.css) - white rounded cards, hover lift - just
+   carrying a person's photo/name/position/org instead of a project's
+   cover/title/description. auto-fit/minmax is the fallback for any
+   in-between width the breakpoints below don't explicitly cover;
+   .osoa-officer-grid (Sections 1/3/4's per-organization card grids)
+   shares this exact column count at every breakpoint rather than its
+   own separate minmax, so a card is the same size everywhere on the
+   page regardless of which section it's in. */
+
+.items-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+@media(min-width:1400px){
+    .items-grid{ grid-template-columns:repeat(6,1fr); }
+}
+
+@media(min-width:1100px) and (max-width:1399px){
+    .items-grid{ grid-template-columns:repeat(5,1fr); }
+}
+
+@media(min-width:800px) and (max-width:1099px){
+    .items-grid{ grid-template-columns:repeat(4,1fr); }
+}
+
+@media(min-width:600px) and (max-width:799px){
+    .items-grid{ grid-template-columns:repeat(3,1fr); }
+}
+
+@media(min-width:421px) and (max-width:599px){
+    .items-grid{ grid-template-columns:repeat(2,1fr); }
+}
+
+@media(max-width:420px){
+    .items-grid{ grid-template-columns:repeat(1,1fr); }
+}
+
+.item-card{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    transition:transform .3s ease, box-shadow .3s ease;
+    overflow:hidden;
+    cursor:pointer;
+}
+
+.item-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 24px rgba(54,42,93,.12);
+}
+
+.directory-card-cover{
+    width:100%;
+    aspect-ratio:1/1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
+    color:rgba(255,255,255,.85);
+    font-size:42px;
+    font-weight:700;
+    overflow:hidden;
+}
+
+.directory-card-cover img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.directory-card .item-card-body,
+.officer-card .item-card-body{
+    padding:22px;
+    text-align:center;
+}
+
+.directory-card .item-card-body h3,
+.officer-card .item-card-body h3{
+    color:var(--color-heading);
+    font-size:15.5px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    margin-bottom:8px;
+}
+
+.directory-card-position{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:4px;
+}
+
+.item-org{
+    font-size:13px;
+    color:var(--color-secondary);
+    font-weight:600;
+}
+
+.item-org i{
+    margin-right:6px;
+}
+
+.directory-card-dept{
+    font-size:12.5px;
+    color:var(--color-text-muted);
+    margin-top:4px;
+}
+
+.directory-empty{
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--color-text-muted);
+    padding:40px 0;
+}
+
+/* ================= FOUR-SECTION LAYOUT (every role) =================
+   Officer cards reuse .item-card/.directory-card-cover from above - only
+   the per-organization section wrapper, header, and manage-menu are new
+   here. Padding-bottom leaves room for the floating Manage Directory
+   button (osoa_eb only) so it never overlaps the last section's cards. */
+
+#directoryView{
+    padding-bottom:80px;
+}
+
+.directory-section{
+    margin-bottom:48px;
+}
+
+.directory-section > h2{
+    color:var(--color-heading);
+    font-size:20px;
+    margin-bottom:16px;
+}
+
+.directory-section > h2 i{
+    margin-right:10px;
+    color:var(--color-secondary);
+}
+
+#sectionOsoa,
+#sectionPresidents{
+    margin-top:4px;
+}
+
+.osoa-directory-section{
+    margin-bottom:44px;
+}
+
+.osoa-org-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+}
+
+.osoa-org-header-logo{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    font-weight:700;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.osoa-org-header-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.osoa-org-header-text{
+    flex:1;
+    min-width:200px;
+}
+
+.osoa-org-header-text h3{
+    color:var(--color-heading);
+    font-size:19px;
+}
+
+.osoa-org-description{
+    color:var(--color-text-muted);
+    font-size:13px;
+    margin-top:4px;
+}
+
+.osoa-org-header-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.osoa-org-header-actions .btn-secondary{
+    width:auto;
+    padding:10px 16px;
+    font-size:13px;
+}
+
+.icon-btn{
+    width:38px;
+    height:38px;
+    padding:0;
+    border-radius:50%;
+    background:var(--color-bg);
+    color:var(--color-text-muted);
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    transition:background .25s ease, color .25s ease;
+}
+
+.icon-btn:hover{
+    background:var(--color-secondary);
+    color:#fff;
+    transform:none;
+    box-shadow:none;
+}
+
+.icon-btn-danger:hover{
+    background:var(--color-highlight);
+}
+
+.osoa-org-divider{
+    height:1px;
+    background:var(--color-border);
+    margin-bottom:20px;
+}
+
+.osoa-officer-empty{
+    color:var(--color-text-muted);
+    font-size:14px;
+    padding:16px 0 4px;
+}
+
+.officer-registered-badge{
+    margin-top:14px;
+    padding:8px;
+    border-radius:8px;
+    background:var(--color-bg);
+    color:var(--color-secondary);
+    font-size:12px;
+    font-weight:600;
+}
+
+.fab-manage-directory{
+    position:fixed;
+    bottom:32px;
+    right:32px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:16px 24px;
+    border-radius:50px;
+    background:var(--color-accent);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    box-shadow:0 12px 28px rgba(217,125,52,.35);
+    transition:transform .3s ease, box-shadow .3s ease;
+    z-index:50;
+}
+
+.fab-manage-directory:hover{
+    background:var(--color-accent-dark);
+    transform:translateY(-3px);
+    box-shadow:0 16px 34px rgba(217,125,52,.45);
+}
+
+@media(max-width:600px){
+    .fab-manage-directory{
+        font-size:0;
+        gap:0;
+        padding:16px;
+    }
+
+    .fab-manage-directory i{
+        font-size:18px;
+    }
+}
+
+/* ================= 3D FLOATING PROFILE MODAL =================
+   Deliberately its own overlay/card, not the shared js/common.js modal
+   (#lingkodModalOverlay) - that one is reused by every page (Edit
+   Profile, Report User, document previews, the avatar cropper), and this
+   glassmorphism/3D treatment is specific to Directory's card click, not
+   something every modal in the app should suddenly inherit. */
+
+.directory-modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:700;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(0,0,0,0);
+    backdrop-filter:blur(0px);
+    -webkit-backdrop-filter:blur(0px);
+    transition:background .35s ease, backdrop-filter .35s ease, -webkit-backdrop-filter .35s ease;
+}
+
+.directory-modal-overlay.open{
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+}
+
+/* display:none can't be transitioned - opening sets display:flex first
+   (JS), then adds .open a frame later so this transition actually runs;
+   closing removes .open but keeps display:flex (via .closing) until the
+   transition finishes, then JS hides it. */
+.directory-modal-overlay.open,
+.directory-modal-overlay.closing{
+    display:flex;
+}
+
+.directory-modal-card{
+    position:relative;
+    width:100%;
+    max-width:820px;
+    max-height:88vh;
+    overflow-y:auto;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-radius:24px;
+    box-shadow:0 30px 80px rgba(0,0,0,.25);
+    padding:44px 40px;
+    opacity:0;
+    transform:translateY(20px) scale(.85) rotateX(-6deg) rotateY(4deg);
+    transition:opacity .4s cubic-bezier(.34,1.56,.64,1), transform .4s cubic-bezier(.34,1.56,.64,1);
+    transform-style:preserve-3d;
+    will-change:transform, opacity;
+}
+
+.directory-modal-overlay.open .directory-modal-card{
+    opacity:1;
+    transform:translateY(0) scale(1) rotateX(0deg) rotateY(0deg);
+}
+
+.directory-modal-close{
+    position:absolute;
+    top:16px;
+    right:16px;
+    width:36px;
+    height:36px;
+    padding:0;
+    border-radius:50%;
+    background:var(--color-bg);
+    color:var(--color-text-muted);
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.directory-modal-close:hover{
+    background:var(--color-highlight);
+    color:#fff;
+    transform:none;
+    box-shadow:none;
+}
+
+@media(max-width:900px){
+    .directory-modal-card{ max-width:90%; }
+}
+
+@media(max-width:600px){
+    .directory-modal-card{ max-width:95%; padding:34px 22px; }
+}
+
+.profile-view{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+}
+
+.profile-view-avatar{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:58px;
+    font-weight:700;
+    margin-bottom:18px;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(54,42,93,.25);
+}
+
+.profile-view-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.profile-view-name{
+    color:var(--color-heading);
+    text-transform:uppercase;
+    letter-spacing:.02em;
+}
+
+.profile-view-position{
+    font-size:14px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-top:6px;
+}
+
+.profile-view-org{
+    font-size:13px;
+    color:var(--color-text-muted);
+    margin-bottom:18px;
+}
+
+.profile-view-divider{
+    width:100%;
+    height:1px;
+    background:var(--color-border);
+    margin-bottom:16px;
+}
+
+.profile-view-grid{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    text-align:left;
+    margin-bottom:20px;
+}
+
+.profile-view-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 14px;
+    background:var(--color-bg);
+    border-radius:10px;
+    font-size:13px;
+}
+
+.profile-view-label{
+    color:var(--color-text-muted);
+    font-weight:600;
+    flex-shrink:0;
+}
+
+.profile-view-value{
+    color:var(--color-text);
+    text-align:right;
+    word-break:break-word;
+}
+
+.profile-view-bio,
+.profile-view-responsibilities{
+    width:100%;
+    text-align:left;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:14px;
+    font-size:13px;
+    color:var(--color-text);
+    line-height:1.6;
+    margin-bottom:20px;
+}
+
+.profile-view-responsibilities-label{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    color:var(--color-text-muted);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:6px;
+}
+
+.profile-view-private-note{
+    color:var(--color-text-muted);
+    font-size:13px;
+    padding:14px;
+    text-align:center;
+}
+
+.profile-view-actions{
+    width:100%;
+    display:flex;
+    gap:10px;
+}
+
+.profile-view-actions button{
+    flex:1;
+}
+
+.btn-secondary{
+    background:var(--color-bg);
+    color:var(--color-text);
+}
+
+/* ================= SECTION 2 PRESIDENT CARDS =================
+   Section 2 (Organization Presidents) lists one card per organization
+   without a per-org grouped header (unlike Sections 1/3/4, which reuse
+   buildManagedOrgSection) - this small org-logo badge is the only thing
+   that's specific to those cards. */
+
+.officer-card-org-logo{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:700;
+    overflow:hidden;
+    margin:16px auto 0;
+}
+
+.officer-card-org-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.btn-secondary:hover{
+    background:var(--color-border);
+    box-shadow:none;
+    transform:none;
+}

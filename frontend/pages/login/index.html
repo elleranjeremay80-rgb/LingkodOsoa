@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lingkod Meneses - Login</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- Intro splash animation -->
+<div class="splash" id="splash">
+<div class="splash-ring"></div>
+<div class="splash-logo-wrap">
+<img src="../../pictures/osoa logo.jpg" alt="OSOA Logo" class="splash-logo">
+</div>
+</div>
+
+<div class="page">
+
+<div class="login-brand">
+<img src="../../pictures/osoa logo clear bg.png" alt="OSOA Logo" class="login-brand-logo">
+</div>
+
+<div class="login-panel">
+
+<div class="login-card" id="loginCard">
+
+<h2>Log In to Your Account</h2>
+<p>Enter your credentials to access your account</p>
+
+<form id="loginForm">
+
+<div class="input-box">
+<label>Student Number</label>
+<input type="text" id="studentNumber" placeholder="Enter your student number" required>
+</div>
+
+<div class="input-box">
+<label>Password</label>
+<div class="password-field">
+<input type="password" id="password" placeholder="Enter your password" required>
+<button type="button" class="toggle-password" data-target="password" aria-label="Show password">
+<i class="fa-regular fa-eye"></i>
+</button>
+</div>
+</div>
+
+<div class="option">
+<label class="remember"><input type="checkbox" id="rememberMe"> Remember me</label>
+<a href="#" id="forgotPasswordLink">Forgot Password?</a>
+</div>
+
+<div class="form-status" id="loginStatus"></div>
+
+<button type="submit">Log In</button>
+
+<div class="register">
+Don't have an account?
+<a href="../register/index.html">Register Here</a>
+</div>
+
+<div class="register register-browse">
+Don't have an Organization?
+<a href="../organizations/index.html">Browse Here</a>
+</div>
+
+</form>
+
+</div>
+
+<div class="login-card" id="forgotCard">
+
+<h2>Reset Your Password</h2>
+<p>Enter your registered email address and we'll send you a link to reset your password.</p>
+
+<form id="forgotForm">
+
+<div class="input-box">
+<label>Email Address</label>
+<input type="email" id="forgotEmail" placeholder="example@email.com" required>
+</div>
+
+<div class="form-status" id="forgotStatus"></div>
+
+<button type="submit">Send Reset Link</button>
+
+<div class="register">
+<a href="#" id="backToLoginLink">Back to Log In</a>
+</div>
+
+</form>
+
+</div>
+
+<div class="login-card" id="mfaCard">
+
+<h2>Two-Factor Verification</h2>
+<p>Enter the 6-digit code from your authenticator app to finish logging in.</p>
+
+<form id="mfaForm">
+
+<div class="input-box">
+<label>Verification Code</label>
+<input type="text" id="mfaCode" placeholder="000000" inputmode="numeric" maxlength="6" required>
+</div>
+
+<div class="form-status" id="mfaStatus"></div>
+
+<button type="submit">Verify</button>
+
+<div class="register">
+<a href="#" id="mfaCancelLink">Cancel and sign out</a>
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/validators.js"></script>
+<script src="../../js/auth-forms.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.page-title h1{
+    color:var(--color-heading);
+}
+
+.page-title p{
+    color:#666;
+    margin-top:5px;
+}
+
+.search-box{
+    background:#fff;
+    padding:10px 15px;
+    border-radius:30px;
+    box-shadow:0 3px 10px rgba(0,0,0,.1);
+}
+
+.search-box input{
+    border:none;
+    outline:none;
+    width:220px;
+}
+
+.search-box i{
+    color:var(--color-heading);
+}
+
+/* ================= ANNOUNCEMENT CARDS ================= */
+/* The card itself (.announcement-card and everything inside it), the
+   .filter-bar/.pagination controls above it, and the .empty-state message
+   are all shared components now defined in css/common.css - see
+   js/common.js's lingkodBuildAnnouncementCard/lingkodRenderPagination.
+   Only this page's container layout stays here. */
+
+.announcement-container{
+    display:grid;
+    gap:20px;
+}
+
+/* ================= SUBMIT ANNOUNCEMENT FORM ================= */
+
+.manage-box{
+    background:#fff;
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    margin-bottom:25px;
+}
+
+.manage-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.manage-box form{
+    display:grid;
+    gap:15px;
+}
+
+.manage-box textarea{
+    height:100px;
+}
+
+.manage-box .form-actions{
+    display:flex;
+    gap:12px;
+}
+
+.manage-box .form-actions button{
+    flex:1;
+}
+
+.cancel-edit-btn{
+    background:#fff;
+    color:var(--color-text-muted);
+    border:1px solid var(--color-border);
+    box-shadow:none;
+}
+
+.cancel-edit-btn:hover{
+    background:var(--color-bg);
+    color:var(--color-text);
+    transform:none;
+    box-shadow:none;
+}
+
+@media(max-width:768px){
+
+.topbar{
+    flex-direction:column;
+    gap:20px;
+    align-items:flex-start;
+}
+
+.search-box{
+    width:100%;
+}
+
+.search-box input{
+    width:90%;
+}
+
+}

@@ -1,0 +1,216 @@
+.request-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+
+.request-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.request-box form{
+    display:grid;
+    gap:15px;
+}
+
+.request-box textarea{
+    height:120px;
+}
+
+/* ================= READ-ONLY FIELDS (auto-filled) ================= */
+
+.readonly-field label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.readonly-field input{
+    background:var(--color-bg);
+    color:var(--color-text);
+    cursor:not-allowed;
+}
+
+/* ================= "PLEASE SPECIFY" (shown only for Others) ================= */
+
+.specify-field{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height .28s ease, opacity .28s ease, margin .28s ease;
+}
+
+.specify-field.visible{
+    max-height:110px;
+    opacity:1;
+}
+
+.specify-field label{
+    display:block;
+    margin-bottom:6px;
+    margin-top:4px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.field-error{
+    display:none;
+    margin-top:6px;
+    color:var(--color-highlight);
+    font-size:12px;
+    font-weight:600;
+}
+
+.field-error.visible{
+    display:block;
+}
+
+.table-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.table-box + .table-box{
+    margin-top:25px;
+}
+
+.table-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.request-datetime{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    font-size:13px;
+}
+
+.request-datetime .time{
+    color:var(--color-text-muted);
+    font-size:12px;
+}
+
+/* ================= STATUS BADGES =================
+   Pending/Yellow, Received/Blue, Under Review/Orange, Approved/Green,
+   Rejected/Red, Completed/Purple. */
+
+.status.pending{
+    background:#FFF4E0;
+    color:#B8790B;
+}
+
+.status.received{
+    background:#E5F0FF;
+    color:#1D5FBF;
+}
+
+.status.under-review{
+    background:#FFE8D6;
+    color:#C2600B;
+}
+
+.status.approved{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.status.rejected{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.status.completed{
+    background:#F1E7FB;
+    color:#7B3FBF;
+}
+
+.view-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:8px 14px;
+    font-size:13px;
+    border-radius:8px;
+    background:var(--color-secondary);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+}
+
+.view-btn:hover{
+    background:var(--color-secondary-dark);
+}
+
+/* Moving data rows into their own <tbody> (so JS has an insertion point)
+   shifts nth-child(even/odd) parity relative to the old flat <tr><tr>...
+   markup — this reproduces the original alternating-row stripe exactly.
+   #requestsTableBody's id gives it enough specificity to win over
+   common.css's table tr:nth-child(even). */
+#requestsTableBody tr:nth-child(odd),
+#requestManageTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+/* ================= VIEW REQUEST MODAL ================= */
+/* Duplicated from feedback/style.css (that stylesheet isn't shared) so
+   both modals stay visually consistent. */
+
+.review-form{
+    display:grid;
+    gap:10px;
+}
+
+.view-modal-field{
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:3px;
+}
+
+.view-modal-field span{
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.request-view-description{
+    white-space:pre-wrap;
+    line-height:1.6;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:14px;
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.request-manage-form{
+    display:grid;
+    gap:10px;
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid var(--color-border);
+}
+
+.request-manage-form label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.request-manage-form textarea{
+    height:80px;
+}

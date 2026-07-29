@@ -1,0 +1,425 @@
+:root{
+    --color-primary:#362A5D;
+    --color-primary-dark:#241B40;
+    --color-secondary:#3F51B5;
+    --color-secondary-dark:#2F3D91;
+    --color-accent:#F0954D;
+    --color-accent-dark:#D97D34;
+    --color-highlight:#E15873;
+    --color-highlight-dark:#C33F5B;
+    --color-text:#2E2540;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    font-family:'Poppins',sans-serif;
+    /* A light cream wash (not black) layered over the image brightens it
+       toward a soft white/cream tone while still letting the image's own
+       pastel colors show through - the login card is a solid, opaque
+       dark-purple gradient regardless of what's behind it, so contrast
+       stays fine even though the backdrop is now much lighter. */
+    background:linear-gradient(rgba(255,252,244,.55),rgba(255,252,244,.55)), url("../../pictures/osoa bg.png");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    overflow-x:hidden;
+}
+
+/* iOS Safari in particular handles a fixed background poorly (janky
+   repaint on scroll, sometimes doesn't render at all) - falls back to a
+   normal scrolling background below the tablet breakpoint, where the
+   page is more likely to scroll and be touched on a phone. */
+@media(max-width:1024px){
+    body{
+        background-attachment:scroll;
+    }
+}
+
+/* ================= INTRO SPLASH ================= */
+
+.splash{
+    position:fixed;
+    inset:0;
+    z-index:999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(160deg,var(--color-primary),var(--color-primary-dark));
+    transition:opacity .6s ease, transform .6s ease;
+}
+
+.splash.hide{
+    opacity:0;
+    transform:scale(1.05);
+    pointer-events:none;
+}
+
+.splash-ring{
+    position:absolute;
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,.5);
+    animation:ringPulse 1.6s ease-out infinite;
+}
+
+.splash-logo-wrap{
+    position:relative;
+    width: 130px;
+    height:130px;
+    border-radius:50%;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+    animation:logoPop .9s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+.splash-logo{
+    width:68%;
+    height:68%;
+    object-fit:contain;
+    border-radius:50%;
+}
+
+@keyframes logoPop{
+    0%{transform:scale(.4);opacity:0}
+    60%{transform:scale(1.1);opacity:1}
+    100%{transform:scale(1);opacity:1}
+}
+
+@keyframes ringPulse{
+    0%{transform:scale(.8);opacity:.8}
+    100%{transform:scale(1.5);opacity:0}
+}
+
+/* ================= LOGIN CARD ================= */
+
+.page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+}
+
+/* ================= LEFT BRAND PANEL ================= */
+
+.login-brand{
+    flex:0 0 42%;
+    max-width:42%;
+    height:100vh;
+    display:flex;
+    align-items:center;
+    /* flex-end (not center) pulls the logo toward the panel's shared
+       edge, closing most of the empty middle gap without touching either
+       zone's own width. */
+    justify-content:flex-end;
+    padding:40px 20px 40px 40px;
+}
+
+.login-brand-logo{
+    width:100%;
+    /* ~52% larger than the original 460px - within the requested
+       40-60% range - so the logo reads as a stronger visual element. */
+    max-width:700px;
+    height:auto;
+    object-fit:contain;
+}
+
+/* ================= RIGHT PANEL / LOGIN CARD ================= */
+
+.login-panel{
+    flex:1;
+    display:flex;
+    align-items:center;
+    /* flex-start (not center), paired with .login-brand's flex-end
+       above, brings the card toward the logo from the other side. */
+    justify-content:flex-start;
+    min-height:100vh;
+    padding:40px 100px 40px 20px;
+}
+
+.login-card{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    background:linear-gradient(160deg,var(--color-primary),var(--color-primary-dark));
+    border-radius:20px;
+    padding:45px 35px 40px;
+    text-align:center;
+    box-shadow:0 25px 50px rgba(36,27,64,.35);
+    opacity:0;
+    transform:translateY(25px);
+    transition:opacity .7s ease, transform .4s ease, box-shadow .4s ease;
+}
+
+.login-card.visible{
+    opacity:1;
+    transform:translateY(0);
+}
+
+.login-card.visible:hover{
+    box-shadow:0 30px 60px rgba(36,27,64,.42);
+    transform:translateY(-4px);
+}
+
+#forgotCard,
+#mfaCard{
+    display:none;
+}
+
+.form-status{
+    display:none;
+    margin:-8px 0 20px;
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+    text-align:center;
+}
+
+.form-status.visible{
+    display:block;
+}
+
+.form-status.success{
+    background:rgba(46,204,113,.15);
+    color:#B7F5CE;
+}
+
+.form-status.error{
+    background:rgba(225,88,115,.2);
+    color:#FFD9DF;
+}
+
+.btn-spinner{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border:2px solid rgba(255,255,255,.5);
+    border-top-color:#fff;
+    border-radius:50%;
+    margin-right:8px;
+    vertical-align:-2px;
+    animation:btnSpin .7s linear infinite;
+}
+
+@keyframes btnSpin{
+    to{transform:rotate(360deg)}
+}
+
+.login-card h2{
+    color:#fff;
+    font-size:24px;
+    margin-bottom:8px;
+}
+
+.login-card p{
+    color:rgba(255,255,255,.8);
+    font-size:14px;
+    margin-bottom:30px;
+}
+
+.input-box{
+    margin-bottom:20px;
+    text-align:left;
+}
+
+.input-box label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+    font-size:14px;
+    color:#fff;
+}
+
+.input-box input{
+    width:100%;
+    padding:14px 18px;
+    border:none;
+    border-radius:14px;
+    font-size:14px;
+    font-family:inherit;
+    transition:outline-color .3s ease, box-shadow .3s ease;
+}
+
+.input-box input:focus{
+    outline:3px solid var(--color-accent);
+}
+
+.password-field{
+    position:relative;
+}
+
+.password-field input{
+    padding-right:46px;
+}
+
+.toggle-password{
+    position:absolute;
+    top:50%;
+    right:14px;
+    margin:0;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    width:auto;
+    padding:0;
+    color:#8a8398;
+    font-size:16px;
+    cursor:pointer;
+    box-shadow:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.toggle-password:hover{
+    color:var(--color-heading);
+    background:none;
+    transform:translateY(-50%);
+}
+
+.option{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:28px;
+    font-size:13px;
+    color:#fff;
+}
+
+.remember{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.option a{
+    color:#FFD3DD;
+    text-decoration:underline;
+}
+
+button{
+    display:block;
+    width:60%;
+    max-width:220px;
+    margin:0 auto;
+    padding:15px;
+    border:none;
+    border-radius:30px;
+    background:var(--color-accent);
+    color:#fff;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(0,0,0,.2);
+    transition:.3s;
+}
+
+button:hover{
+    background:var(--color-accent-dark);
+    transform:translateY(-2px);
+}
+
+button:disabled{
+    opacity:.7;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.register{
+    text-align:center;
+    margin-top:25px;
+    color:#fff;
+    font-size:13px;
+}
+
+.register a{
+    color:#FFD3DD;
+    text-decoration:underline;
+    font-weight:700;
+}
+
+.register-browse{
+    margin-top:10px;
+}
+
+@media(prefers-reduced-motion: reduce){
+    .splash, .login-card, .splash-logo-wrap, .splash-ring{
+        animation:none !important;
+        transition:none !important;
+    }
+}
+
+/* ================= RESPONSIVE ================= */
+
+/* Tablet - keep the two-column layout but let the logo shrink and the
+   right panel's reserved edge space compress, instead of jumping
+   straight to the stacked mobile layout. */
+@media(max-width:1024px){
+
+.login-brand{
+    flex-basis:38%;
+    max-width:38%;
+    padding:24px 12px 24px 24px;
+}
+
+.login-brand-logo{
+    max-width:480px;
+}
+
+.login-panel{
+    padding:32px 60px 32px 12px;
+}
+
+}
+
+/* Mobile - stack vertically: logo on top, login card underneath, no
+   reserved side/edge whitespace. */
+@media(max-width:768px){
+
+.page{
+    flex-direction:column;
+}
+
+.login-brand{
+    flex:0 0 auto;
+    max-width:100%;
+    width:100%;
+    height:auto;
+    padding:32px 20px 8px;
+    /* Stacked layout now - flex-end (inherited from the desktop rule,
+       meant for a side-by-side row) would shove the logo to the right
+       edge instead of centering it, so it's reset back to center here. */
+    justify-content:center;
+}
+
+.login-brand-logo{
+    max-width:300px;
+}
+
+.login-panel{
+    width:100%;
+    min-height:0;
+    padding:20px 20px 40px;
+    justify-content:center;
+}
+
+}
+
+@media(max-width:480px){
+
+.login-card{
+    padding:40px 25px 35px;
+}
+
+}

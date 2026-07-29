@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LINGKOD | Digital Repository</title>
+
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../../css/common.css?v=2">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div class="container">
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<div class="logo">
+<h2><i class="fa-solid fa-building-columns"></i> LINGKOD</h2>
+<p>OSOA E-Governance Platform</p>
+</div>
+
+<ul class="menu">
+
+<li>
+<a href="../dashboard/index.html">
+<i class="fa-solid fa-house"></i>
+Dashboard
+</a>
+</li>
+
+<li>
+<a href="../announcements/index.html">
+<i class="fa-solid fa-bullhorn"></i>
+Announcements & Updates
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../submission/index.html">
+<i class="fa-solid fa-folder-open"></i>
+Submission & Tracking
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../reports/index.html">
+<i class="fa-solid fa-flag"></i>
+Reports
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../audit-logs/index.html">
+<i class="fa-solid fa-clock-rotate-left"></i>
+Audit Logs
+</a>
+</li>
+
+<li class="menu-parent" id="servicesMenuParent">
+
+<button type="button" class="menu-toggle" id="servicesToggleBtn" aria-expanded="false">
+<i class="fa-solid fa-layer-group"></i>
+<span>Services</span>
+<i class="fa-solid fa-chevron-down menu-toggle-arrow"></i>
+</button>
+
+<ul class="submenu" id="servicesSubmenu">
+
+<li>
+<a href="../requests/index.html">
+<i class="fa-solid fa-file-circle-plus"></i>
+Requests
+</a>
+</li>
+
+<li>
+<a href="../feedback/index.html">
+<i class="fa-solid fa-comments"></i>
+Feedback
+</a>
+</li>
+
+<li>
+<a href="../repository/index.html">
+<i class="fa-solid fa-box-archive"></i>
+Digital Repository
+</a>
+</li>
+
+<li>
+<a href="../ongoing-projects/index.html">
+<i class="fa-solid fa-diagram-project"></i>
+Ongoing Projects
+</a>
+</li>
+
+<li>
+<a href="../upcoming-activities/index.html">
+<i class="fa-solid fa-calendar-days"></i>
+Upcoming Activities
+</a>
+</li>
+
+<li>
+<a href="../implemented-activities/index.html">
+<i class="fa-solid fa-flag-checkered"></i>
+Implemented Activities and Projects
+</a>
+</li>
+
+<li>
+<a href="../income-projects/index.html">
+<i class="fa-solid fa-sack-dollar"></i>
+Income-Generating Projects
+</a>
+</li>
+
+</ul>
+
+</li>
+
+<li>
+<a href="../directory/index.html">
+<i class="fa-solid fa-address-book"></i>
+Directory
+</a>
+</li>
+
+<li data-roles="admin staff">
+<a href="../documents/index.html">
+<i class="fa-solid fa-file-lines"></i>
+Documents
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+List of Organizations
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../registered-users/index.html">
+<i class="fa-solid fa-users-gear"></i>
+Registered Users
+</a>
+</li>
+
+<li data-roles="staff">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-users"></i>
+List of Members
+</a>
+</li>
+
+<li data-roles="student">
+<a href="../list-of-members/index.html">
+<i class="fa-solid fa-sitemap"></i>
+Organizations
+</a>
+</li>
+
+<li>
+<a href="../messages/index.html">
+<i class="fa-solid fa-message"></i>
+Messages
+</a>
+</li>
+
+<li>
+<a href="../profile/index.html">
+<i class="fa-solid fa-user"></i>
+Profile
+</a>
+</li>
+
+<li>
+<a href="../settings/index.html">
+<i class="fa-solid fa-gear"></i>
+Settings
+</a>
+</li>
+
+<li>
+<a href="../login/index.html">
+<i class="fa-solid fa-right-from-bracket"></i>
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+
+<!-- Main -->
+
+<div class="content">
+
+<div class="header">
+
+<h1>Digital Repository</h1>
+
+<p>
+The Digital Repository allows the OSOA Executive Board and Organization Officers to securely store, organize, and manage important documents and records. Authorized users and students can easily search, view, and download available files.
+</p>
+
+</div>
+
+<div class="search">
+<input type="text" id="repositorySearch" placeholder="🔍 Search files or documents...">
+</div>
+
+<div class="summary">
+
+<div class="card">
+<i class="fa-solid fa-folder"></i>
+<h2 id="statTotalFiles">0</h2>
+<p>Total Files</p>
+</div>
+
+<div class="card">
+<i class="fa-solid fa-file-lines"></i>
+<h2 id="statPolicies">0</h2>
+<p>Policies & Memorandums</p>
+</div>
+
+<div class="card">
+<i class="fa-solid fa-building"></i>
+<h2 id="statOrgRecords">0</h2>
+<p>Organization Records</p>
+</div>
+
+<div class="card">
+<i class="fa-solid fa-cloud-arrow-up"></i>
+<h2 id="statStorageUsed">0 MB</h2>
+<p>Storage Used</p>
+</div>
+
+</div>
+
+<div class="manage-box" data-roles="admin staff">
+
+<h2>Upload Document</h2>
+
+<form id="repoUploadForm">
+
+<input type="text" name="title" placeholder="Document Title" required>
+
+<select name="category" required>
+<option value="">Select Category</option>
+<option value="renewal">Renewal</option>
+<option value="financial_report">Financial Report</option>
+<option value="policy">Policy</option>
+<option value="memorandum">Memorandum</option>
+<option value="organization_records">Organization Records</option>
+<option value="proposal">Proposal</option>
+<option value="other">Other</option>
+</select>
+
+<input type="file" name="file" required>
+
+<button type="submit">
+<i class="fa-solid fa-upload"></i>
+Upload to Repository
+</button>
+
+</form>
+
+</div>
+
+<div class="repository">
+
+<h2>Available Documents</h2>
+
+<table>
+
+<tr>
+<th>File Name</th>
+<th>Category</th>
+<th>Uploaded By</th>
+<th>Date</th>
+<th>Preview</th>
+<th>Download</th>
+<th>Actions</th>
+</tr>
+
+<tbody id="repositoryTableBody">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/auth.js"></script>
+<script src="../../js/common.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

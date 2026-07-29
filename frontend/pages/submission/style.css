@@ -1,0 +1,282 @@
+.upload-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+
+.upload-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.upload-box form{
+    display:grid;
+    gap:15px;
+}
+
+/* ================= "PLEASE SPECIFY" (shown only for Other) ================= */
+/* Mirrors requests/style.css's identical rules for the same interaction. */
+
+.specify-field{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height .28s ease, opacity .28s ease, margin .28s ease;
+}
+
+.specify-field.visible{
+    max-height:110px;
+    opacity:1;
+}
+
+.specify-field label{
+    display:block;
+    margin-bottom:6px;
+    margin-top:4px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.field-error{
+    display:none;
+    margin-top:6px;
+    color:var(--color-highlight);
+    font-size:12px;
+    font-weight:600;
+}
+
+.field-error.visible{
+    display:block;
+}
+
+.table-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.table-box + .table-box{
+    margin-top:25px;
+}
+
+.table-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.status.approved{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.status.pending{
+    background:#FFF4E0;
+    color:#B8790B;
+}
+
+.status.review{
+    background:#E5F0FF;
+    color:#1D5FBF;
+}
+
+.status.rejected{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.status.needs_revision{
+    background:#E5F0FF;
+    color:#1D5FBF;
+}
+
+/* See requests/style.css for why this exists: moving data rows into
+   their own <tbody> shifts nth-child parity vs. the old flat markup. */
+#submissionsTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+/* ================= ACTIONS COLUMN ================= */
+/* .download-link itself is a shared component now defined in
+   css/common.css (see js/common.js's lingkodDownloadFile/
+   lingkodOpenSimpleFilePreview, callable from any page) - only
+   .review-btn (specific to this page's quick-review modal) stays here. */
+
+.review-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    padding:8px 14px;
+    font-size:13px;
+    border-radius:8px;
+    background:var(--color-secondary);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+}
+
+.review-btn:hover{
+    background:var(--color-secondary-dark);
+}
+
+/* ================= REVIEW MODAL FORM ================= */
+
+.review-form{
+    display:grid;
+    gap:10px;
+}
+
+.review-form label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.review-form textarea{
+    height:90px;
+}
+
+/* ================= REVIEW SUBMITTED DOCUMENTS ================= */
+
+#reviewTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+.review-row-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.icon-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    padding:0;
+    border-radius:8px;
+    font-size:13px;
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border:none;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.icon-btn:hover{
+    background:var(--color-border);
+}
+
+.icon-btn.approve{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.icon-btn.approve:hover{
+    background:#c9edd6;
+}
+
+.icon-btn.reject{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.icon-btn.reject:hover{
+    background:#fad1d5;
+}
+
+.icon-btn.revision{
+    background:#FFE8D6;
+    color:#C2600B;
+}
+
+.icon-btn.revision:hover{
+    background:#ffd8b8;
+}
+
+/* ================= VIEW MODAL (document review) ================= */
+/* .view-modal-preview/.preview-unavailable/.view-modal-actions are shared
+   (see css/common.css) since lingkodOpenSimpleFilePreview can open on any
+   page. Only the rich review layout below - info panel + approve/reject/
+   revision buttons, specific to this page's OSOA workflow - stays here. */
+
+.view-modal-layout{
+    display:grid;
+    grid-template-columns:1fr 1.4fr;
+    gap:24px;
+    margin-bottom:20px;
+}
+
+.view-modal-info .status{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:5px 14px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:12px;
+}
+
+.view-modal-info h4{
+    color:var(--color-heading);
+    margin-bottom:16px;
+}
+
+.view-modal-field{
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:3px;
+}
+
+.view-modal-field span{
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.approve-btn{
+    background:#1E8A4C;
+    color:#fff;
+    border:none;
+}
+
+.approve-btn:hover{
+    background:#166b3a;
+}
+
+.reject-btn{
+    background:var(--color-highlight);
+    color:#fff;
+    border:none;
+}
+
+.reject-btn:hover{
+    background:var(--color-highlight-dark);
+}
+
+.revision-btn{
+    background:var(--color-accent);
+    color:#fff;
+    border:none;
+}
+
+.revision-btn:hover{
+    background:var(--color-accent-dark);
+}
+
+@media(max-width:768px){
+
+.view-modal-layout{
+    grid-template-columns:1fr;
+}
+
+}

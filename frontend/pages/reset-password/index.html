@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINGKOD Meneses - Reset Password</title>
+<link rel="icon" href="../../pictures/BULSU.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="page">
+
+<div class="login-card" id="resetCard">
+
+<div class="logo-badge">
+<img src="../../pictures/osoa-logo-cropped.png" alt="OSOA Logo">
+</div>
+
+<h2>Set a New Password</h2>
+<p>Enter and confirm your new password below.</p>
+
+<form id="resetForm">
+
+<div class="input-box">
+<label>New Password</label>
+<div class="password-field">
+<input type="password" id="newPassword" placeholder="Enter new password" required>
+<button type="button" class="toggle-password" data-target="newPassword" aria-label="Show password">
+<i class="fa-regular fa-eye"></i>
+</button>
+</div>
+<small class="field-hint" id="newPasswordHint">Must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.</small>
+<small class="field-error" id="newPasswordError"></small>
+</div>
+
+<div class="input-box">
+<label>Confirm New Password</label>
+<div class="password-field">
+<input type="password" id="confirmNewPassword" placeholder="Re-enter new password" required>
+<button type="button" class="toggle-password" data-target="confirmNewPassword" aria-label="Show password">
+<i class="fa-regular fa-eye"></i>
+</button>
+</div>
+<small class="field-error" id="confirmNewPasswordError"></small>
+</div>
+
+<div class="form-status" id="resetStatus"></div>
+
+<button type="submit" id="resetButton">Update Password</button>
+
+</form>
+
+</div>
+
+<div class="login-card" id="invalidLinkCard" style="display:none;">
+
+<div class="logo-badge">
+<img src="../../pictures/osoa-logo-cropped.png" alt="OSOA Logo">
+</div>
+
+<h2>Reset Link Invalid or Expired</h2>
+<p>This password reset link is no longer valid. Please request a new one from the login page.</p>
+
+<div class="register">
+<a href="../login/index.html">Back to Log In</a>
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/validators.js"></script>
+<script src="../../js/auth-forms.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
