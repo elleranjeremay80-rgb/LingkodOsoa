@@ -306,6 +306,16 @@ function openEditUserModal(user){
     const orgSelect = document.createElement("select");
     form.appendChild(lingkodBuildFormField("Organization", orgSelect));
 
+    // profiles_department_required (see 20260717000000_registration_
+    // name_split_and_validation.sql) means department_id can never be
+    // null - previously this modal had no way to set it at all, so any
+    // account whose department_id was ever null (e.g. an account that
+    // predates this constraint) could never be edited here either,
+    // since Postgres re-validates the WHOLE row against every
+    // constraint on any update, not just the columns actually changed.
+    const deptSelect = document.createElement("select");
+    form.appendChild(lingkodBuildFormField("Department", deptSelect));
+
     const positionInput = document.createElement("input");
     positionInput.type = "text";
     positionInput.value = user.position || "";
@@ -341,6 +351,7 @@ function openEditUserModal(user){
     form.appendChild(saveBtn);
 
     lingkodPopulateOrganizationSelectById(orgSelect, user.organization_id);
+    lingkodPopulateDepartmentSelect(deptSelect, user.department_id);
 
     form.addEventListener("submit", async function(e){
         e.preventDefault();
@@ -357,6 +368,28 @@ function openEditUserModal(user){
             return;
         }
 
+        // organization_id/department_id/position are all NOT NULL/CHECK-
+        // constrained on profiles (profiles_organization_required,
+        // profiles_department_required, profiles_position_required - see
+        // 20260717000000_registration_name_split_and_validation.sql).
+        // Validated here, before ever reaching Supabase, so clearing one
+        // of these shows a clear message instead of a raw constraint-
+        // violation error - the frontend and database now agree on what
+        // "required" means for these three fields, same as they already
+        // did for Last/First Name above.
+        if(!orgSelect.value){
+            lingkodToast("Please select an Organization.", "error");
+            return;
+        }
+        if(!deptSelect.value){
+            lingkodToast("Please select a Department.", "error");
+            return;
+        }
+        if(!positionInput.value.trim()){
+            lingkodToast("Position is required.", "error");
+            return;
+        }
+
         if(statusSelect.value === "inactive" && user.status !== "inactive"){
             const blockReason = explainWhyUserCantBeDeactivated(user);
             if(blockReason){
@@ -368,6 +401,7 @@ function openEditUserModal(user){
         lingkodSetButtonLoading(saveBtn, true, "Saving...");
 
         const selectedOrgOption = orgSelect.options[orgSelect.selectedIndex];
+        const selectedDeptOption = deptSelect.options[deptSelect.selectedIndex];
 
         const { error } = await supabaseClient
             .from("profiles")
@@ -376,9 +410,11 @@ function openEditUserModal(user){
                 first_name: firstName,
                 middle_name: middleNameInput.value.trim() || null,
                 email: emailInput.value.trim() || null,
-                organization: selectedOrgOption ? (selectedOrgOption.value ? selectedOrgOption.textContent : null) : user.organization,
-                organization_id: orgSelect.value || null,
-                position: positionInput.value.trim() || null,
+                organization: selectedOrgOption.textContent,
+                organization_id: orgSelect.value,
+                department: selectedDeptOption.textContent,
+                department_id: deptSelect.value,
+                position: positionInput.value.trim(),
                 role: roleSelect.value,
                 status: statusSelect.value
             })
@@ -428,6 +464,19 @@ function explainWhyUserCantBeDeactivated(user){
 }
 
 async function removeUser(user){
+    // Several profiles columns are required by CHECK/NOT NULL constraints
+    // added in 20260717000000_registration_name_split_and_validation.sql
+    // (profiles_organization_required, profiles_department_required,
+    // profiles_position_required) plus email's own NOT NULL - nulling any
+    // of them here throws a constraint violation instead of anonymizing
+    // the row. organization_id/department_id (the FK columns) are left
+    // untouched entirely rather than nulled - only their free-text mirror
+    // columns (organization/department) are cleared, which have no such
+    // constraint. email/position get deterministic, obviously-not-real
+    // placeholders instead of null, satisfying "not null and non-empty"
+    // while still reading as anonymized rather than the person's real
+    // data. email's placeholder embeds the row's own id so it stays
+    // unique per user even if email also carries a unique constraint.
     const { error } = await supabaseClient
         .from("profiles")
         .update({
@@ -435,13 +484,11 @@ async function removeUser(user){
             last_name: "",
             first_name: "Deleted User",
             middle_name: "",
-            email: null,
+            email: "deleted-user-" + user.id + "@deleted.lingkod",
             student_number: null,
             organization: null,
-            organization_id: null,
-            position: null,
+            position: "N/A",
             department: null,
-            department_id: null,
             bio: null,
             contact_number: null,
             avatar_url: null

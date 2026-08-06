@@ -7,9 +7,11 @@
 <title>LINGKOD - Dashboard</title>
 
 <link rel="icon" href="../../pictures/BULSU.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="../../css/common.css?v=2">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="../../css/common.css?v=5">
+<link rel="stylesheet" href="style.css?v=3">
 
 </head>
 
@@ -204,29 +206,102 @@ Logout
 
 <div class="content">
 
-<div class="topbar">
-
-<a class="user" href="../profile/index.html" aria-label="Go to your Profile">
-
-<div id="topbarAvatar"></div>
-
-<span id="topbarUsername">OSOA Administrator</span>
-
-</a>
-
-</div>
-
 <div data-role-view="admin staff">
 
 <div class="welcome">
 
-<h1>Welcome to LINGKOD</h1>
+<h1 id="dashboardWelcomeHeading">WELCOME TO LINGKOD</h1>
 
-<p>
+<p id="dashboardWelcomeSubtitle">
 Office of Student Organization and Activities (OSOA)<br>
 Bulacan State University - Meneses Campus
 </p>
 
+</div>
+
+<div class="stats-row" data-role-view="admin">
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-primary"><i class="fa-solid fa-building-columns"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statTotalOrganizations">—</span>
+<span class="stat-card-label">Total Organizations</span>
+<span class="stat-card-sublabel">Active Organizations</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-accent"><i class="fa-solid fa-people-group"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statTotalMembers">—</span>
+<span class="stat-card-label">Total Members</span>
+<span class="stat-card-sublabel">Across All Organizations</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-highlight"><i class="fa-solid fa-user"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statTotalUsers">—</span>
+<span class="stat-card-label">Total Users</span>
+<span class="stat-card-sublabel">Registered Users</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-secondary"><i class="fa-solid fa-clipboard-list"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statPendingRequests">—</span>
+<span class="stat-card-label">Pending Requests</span>
+<span class="stat-card-sublabel">Needs Your Action</span>
+</div>
+</div>
+
+</div>
+
+<div class="stats-row" data-role-view="staff">
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-primary"><i class="fa-solid fa-people-group"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statOrgMembers">—</span>
+<span class="stat-card-label">Total Members</span>
+<span class="stat-card-sublabel">In Your Organization</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-secondary"><i class="fa-solid fa-clipboard-list"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statOrgPendingRequests">—</span>
+<span class="stat-card-label">Pending Requests</span>
+<span class="stat-card-sublabel">Submitted By You</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-accent"><i class="fa-solid fa-diagram-project"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statOrgActiveProjects">—</span>
+<span class="stat-card-label">Active Projects</span>
+<span class="stat-card-sublabel">Currently Ongoing</span>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-card-icon stat-card-icon-highlight"><i class="fa-solid fa-calendar-days"></i></div>
+<div class="stat-card-body">
+<span class="stat-card-number" id="statOrgUpcomingActivities">—</span>
+<span class="stat-card-label">Upcoming Activities</span>
+<span class="stat-card-sublabel">Scheduled</span>
+</div>
+</div>
+
+</div>
+
+<div class="panel org-overview-panel" data-role-view="staff" id="dashboardOrgOverviewPanel">
+<h2><i class="fa-solid fa-building-columns"></i> Organization Overview</h2>
+<div class="profile-view-grid" id="dashboardOrgOverviewGrid"></div>
 </div>
 
 <div class="bottom">
@@ -409,7 +484,7 @@ Bulacan State University - Meneses Campus
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../js/supabase.js"></script>
 <script src="../../js/auth.js"></script>
-<script src="../../js/common.js"></script>
+<script src="../../js/common.js?v=2"></script>
 <script src="script.js?v=2"></script>
 </body>
 </html>

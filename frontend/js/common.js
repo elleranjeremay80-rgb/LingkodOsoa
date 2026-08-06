@@ -72,6 +72,101 @@ async function lingkodRehydrateFromSupabase(){
     return account;
 }
 
+// Injects the same soft blob/wave/dot background decoration the Login
+// page uses as inline markup, once, as the very first element in <body> -
+// shared across every page that loads this stylesheet (see ".app-bg-*"
+// in common.css) instead of each page hand-coding its own copy. Purely
+// visual (aria-hidden, pointer-events:none via CSS) - idempotent via its
+// own id so it's safe to call more than once.
+function lingkodBuildAppBackgroundDecor(){
+    if(document.getElementById("lingkodBgDecor")) return;
+
+    const decor = document.createElement("div");
+    decor.id = "lingkodBgDecor";
+    decor.className = "app-bg-decor";
+    decor.setAttribute("aria-hidden", "true");
+    decor.innerHTML =
+        "<div class=\"app-bg-blob app-bg-blob-1\"></div>" +
+        "<div class=\"app-bg-blob app-bg-blob-2\"></div>" +
+        "<svg class=\"app-bg-wave\" viewBox=\"0 0 1600 300\" preserveAspectRatio=\"none\" xmlns=\"http://www.w3.org/2000/svg\">" +
+        "<defs><linearGradient id=\"appWaveGrad\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">" +
+        "<stop offset=\"0%\" stop-color=\"#E73F1E\"/><stop offset=\"55%\" stop-color=\"#FB6C00\"/><stop offset=\"100%\" stop-color=\"#F9B637\"/>" +
+        "</linearGradient></defs>" +
+        "<path fill=\"url(#appWaveGrad)\" opacity=\"0.5\" d=\"M0,120 C300,40 600,200 900,120 C1200,60 1400,160 1600,110 L1600,300 L0,300 Z\"/>" +
+        "<path fill=\"url(#appWaveGrad)\" opacity=\"0.7\" d=\"M0,160 C320,100 620,240 920,160 C1220,110 1420,200 1600,150 L1600,300 L0,300 Z\"/>" +
+        "</svg>" +
+        "<div class=\"app-bg-dots app-bg-dots-br\"></div>";
+
+    document.body.insertBefore(decor, document.body.firstChild);
+}
+
+// Builds the universal search/notifications/messages/profile topbar once
+// and inserts it as the first child of .content - shared across every
+// page that loads this stylesheet (see the ".app-topbar" rules in
+// common.css) instead of each page hand-coding its own copy. Idempotent
+// (checked via the existing #lingkodTopbarAvatar id) so this is safe to
+// call even if a page's DOMContentLoaded handler somehow runs twice.
+function lingkodBuildAppTopbar(session){
+    const content = document.querySelector(".content");
+    if(!content || document.getElementById("lingkodTopbarAvatar")) return;
+
+    const topbar = document.createElement("div");
+    topbar.className = "app-topbar";
+
+    const search = document.createElement("div");
+    search.className = "app-topbar-search";
+    search.innerHTML = "<i class=\"fa-solid fa-magnifying-glass\"></i>";
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search anything...";
+    searchInput.setAttribute("aria-label", "Search");
+    search.appendChild(searchInput);
+    topbar.appendChild(search);
+
+    const actions = document.createElement("div");
+    actions.className = "app-topbar-actions";
+    // lingkodInitNotifications() (called once the authed profile loads)
+    // appends its own .topbar-icon-wrap bell button here.
+
+    const messageLink = document.createElement("a");
+    messageLink.className = "topbar-icon-btn";
+    messageLink.href = "../messages/index.html";
+    messageLink.setAttribute("aria-label", "Messages");
+    messageLink.innerHTML = "<i class=\"fa-regular fa-envelope\"></i>";
+    actions.appendChild(messageLink);
+
+    const userLink = document.createElement("a");
+    userLink.className = "app-topbar-user";
+    userLink.href = "../profile/index.html";
+
+    const avatar = document.createElement("div");
+    avatar.className = "app-topbar-avatar";
+    avatar.id = "lingkodTopbarAvatar";
+    avatar.textContent = lingkodAvatarInitials(session.name);
+    userLink.appendChild(avatar);
+
+    const info = document.createElement("div");
+    info.className = "app-topbar-user-info";
+    const nameEl = document.createElement("span");
+    nameEl.className = "app-topbar-user-name";
+    nameEl.textContent = session.name;
+    const roleEl = document.createElement("span");
+    roleEl.className = "app-topbar-user-role";
+    roleEl.textContent = LINGKOD_ROLE_LABELS[session.role] || session.role;
+    info.appendChild(nameEl);
+    info.appendChild(roleEl);
+    userLink.appendChild(info);
+
+    const chevron = document.createElement("i");
+    chevron.className = "fa-solid fa-chevron-down app-topbar-chevron";
+    userLink.appendChild(chevron);
+
+    actions.appendChild(userLink);
+    topbar.appendChild(actions);
+
+    content.insertBefore(topbar, content.firstChild);
+}
+
 document.addEventListener("DOMContentLoaded", async function(){
 
     let session = lingkodGetSession();
@@ -87,26 +182,23 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     lingkodSyncThemeFromDatabase();
 
-    const logo = document.querySelector(".sidebar .logo");
-    if(logo){
-        const badge = document.createElement("p");
-        badge.className = "session-badge";
-        badge.textContent = session.name + " — " + (LINGKOD_ROLE_LABELS[session.role] || session.role);
-        logo.appendChild(badge);
-    }
-
-    const topbarUsername = document.getElementById("topbarUsername");
-    if(topbarUsername){
-        topbarUsername.textContent = session.name;
-    }
+    lingkodBuildAppBackgroundDecor();
+    lingkodBuildAppTopbar(session);
 
     // The cached session object (lingkodGetSession) only ever carries
     // {studentNumber, role, name, title} - no real profile id - so the
-    // notification bell needs its own lookup rather than reusing it.
-    // Skipped entirely if this somehow isn't a real registered account
-    // (no demo-account fallback exists for notifications).
+    // notification bell (and the topbar avatar's real photo) need their
+    // own lookup rather than reusing it. Skipped entirely if this somehow
+    // isn't a real registered account (no demo-account fallback exists
+    // for notifications).
     lingkodGetAuthedProfile().then(function(profile){
-        if(profile) lingkodInitNotifications(profile.id);
+        if(!profile) return;
+        lingkodInitNotifications(profile.id);
+        const avatarSlot = document.getElementById("lingkodTopbarAvatar");
+        if(avatarSlot){
+            avatarSlot.innerHTML = "";
+            avatarSlot.appendChild(lingkodBuildAvatarElement(profile, "app-topbar-avatar"));
+        }
     });
 
     document.querySelectorAll("[data-roles]").forEach(function(el){
@@ -1965,6 +2057,40 @@ async function lingkodPopulateOrganizationSelectById(selectEl, selectedId){
     });
 }
 
+// Mirrors lingkodPopulateOrganizationSelectById above - departments is
+// the same shape of lookup table (text id, name), used by Registered
+// Users' Edit User modal so OSOA EB has a real way to set/correct a
+// member's department_id (profiles_department_required requires it to
+// never be null - see the migration comment where it's added).
+async function lingkodPopulateDepartmentSelect(selectEl, selectedId){
+    if(!selectEl) return;
+
+    const { data, error } = await supabaseClient
+        .from("departments")
+        .select("id, name")
+        .order("name");
+
+    selectEl.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select Department";
+    selectEl.appendChild(placeholder);
+
+    if(error){
+        console.error("[common] failed to load departments for dropdown:", error);
+        return;
+    }
+
+    (data || []).forEach(function(dept){
+        const opt = document.createElement("option");
+        opt.value = dept.id;
+        opt.textContent = dept.name;
+        if(selectedId && dept.id === selectedId) opt.selected = true;
+        selectEl.appendChild(opt);
+    });
+}
+
 async function lingkodUploadPublicImage(bucket, folderId, blob){
     const ext = blob.type === "image/png" ? "png" : "jpg";
     const path = folderId + "/" + crypto.randomUUID() + "-cover." + ext;
@@ -2208,8 +2334,11 @@ async function lingkodLoadNotifications(profileId){
 }
 
 function lingkodInitNotifications(profileId){
-    const sidebar = document.querySelector(".sidebar");
-    if(!sidebar || document.getElementById("lingkodNotificationBell")) return;
+    const actions = document.querySelector(".app-topbar-actions");
+    if(!actions || document.getElementById("lingkodNotificationBell")) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "topbar-icon-wrap";
 
     const bellBtn = document.createElement("button");
     bellBtn.type = "button";
@@ -2221,21 +2350,7 @@ function lingkodInitNotifications(profileId){
         e.stopPropagation();
         lingkodToggleNotificationPanel();
     });
-    // Inserted right after the sidebar-toggle button (always the
-    // sidebar's first child - see initSidebarToggle, which has already
-    // run by the time this fires) rather than appended at the end, so
-    // it has a sensible place in normal document flow for the collapsed
-    // desktop rail to use (see .sidebar.collapsed .notification-bell-btn
-    // in common.css) instead of only ever being positioned by absolute
-    // coordinates that assumed the full-width sidebar.
-    const sidebarToggleEl = sidebar.querySelector(".sidebar-toggle");
-    if(sidebarToggleEl && sidebarToggleEl.nextSibling){
-        sidebar.insertBefore(bellBtn, sidebarToggleEl.nextSibling);
-    } else if(sidebarToggleEl){
-        sidebar.appendChild(bellBtn);
-    } else {
-        sidebar.insertBefore(bellBtn, sidebar.firstChild);
-    }
+    wrap.appendChild(bellBtn);
 
     const panel = document.createElement("div");
     panel.id = "lingkodNotificationPanel";
@@ -2263,7 +2378,12 @@ function lingkodInitNotifications(profileId){
     list.id = "lingkodNotificationList";
     panel.appendChild(list);
 
-    sidebar.appendChild(panel);
+    wrap.appendChild(panel);
+    // First in the icon cluster, ahead of the message icon and profile
+    // (see .app-topbar-actions in common.css) - inserted rather than
+    // appended since lingkodBuildAppTopbar() already populated the
+    // message/profile elements before this async callback runs.
+    actions.insertBefore(wrap, actions.firstChild);
 
     document.addEventListener("click", function(e){
         if(!panel.contains(e.target) && e.target !== bellBtn && !bellBtn.contains(e.target)){

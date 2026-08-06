@@ -7,9 +7,11 @@
 <title>LINGKOD | Organization Directory</title>
 
 <link rel="icon" href="../../pictures/BULSU.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="../../css/common.css?v=2">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../css/common.css?v=5">
+<link rel="stylesheet" href="style.css?v=3">
 
 </head>
 <body>
@@ -17,6 +19,24 @@
 <!-- Public, guest-accessible page - deliberately does NOT load js/common.js
      (it auth-redirects anyone without a session to Login) or js/auth.js.
      Only js/supabase.js, for a plain anon-role Supabase client. -->
+
+<!-- Decorative background - purely visual, no functional role -->
+<div class="org-browse-bg-decor" aria-hidden="true">
+<div class="org-browse-bg-blob org-browse-bg-blob-1"></div>
+<div class="org-browse-bg-blob org-browse-bg-blob-2"></div>
+<svg class="org-browse-bg-wave" viewBox="0 0 800 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="waveGradOrg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#E73F1E"/>
+<stop offset="55%" stop-color="#FB6C00"/>
+<stop offset="100%" stop-color="#F9B637"/>
+</linearGradient>
+</defs>
+<path fill="url(#waveGradOrg)" opacity="0.28" d="M0,180 C150,80 300,260 480,190 C620,140 720,240 800,200 L800,420 L0,420 Z"/>
+<path fill="url(#waveGradOrg)" opacity="0.4" d="M0,240 C180,160 320,320 500,250 C640,200 720,300 800,260 L800,420 L0,420 Z"/>
+</svg>
+<div class="org-browse-bg-dots org-browse-bg-dots-tr"></div>
+</div>
 
 <div class="org-browse-page">
 
@@ -28,10 +48,6 @@
 </div>
 
 <div class="org-browse-topbar-links">
-
-<a href="../document-library/index.html" class="org-browse-back-btn">
-<i class="fa-solid fa-file-lines"></i> Browse Documents
-</a>
 
 <a href="../login/index.html" class="org-browse-back-btn">
 <i class="fa-solid fa-arrow-left"></i> Back to Login
@@ -49,7 +65,8 @@
 <div class="org-browse-filters">
 
 <div class="search">
-<input type="text" id="orgBrowseSearch" placeholder="🔍 Search organizations by name or acronym...">
+<i class="fa-solid fa-magnifying-glass"></i>
+<input type="text" id="orgBrowseSearch" placeholder="Search organizations by name or acronym...">
 </div>
 
 <select id="orgBrowseCategoryFilter">
@@ -75,6 +92,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../js/supabase.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=2"></script>
 </body>
 </html>

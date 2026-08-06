@@ -1,12 +1,100 @@
+/* Local palette override - this guest-accessible page loads the shared
+   css/common.css (for .modal/.toast/.filter-bar etc.) but re-declares
+   :root here, after it, to match the Login/Register pages' warm identity
+   without touching the purple tokens every authenticated page still
+   uses. CSS custom properties are late-bound, so every common.css rule
+   that reads var(--color-primary)/var(--color-heading)/etc. picks up
+   these values automatically. */
+:root{
+    --color-primary:#E73F1E;
+    --color-primary-dark:#B82E12;
+    --color-accent:#FB6C00;
+    --color-accent-dark:#D95900;
+    --color-highlight:#F9B637;
+    --color-highlight-dark:#DE9A1C;
+    --color-cream:#FFDD9C;
+    --color-cream-wash:#FFEFD9;
+    --gradient-brand:linear-gradient(120deg,#E73F1E 0%,#FB6C00 55%,#F9B637 100%);
+}
+
 .hidden{
     display:none;
 }
 
+html{
+    background:var(--color-cream-wash);
+}
+
 body{
-    background:var(--color-bg);
+    background:
+        radial-gradient(ellipse 1000px 800px at 100% 0%, rgba(249,182,55,.35), transparent 60%),
+        radial-gradient(ellipse 900px 800px at 0% 100%, rgba(231,63,30,.14), transparent 55%),
+        linear-gradient(135deg,#FFFBF3 0%,var(--color-cream) 55%,var(--color-cream-wash) 100%);
+    position:relative;
+}
+
+/* ================= BACKGROUND DECORATION =================
+   Same treatment as the Login page - purely visual (behind everything,
+   fixed so it stays put while the org grid scrolls). */
+
+.org-browse-bg-decor{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+}
+
+.org-browse-bg-blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(80px);
+    opacity:.28;
+}
+
+.org-browse-bg-blob-1{
+    width:520px;
+    height:520px;
+    top:-160px;
+    right:-140px;
+    background:radial-gradient(circle,var(--color-accent),transparent 70%);
+}
+
+.org-browse-bg-blob-2{
+    width:480px;
+    height:480px;
+    bottom:-180px;
+    left:6%;
+    background:radial-gradient(circle,var(--color-highlight),transparent 70%);
+    opacity:.24;
+}
+
+.org-browse-bg-wave{
+    position:absolute;
+    left:0;
+    bottom:-4vh;
+    width:100%;
+    min-width:100%;
+    height:auto;
+    opacity:.4;
+}
+
+.org-browse-bg-dots{
+    position:absolute;
+    width:120px;
+    height:96px;
+    background-image:radial-gradient(circle,rgba(255,255,255,.9) 1.6px,transparent 1.8px);
+    background-size:16px 16px;
+}
+
+.org-browse-bg-dots-tr{
+    top:36px;
+    right:36px;
 }
 
 .org-browse-page{
+    position:relative;
+    z-index:1;
     max-width:1200px;
     margin:0 auto;
     padding:24px 30px 60px;
@@ -48,20 +136,21 @@ body{
     align-items:center;
     gap:8px;
     width:auto;
-    padding:10px 18px;
+    padding:11px 20px;
     border-radius:30px;
     background:#fff;
-    color:var(--color-heading);
+    color:var(--color-primary-dark);
     font-size:13.5px;
     font-weight:600;
     text-decoration:none;
-    box-shadow:0 3px 10px rgba(0,0,0,.08);
-    transition:background .2s ease, transform .2s ease;
+    box-shadow:0 6px 18px rgba(184,46,18,.1);
+    transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 
 .org-browse-back-btn:hover{
-    background:var(--color-border);
-    transform:translateY(-1px);
+    background:#fff;
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(184,46,18,.16);
 }
 
 /* ================= HERO ================= */
@@ -95,33 +184,62 @@ body{
 }
 
 .org-browse-filters .search{
+    position:relative;
     flex:1;
     min-width:240px;
+    display:flex;
+    align-items:center;
+    background:#fff;
+    border-radius:30px;
+    box-shadow:0 4px 16px rgba(184,46,18,.08);
+}
+
+.org-browse-filters .search i{
+    flex-shrink:0;
+    margin-left:20px;
+    color:var(--color-text-muted);
+    font-size:14px;
 }
 
 .org-browse-filters .search input{
-    padding:14px;
+    flex:1;
+    min-width:0;
+    border:none;
+    background:none;
+    box-shadow:none;
+    padding:16px 20px 16px 12px;
+}
+
+.org-browse-filters .search input:focus{
+    box-shadow:none;
 }
 
 .org-browse-filters select{
     width:auto;
     min-width:190px;
-    padding:14px;
+    padding:16px 20px;
+    border:none;
+    border-radius:30px;
+    background:#fff;
+    box-shadow:0 4px 16px rgba(184,46,18,.08);
+    color:var(--color-text);
+    cursor:pointer;
+}
+
+.org-browse-filters select:focus{
+    outline:none;
+    box-shadow:0 0 0 3px rgba(231,63,30,.18);
 }
 
 /* ================= ORGANIZATION GRID ================= */
 
 .org-browse-grid{
     display:grid;
-    grid-template-columns:repeat(3, 1fr);
+    grid-template-columns:repeat(4, 1fr);
     gap:22px;
 }
 
-@media(min-width:1400px){
-    .org-browse-grid{ grid-template-columns:repeat(4, 1fr); }
-}
-
-@media(max-width:1000px){
+@media(max-width:1023px){
     .org-browse-grid{ grid-template-columns:repeat(2, 1fr); }
 }
 
@@ -131,26 +249,28 @@ body{
 
 .org-browse-card{
     background:#fff;
-    border-radius:18px;
-    padding:26px 22px;
-    box-shadow:0 6px 18px rgba(54,42,93,.08);
+    border-radius:24px;
+    padding:28px 22px;
+    box-shadow:0 6px 20px rgba(184,46,18,.08);
+    border:1px solid transparent;
     text-align:center;
     display:flex;
     flex-direction:column;
     align-items:center;
-    transition:transform .28s ease, box-shadow .28s ease;
+    transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
 }
 
 .org-browse-card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 16px 30px rgba(54,42,93,.16);
+    transform:translateY(-6px) scale(1.015);
+    box-shadow:0 20px 36px rgba(184,46,18,.16);
+    border-color:rgba(231,63,30,.25);
 }
 
 .org-browse-logo{
-    width:72px;
-    height:72px;
+    width:76px;
+    height:76px;
     border-radius:50%;
-    background:var(--color-primary);
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
     color:#fff;
     display:flex;
     align-items:center;
@@ -159,6 +279,7 @@ body{
     overflow:hidden;
     margin-bottom:16px;
     flex-shrink:0;
+    box-shadow:0 8px 18px rgba(184,46,18,.2);
 }
 
 .org-browse-logo img{
@@ -175,6 +296,10 @@ body{
     line-height:1.4;
     margin-bottom:6px;
     min-height:42px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
 }
 
 .org-browse-card-acronym{
@@ -210,20 +335,22 @@ body{
 
 .org-browse-card-btn{
     width:100%;
-    padding:10px;
+    padding:12px;
     border-radius:30px;
-    background:var(--color-bg);
-    color:var(--color-heading);
+    background:linear-gradient(120deg,var(--color-primary),var(--color-accent));
+    color:#fff;
     border:none;
-    font-weight:600;
+    font-weight:700;
     font-size:13px;
     cursor:pointer;
     margin-top:auto;
+    box-shadow:0 8px 18px rgba(184,46,18,.22);
+    transition:transform .2s ease, box-shadow .2s ease, background-position .3s ease;
 }
 
-.org-browse-card:hover .org-browse-card-btn{
-    background:var(--color-primary);
-    color:#fff;
+.org-browse-card-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 24px rgba(184,46,18,.3);
 }
 
 /* ================= EMPTY STATE ================= */
@@ -254,9 +381,9 @@ body{
 
 .org-browse-skeleton{
     background:#fff;
-    border-radius:18px;
-    padding:26px 22px;
-    box-shadow:0 6px 18px rgba(54,42,93,.06);
+    border-radius:24px;
+    padding:28px 22px;
+    box-shadow:0 6px 18px rgba(184,46,18,.06);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -282,30 +409,105 @@ body{
     margin-bottom:10px;
 }
 
-/* ================= ORGANIZATION DETAILS MODAL ================= */
-/* Reuses css/common.css's .modal-overlay/.modal/.modal-header/.modal-body
-   shell (loaded on this page) - only the content inside .modal-body is
-   page-specific. */
+/* ================= ORGANIZATION DETAILS MODAL =================
+   Reuses css/common.css's .modal-overlay/.modal/.modal-header/.modal-body
+   shell (loaded on this page) for the open/close mechanics (backdrop
+   fade, ESC key, overlay click, scale-in entrance) - .modal-org-detail
+   only overrides sizing/chrome for THIS modal so no other page's modal
+   (confirm-delete, document preview, etc.) is affected. */
+
+.modal-org-detail{
+    position:relative;
+    width:92vw;
+    max-width:900px;
+    max-height:88vh;
+    border-radius:24px;
+}
+
+/* The rich header built below (logo/name/acronym/badge) replaces the
+   generic text title as the visual header - the shared bar collapses to
+   just a floating close button, keeping the h3 in the DOM (for
+   accessible modal labelling) but visually hidden. */
+.modal-org-detail .modal-header{
+    position:absolute;
+    top:14px;
+    right:14px;
+    z-index:6;
+    padding:0;
+    border-bottom:none;
+    background:none;
+}
+
+.modal-org-detail .modal-header h3{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+}
+
+.modal-org-detail .modal-close{
+    width:38px;
+    height:38px;
+    background:#fff;
+    box-shadow:0 6px 16px rgba(184,46,18,.18);
+}
+
+.modal-org-detail .modal-close:hover{
+    background:var(--color-primary);
+}
+
+.modal-org-detail .modal-body{
+    padding:0;
+    scrollbar-width:thin;
+    scrollbar-color:var(--color-cream) transparent;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar{
+    width:8px;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-thumb{
+    background:var(--color-cream);
+    border-radius:10px;
+    border:2px solid #fff;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-thumb:hover{
+    background:var(--color-highlight);
+}
 
 .org-detail-header{
+    position:sticky;
+    top:0;
+    z-index:5;
     display:flex;
     align-items:center;
-    gap:16px;
-    margin-bottom:20px;
+    gap:18px;
+    padding:26px 60px 22px 28px;
+    background:#fff;
+    border-bottom:1px solid var(--color-border);
 }
 
 .org-detail-logo{
-    width:64px;
-    height:64px;
+    width:88px;
+    height:88px;
     border-radius:50%;
-    background:var(--color-primary);
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
     color:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:22px;
+    font-size:30px;
     overflow:hidden;
     flex-shrink:0;
+    box-shadow:0 8px 18px rgba(184,46,18,.22);
+    border:3px solid #fff;
 }
 
 .org-detail-logo img{
@@ -315,22 +517,65 @@ body{
     display:block;
 }
 
-.org-detail-title h3{
-    color:var(--color-heading);
-    font-size:17px;
-    margin-bottom:4px;
+.org-detail-title{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    min-width:0;
 }
 
-.org-detail-grid{
+.org-detail-title h3{
+    width:100%;
+    color:var(--color-heading);
+    font-size:19px;
+    font-weight:700;
+}
+
+.org-detail-acronym{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+/* ================= SECTION CARDS ================= */
+
+.org-detail-sections{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    padding:24px 28px 28px;
+}
+
+.org-detail-section{
+    background:var(--color-bg-light, #FFF8EE);
+    border-radius:18px;
+    padding:18px 20px;
     display:flex;
     flex-direction:column;
     gap:12px;
 }
 
+.org-detail-section-title{
+    color:var(--color-primary);
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+}
+
+.org-detail-empty{
+    grid-column:1 / -1;
+    text-align:center;
+    color:var(--color-text-muted);
+    font-size:14px;
+    padding:20px 0;
+}
+
 .org-detail-row{
-    padding:12px 14px;
-    background:var(--color-bg);
-    border-radius:10px;
+    padding:0;
+    background:none;
+    border-radius:0;
 }
 
 .org-detail-label{
@@ -377,4 +622,44 @@ body{
 @media(max-width:600px){
     .org-browse-page{ padding:18px 16px 40px; }
     .org-browse-topbar{ justify-content:center; text-align:center; }
+}
+
+/* ================= ORG DETAIL MODAL RESPONSIVE ================= */
+
+@media(max-width:820px){
+
+.org-detail-sections{
+    grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:600px){
+
+.modal-org-detail{
+    width:95vw;
+    max-height:92vh;
+    border-radius:20px;
+}
+
+.org-detail-header{
+    padding:22px 52px 18px 20px;
+    gap:14px;
+}
+
+.org-detail-logo{
+    width:68px;
+    height:68px;
+    font-size:24px;
+}
+
+.org-detail-title h3{
+    font-size:16px;
+}
+
+.org-detail-sections{
+    padding:18px 20px 22px;
+    gap:12px;
+}
+
 }

@@ -1,13 +1,16 @@
 :root{
-    --color-primary:#362A5D;
-    --color-primary-dark:#241B40;
-    --color-secondary:#3F51B5;
-    --color-secondary-dark:#2F3D91;
-    --color-accent:#F0954D;
-    --color-accent-dark:#D97D34;
-    --color-highlight:#E15873;
-    --color-highlight-dark:#C33F5B;
-    --color-text:#2E2540;
+    --color-primary:#E73F1E;
+    --color-primary-dark:#B82E12;
+    --color-accent:#FB6C00;
+    --color-accent-dark:#D95900;
+    --color-highlight:#F9B637;
+    --color-highlight-dark:#DE9A1C;
+    --color-cream:#FFDD9C;
+    --color-text:#2B1B12;
+    --color-text-muted:#8B7A6C;
+    --color-bg-light:#FFF8EE;
+    --color-cream-wash:#FFEFD9;
+    --gradient-brand:linear-gradient(120deg,#E73F1E 0%,#FB6C00 55%,#F9B637 100%);
 }
 
 *{
@@ -17,30 +20,100 @@
     font-family:'Poppins',sans-serif;
 }
 
-body{
-    min-height:100vh;
-    font-family:'Poppins',sans-serif;
-    /* A light cream wash (not black) layered over the image brightens it
-       toward a soft white/cream tone while still letting the image's own
-       pastel colors show through - the login card is a solid, opaque
-       dark-purple gradient regardless of what's behind it, so contrast
-       stays fine even though the backdrop is now much lighter. */
-    background:linear-gradient(rgba(255,252,244,.55),rgba(255,252,244,.55)), url("../../pictures/osoa bg.png");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-    background-attachment:fixed;
+html{
+    min-height:100%;
+    background:var(--color-cream-wash);
     overflow-x:hidden;
 }
 
-/* iOS Safari in particular handles a fixed background poorly (janky
-   repaint on scroll, sometimes doesn't render at all) - falls back to a
-   normal scrolling background below the tablet breakpoint, where the
-   page is more likely to scroll and be touched on a phone. */
+body{
+    min-height:100vh;
+    font-family:'Poppins',sans-serif;
+    background:
+        radial-gradient(ellipse 1000px 800px at 100% 0%, rgba(249,182,55,.4), transparent 60%),
+        radial-gradient(ellipse 900px 800px at 0% 100%, rgba(231,63,30,.16), transparent 55%),
+        radial-gradient(ellipse 700px 600px at 100% 100%, rgba(251,108,0,.14), transparent 55%),
+        linear-gradient(135deg,#FFFBF3 0%,var(--color-cream) 55%,var(--color-cream-wash) 100%);
+    overflow-x:hidden;
+    position:relative;
+}
+
+/* ================= BACKGROUND DECORATION =================
+   Purely decorative (aria-hidden, pointer-events:none) - blurred gradient
+   blobs, an abstract wave, and dot-grid accents echoing the reference
+   design, built from this project's own palette only. */
+
+.bg-decor{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+}
+
+.bg-blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(80px);
+    opacity:.32;
+}
+
+.bg-blob-1{
+    width:520px;
+    height:520px;
+    top:-160px;
+    left:-140px;
+    background:radial-gradient(circle,var(--color-accent),transparent 70%);
+}
+
+.bg-blob-2{
+    width:480px;
+    height:480px;
+    bottom:-180px;
+    left:10%;
+    background:radial-gradient(circle,var(--color-highlight),transparent 70%);
+    opacity:.28;
+}
+
+.bg-blob-3{
+    width:420px;
+    height:420px;
+    top:20%;
+    right:-160px;
+    background:radial-gradient(circle,var(--color-primary),transparent 70%);
+    opacity:.16;
+}
+
+.bg-wave{
+    position:absolute;
+    left:0;
+    bottom:-6vh;
+    width:100%;
+    min-width:100%;
+    height:auto;
+    opacity:.5;
+}
+
+.bg-dots{
+    position:absolute;
+    width:120px;
+    height:96px;
+    background-image:radial-gradient(circle,rgba(255,255,255,.9) 1.6px,transparent 1.8px);
+    background-size:16px 16px;
+}
+
+.bg-dots-tl{
+    top:36px;
+    left:36px;
+}
+
+.bg-dots-bl{
+    bottom:64px;
+    left:40px;
+}
+
 @media(max-width:1024px){
-    body{
-        background-attachment:scroll;
-    }
+    .bg-dots-bl{ display:none; }
 }
 
 /* ================= INTRO SPLASH ================= */
@@ -85,10 +158,9 @@ body{
 }
 
 .splash-logo{
-    width:68%;
-    height:68%;
+    width:78%;
+    height:78%;
     object-fit:contain;
-    border-radius:50%;
 }
 
 @keyframes logoPop{
@@ -105,9 +177,12 @@ body{
 /* ================= LOGIN CARD ================= */
 
 .page{
+    position:relative;
+    z-index:1;
     min-height:100vh;
     display:flex;
     align-items:center;
+    min-width:0;
 }
 
 /* ================= LEFT BRAND PANEL ================= */
@@ -115,33 +190,40 @@ body{
 .login-brand{
     flex:0 0 42%;
     max-width:42%;
+    min-width:0;
     height:100vh;
     display:flex;
+    flex-direction:column;
     align-items:center;
-    /* flex-end (not center) pulls the logo toward the panel's shared
-       edge, closing most of the empty middle gap without touching either
-       zone's own width. */
-    justify-content:flex-end;
-    padding:40px 20px 40px 40px;
+    justify-content:center;
+    text-align:center;
+    padding:40px 48px;
 }
 
 .login-brand-logo{
     width:100%;
-    /* ~52% larger than the original 460px - within the requested
-       40-60% range - so the logo reads as a stronger visual element. */
-    max-width:700px;
+    max-width:340px;
     height:auto;
     object-fit:contain;
+    filter:drop-shadow(0 20px 40px rgba(184,46,18,.18));
+    margin-bottom:22px;
+}
+
+.login-brand-title{
+    color:var(--color-primary-dark);
+    font-size:22px;
+    font-weight:700;
+    line-height:1.3;
+    max-width:380px;
 }
 
 /* ================= RIGHT PANEL / LOGIN CARD ================= */
 
 .login-panel{
     flex:1;
+    min-width:0;
     display:flex;
     align-items:center;
-    /* flex-start (not center), paired with .login-brand's flex-end
-       above, brings the card toward the logo from the other side. */
     justify-content:flex-start;
     min-height:100vh;
     padding:40px 100px 40px 20px;
@@ -150,12 +232,16 @@ body{
 .login-card{
     position:relative;
     width:100%;
-    max-width:420px;
-    background:linear-gradient(160deg,var(--color-primary),var(--color-primary-dark));
-    border-radius:20px;
-    padding:45px 35px 40px;
+    min-width:0;
+    max-width:440px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(22px) saturate(160%);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid rgba(255,255,255,.7);
+    border-radius:24px;
+    padding:44px 38px 36px;
     text-align:center;
-    box-shadow:0 25px 50px rgba(36,27,64,.35);
+    box-shadow:0 30px 60px rgba(184,46,18,.16), 0 4px 14px rgba(184,46,18,.06);
     opacity:0;
     transform:translateY(25px);
     transition:opacity .7s ease, transform .4s ease, box-shadow .4s ease;
@@ -167,7 +253,7 @@ body{
 }
 
 .login-card.visible:hover{
-    box-shadow:0 30px 60px rgba(36,27,64,.42);
+    box-shadow:0 36px 70px rgba(184,46,18,.2), 0 4px 14px rgba(184,46,18,.08);
     transform:translateY(-4px);
 }
 
@@ -176,11 +262,30 @@ body{
     display:none;
 }
 
+.login-card h2{
+    color:var(--color-primary);
+    font-size:26px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.login-card p{
+    color:var(--color-text-muted);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:30px;
+}
+
+.login-card p .brand-name{
+    color:var(--color-primary-dark);
+    font-weight:600;
+}
+
 .form-status{
     display:none;
-    margin:-8px 0 20px;
+    margin:-10px 0 20px;
     padding:10px 14px;
-    border-radius:10px;
+    border-radius:12px;
     font-size:13px;
     font-weight:600;
     text-align:center;
@@ -191,13 +296,13 @@ body{
 }
 
 .form-status.success{
-    background:rgba(46,204,113,.15);
-    color:#B7F5CE;
+    background:rgba(30,138,76,.12);
+    color:#1E8A4C;
 }
 
 .form-status.error{
-    background:rgba(225,88,115,.2);
-    color:#FFD9DF;
+    background:rgba(255,46,99,.12);
+    color:var(--color-highlight-dark);
 }
 
 .btn-spinner{
@@ -216,18 +321,6 @@ body{
     to{transform:rotate(360deg)}
 }
 
-.login-card h2{
-    color:#fff;
-    font-size:24px;
-    margin-bottom:8px;
-}
-
-.login-card p{
-    color:rgba(255,255,255,.8);
-    font-size:14px;
-    margin-bottom:30px;
-}
-
 .input-box{
     margin-bottom:20px;
     text-align:left;
@@ -237,44 +330,65 @@ body{
     display:block;
     margin-bottom:8px;
     font-weight:600;
-    font-size:14px;
-    color:#fff;
+    font-size:13.5px;
+    color:var(--color-primary);
 }
 
-.input-box input{
-    width:100%;
-    padding:14px 18px;
+.input-field{
+    position:relative;
+    display:flex;
+    align-items:center;
+    min-width:0;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 2px 10px rgba(184,46,18,.06);
+    transition:box-shadow .25s ease;
+}
+
+.input-field:focus-within{
+    box-shadow:0 0 0 3px rgba(184,46,18,.18);
+}
+
+.input-icon{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    margin-left:8px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+}
+
+.input-field input{
+    flex:1 1 auto;
+    min-width:0;
+    padding:14px 14px 14px 10px;
     border:none;
-    border-radius:14px;
+    background:transparent;
+    border-radius:16px;
     font-size:14px;
     font-family:inherit;
-    transition:outline-color .3s ease, box-shadow .3s ease;
+    color:var(--color-text);
+    outline:none;
 }
 
-.input-box input:focus{
-    outline:3px solid var(--color-accent);
-}
-
-.password-field{
-    position:relative;
-}
-
-.password-field input{
-    padding-right:46px;
+.input-field input::placeholder{
+    color:#9AA1B5;
 }
 
 .toggle-password{
-    position:absolute;
-    top:50%;
-    right:14px;
-    margin:0;
-    transform:translateY(-50%);
+    flex-shrink:0;
+    margin:0 12px 0 0;
     background:none;
     border:none;
     width:auto;
-    padding:0;
-    color:#8a8398;
-    font-size:16px;
+    padding:4px;
+    color:var(--color-text-muted);
+    font-size:15px;
     cursor:pointer;
     box-shadow:none;
     display:flex;
@@ -283,9 +397,10 @@ body{
 }
 
 .toggle-password:hover{
-    color:var(--color-heading);
+    color:var(--color-primary);
     background:none;
-    transform:translateY(-50%);
+    transform:none;
+    box-shadow:none;
 }
 
 .option{
@@ -294,40 +409,54 @@ body{
     align-items:center;
     margin-bottom:28px;
     font-size:13px;
-    color:#fff;
+    color:var(--color-text);
 }
 
 .remember{
     display:flex;
     align-items:center;
-    gap:6px;
+    gap:7px;
+}
+
+.remember input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    accent-color:var(--color-primary);
+    cursor:pointer;
 }
 
 .option a{
-    color:#FFD3DD;
+    color:var(--color-primary-dark);
+    font-weight:600;
+    text-decoration:none;
+}
+
+.option a:hover{
     text-decoration:underline;
 }
 
 button{
     display:block;
-    width:60%;
-    max-width:220px;
+    width:100%;
     margin:0 auto;
-    padding:15px;
+    padding:16px;
     border:none;
     border-radius:30px;
-    background:var(--color-accent);
+    background:var(--gradient-brand);
+    background-size:160% 160%;
     color:#fff;
-    font-size:16px;
+    font-size:15.5px;
     font-weight:700;
     cursor:pointer;
-    box-shadow:0 8px 20px rgba(0,0,0,.2);
-    transition:.3s;
+    box-shadow:0 14px 26px rgba(184,46,18,.3);
+    transition:background-position .4s ease, transform .2s ease, box-shadow .2s ease;
+    position:relative;
 }
 
 button:hover{
-    background:var(--color-accent-dark);
+    background-position:100% 50%;
     transform:translateY(-2px);
+    box-shadow:0 18px 32px rgba(184,46,18,.36);
 }
 
 button:disabled{
@@ -336,21 +465,36 @@ button:disabled{
     transform:none;
 }
 
+.btn-arrow::after{
+    content:"\f061";
+    font-family:"Font Awesome 6 Free";
+    font-weight:900;
+    position:absolute;
+    right:22px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:14px;
+}
+
 .register{
     text-align:center;
-    margin-top:25px;
-    color:#fff;
+    margin-top:22px;
+    color:var(--color-text-muted);
     font-size:13px;
 }
 
 .register a{
-    color:#FFD3DD;
-    text-decoration:underline;
+    color:var(--color-primary-dark);
+    text-decoration:none;
     font-weight:700;
 }
 
+.register a:hover{
+    text-decoration:underline;
+}
+
 .register-browse{
-    margin-top:10px;
+    margin-top:8px;
 }
 
 @media(prefers-reduced-motion: reduce){
@@ -362,19 +506,20 @@ button:disabled{
 
 /* ================= RESPONSIVE ================= */
 
-/* Tablet - keep the two-column layout but let the logo shrink and the
-   right panel's reserved edge space compress, instead of jumping
-   straight to the stacked mobile layout. */
 @media(max-width:1024px){
 
 .login-brand{
     flex-basis:38%;
     max-width:38%;
-    padding:24px 12px 24px 24px;
+    padding:24px 20px;
 }
 
 .login-brand-logo{
-    max-width:480px;
+    max-width:260px;
+}
+
+.login-brand-title{
+    font-size:19px;
 }
 
 .login-panel{
@@ -383,8 +528,6 @@ button:disabled{
 
 }
 
-/* Mobile - stack vertically: logo on top, login card underneath, no
-   reserved side/edge whitespace. */
 @media(max-width:768px){
 
 .page{
@@ -397,21 +540,28 @@ button:disabled{
     width:100%;
     height:auto;
     padding:32px 20px 8px;
-    /* Stacked layout now - flex-end (inherited from the desktop rule,
-       meant for a side-by-side row) would shove the logo to the right
-       edge instead of centering it, so it's reset back to center here. */
     justify-content:center;
 }
 
 .login-brand-logo{
-    max-width:300px;
+    max-width:190px;
+    margin-bottom:16px;
+}
+
+.login-brand-title{
+    font-size:18px;
 }
 
 .login-panel{
     width:100%;
     min-height:0;
-    padding:20px 20px 40px;
+    padding:20px 20px 20px;
     justify-content:center;
+}
+
+.bg-dots-tl{
+    top:16px;
+    left:16px;
 }
 
 }
@@ -419,7 +569,7 @@ button:disabled{
 @media(max-width:480px){
 
 .login-card{
-    padding:40px 25px 35px;
+    padding:38px 24px 32px;
 }
 
 }

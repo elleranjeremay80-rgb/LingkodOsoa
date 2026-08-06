@@ -102,7 +102,7 @@ function orgBrowseOpenModal(titleText, contentNode){
         overlay.className = "modal-overlay";
 
         const modal = document.createElement("div");
-        modal.className = "modal";
+        modal.className = "modal modal-org-detail";
 
         const header = document.createElement("div");
         header.className = "modal-header";
@@ -163,6 +163,26 @@ function buildOrgDetailRow(label, value){
     return row;
 }
 
+// Groups related rows into one titled card - returns null (nothing to
+// append) when every row in the group was skipped for missing data, so
+// callers can filter empty sections out rather than showing a heading
+// over blank space.
+function buildOrgDetailSection(titleText, rows){
+    const populated = rows.filter(Boolean);
+    if(populated.length === 0) return null;
+
+    const section = document.createElement("div");
+    section.className = "org-detail-section";
+
+    const title = document.createElement("h4");
+    title.className = "org-detail-section-title";
+    title.textContent = titleText;
+    section.appendChild(title);
+
+    populated.forEach(function(row){ section.appendChild(row); });
+    return section;
+}
+
 function openOrgDetailModal(org){
     const wrap = document.createElement("div");
 
@@ -175,6 +195,12 @@ function openOrgDetailModal(org){
     const name = document.createElement("h3");
     name.textContent = org.name;
     titleWrap.appendChild(name);
+    if(org.acronym){
+        const acronym = document.createElement("span");
+        acronym.className = "org-detail-acronym";
+        acronym.textContent = org.acronym;
+        titleWrap.appendChild(acronym);
+    }
     if(org.category){
         const badge = document.createElement("span");
         badge.className = "org-browse-category-badge";
@@ -184,25 +210,16 @@ function openOrgDetailModal(org){
     header.appendChild(titleWrap);
     wrap.appendChild(header);
 
-    const grid = document.createElement("div");
-    grid.className = "org-detail-grid";
+    const sections = document.createElement("div");
+    sections.className = "org-detail-sections";
 
-    if(org.acronym) grid.appendChild(buildOrgDetailRow("Organization Acronym", org.acronym));
-    if(org.description) grid.appendChild(buildOrgDetailRow("Organization Description", org.description));
-    if(org.vision) grid.appendChild(buildOrgDetailRow("Vision", org.vision));
-    if(org.mission) grid.appendChild(buildOrgDetailRow("Mission", org.mission));
-    if(org.goals) grid.appendChild(buildOrgDetailRow("Goals", org.goals));
-    if(org.president_name) grid.appendChild(buildOrgDetailRow("Organization President", org.president_name));
-    if(org.adviser) grid.appendChild(buildOrgDetailRow("Adviser", org.adviser));
-    if(org.member_count != null) grid.appendChild(buildOrgDetailRow("Number of Members", String(org.member_count)));
-
-    if(org.facebook_url){
-        const fbRow = document.createElement("div");
-        fbRow.className = "org-detail-row";
+    const fbRow = org.facebook_url ? (function(){
+        const row = document.createElement("div");
+        row.className = "org-detail-row";
         const label = document.createElement("span");
         label.className = "org-detail-label";
         label.textContent = "Facebook Page";
-        fbRow.appendChild(label);
+        row.appendChild(label);
 
         const link = document.createElement("a");
         link.href = org.facebook_url;
@@ -210,19 +227,37 @@ function openOrgDetailModal(org){
         link.rel = "noopener noreferrer";
         link.className = "org-detail-social-link";
         link.innerHTML = "<i class=\"fa-brands fa-facebook\"></i> " + org.facebook_url;
-        fbRow.appendChild(link);
+        row.appendChild(link);
+        return row;
+    })() : null;
 
-        grid.appendChild(fbRow);
-    }
+    [
+        buildOrgDetailSection("Organization Information", [
+            org.description && buildOrgDetailRow("Description", org.description)
+        ]),
+        buildOrgDetailSection("Mission & Vision", [
+            org.mission && buildOrgDetailRow("Mission", org.mission),
+            org.vision && buildOrgDetailRow("Vision", org.vision),
+            org.goals && buildOrgDetailRow("Goals", org.goals)
+        ]),
+        buildOrgDetailSection("Leadership", [
+            org.president_name && buildOrgDetailRow("Organization President", org.president_name),
+            org.adviser && buildOrgDetailRow("Adviser", org.adviser)
+        ]),
+        buildOrgDetailSection("Membership", [
+            org.member_count != null && buildOrgDetailRow("Number of Members", String(org.member_count))
+        ]),
+        buildOrgDetailSection("Connect", [ fbRow ])
+    ].filter(Boolean).forEach(function(section){ sections.appendChild(section); });
 
-    if(grid.children.length === 0){
+    if(sections.children.length === 0){
         const empty = document.createElement("p");
-        empty.className = "org-detail-value";
+        empty.className = "org-detail-empty";
         empty.textContent = "This organization hasn't added any details yet.";
-        grid.appendChild(empty);
+        sections.appendChild(empty);
     }
 
-    wrap.appendChild(grid);
+    wrap.appendChild(sections);
 
     orgBrowseOpenModal(org.name, wrap);
 }

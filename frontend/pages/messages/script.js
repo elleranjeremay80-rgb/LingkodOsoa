@@ -1356,11 +1356,19 @@ async function togglePinMessage(msg, pin){
 /* ================= REMOVE MESSAGE ================= */
 
 async function removeMessageForMe(msg){
+    // ignoreDuplicates: true turns this into INSERT ... ON CONFLICT DO
+    // NOTHING instead of DO UPDATE - message_removals only has INSERT/
+    // SELECT RLS policies (no UPDATE policy, since there's nothing to
+    // update - removed_at never changes once set), so a plain upsert
+    // would work the first time a message is removed but fail on any
+    // repeat attempt, which needs UPDATE permission it doesn't have.
+    // DO NOTHING sidesteps that entirely - removing an already-removed
+    // message for yourself is a no-op either way.
     const { error } = await supabaseClient
         .from("message_removals")
         .upsert(
             { message_id: msg.id, user_id: myProfile.id },
-            { onConflict: "message_id,user_id" }
+            { onConflict: "message_id,user_id", ignoreDuplicates: true }
         );
 
     if(error){

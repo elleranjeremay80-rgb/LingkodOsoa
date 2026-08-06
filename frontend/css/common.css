@@ -4,27 +4,38 @@
    (dashboard, announcements, submission, requests,
    feedback, messages, repository, profile, settings)
 
-   Palette: deep purple (primary/sidebar), royal blue
-   (secondary/active nav), orange (accent/buttons &
-   highlights), pink-red (highlight accents), white
-   (neutral).
+   Palette: warm red/orange/gold (primary/accent/
+   highlight), matching the Login, Registration, and
+   Browse Organizations pages. Active nav / primary CTAs
+   use --gradient-brand (red -> orange -> gold).
+   --color-secondary is kept as a legacy alias (some
+   pages still reference it for "informational" accents
+   like focus rings/badges) pointed at the same red family
+   rather than a separate hue, so nothing introduces a
+   color outside this palette.
    =================================================== */
 
 :root{
-    --color-primary:#362A5D;
-    --color-primary-dark:#241B40;
-    --color-secondary:#3F51B5;
-    --color-secondary-dark:#2F3D91;
-    --color-accent:#F0954D;
-    --color-accent-dark:#D97D34;
-    --color-highlight:#E15873;
-    --color-highlight-dark:#C33F5B;
+    --color-primary:#E73F1E;
+    --color-primary-dark:#B82E12;
+    --color-secondary:#E73F1E;
+    --color-secondary-dark:#B82E12;
+    --color-accent:#FB6C00;
+    --color-accent-dark:#D95900;
+    --color-highlight:#F9B637;
+    --color-highlight-dark:#DE9A1C;
+    --color-cream:#FFDD9C;
     --color-neutral:#FFFFFF;
-    --color-bg:#F5F4FA;
-    --color-bg-stripe:#F7F6FC;
-    --color-text:#2E2540;
-    --color-text-muted:#6B6478;
-    --color-border:#E4E1EE;
+    --color-bg:#FFF8EE;
+    --color-bg-stripe:#FFEFD9;
+    --color-purple-wash:#FFEFD9;
+    --color-text:#2B1B12;
+    --color-text-muted:#8B7A6C;
+    --color-border:#F0E0C8;
+    --radius-lg:22px;
+    --radius-md:16px;
+    --radius-sm:12px;
+    --gradient-brand:linear-gradient(120deg,#E73F1E 0%,#FB6C00 55%,#F9B637 100%);
 
     /* Card/panel/modal surfaces and heading text were hardcoded to #fff /
        var(--color-primary) throughout every page's own stylesheet rather
@@ -46,7 +57,7 @@
    documentElement.dataset.theme, and js/common.js's lingkodSyncThemeFrom
    Database/lingkodApplyTheme, which persist/restore it). Applies across
    every page that loads this stylesheet - sidebar/navbar/buttons/badges
-   are deliberately left on the fixed OSOA purple+orange palette either
+   are deliberately left on the fixed OSOA red/orange/gold palette either
    way (same "keep the accent colors" request this is built from), so
    only surfaces that were actually hardcoded to a light color need
    redirecting here. Every page-specific stylesheet either already reads
@@ -73,7 +84,7 @@
     --color-text-secondary:#D1D5DB;
     --color-text-muted:#9CA3AF;
     --color-border:#3A3A4F;
-    --color-heading:#B7A9F2;
+    --color-heading:#FFB37A;
 }
 
 [data-theme="dark"] .card,
@@ -99,6 +110,9 @@
 [data-theme="dark"] .cancel-edit-btn,
 [data-theme="dark"] .pagination button,
 [data-theme="dark"] .topbar,
+[data-theme="dark"] .app-topbar-search,
+[data-theme="dark"] .app-topbar-user,
+[data-theme="dark"] .topbar-icon-btn,
 [data-theme="dark"] .item-card,
 [data-theme="dark"] .ongoing-project-card,
 [data-theme="dark"] .doclib-table-wrap,
@@ -202,13 +216,21 @@
 }
 
 body{
-    font-family:Arial, Helvetica, sans-serif;
-    background:var(--color-bg);
+    font-family:'Poppins', Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(ellipse 1000px 700px at 100% 0%, rgba(249,182,55,.22), transparent 60%),
+        radial-gradient(ellipse 900px 700px at 100% 100%, rgba(231,63,30,.1), transparent 55%),
+        linear-gradient(160deg, var(--color-bg) 0%, var(--color-purple-wash) 100%);
+    background-attachment:fixed;
     color:var(--color-text);
     /* So the page background itself fades along with every themed child
        element below when Dark Mode is toggled, instead of the body
        snapping instantly while cards/inputs/etc. animate around it. */
     transition:background .25s ease, color .25s ease;
+}
+
+[data-theme="dark"] body{
+    background:var(--color-bg);
 }
 
 a{
@@ -222,7 +244,79 @@ a, button, .card, .menu li, input, select, textarea{
 /* ================= APP SHELL ================= */
 
 .container{
+    position:relative;
+    z-index:1;
     display:flex;
+}
+
+/* ================= GLOBAL BACKGROUND DECORATION =================
+   Injected once by js/common.js (lingkodBuildAppBackgroundDecor) so it
+   appears on every page that loads this stylesheet without per-page
+   markup - same soft blob/wave/dot language as the Login page, kept
+   very subtle here since it sits behind dense dashboard content rather
+   than a single centered card. */
+
+.app-bg-decor{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+}
+
+.app-bg-blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:.22;
+}
+
+.app-bg-blob-1{
+    width:560px;
+    height:560px;
+    top:-200px;
+    right:-180px;
+    background:radial-gradient(circle,var(--color-highlight),transparent 70%);
+}
+
+.app-bg-blob-2{
+    width:480px;
+    height:480px;
+    bottom:-220px;
+    left:15%;
+    background:radial-gradient(circle,var(--color-accent),transparent 70%);
+    opacity:.16;
+}
+
+.app-bg-wave{
+    position:absolute;
+    left:0;
+    bottom:-4vh;
+    width:100%;
+    min-width:100%;
+    height:auto;
+    opacity:.22;
+}
+
+.app-bg-dots{
+    position:absolute;
+    width:110px;
+    height:88px;
+    background-image:radial-gradient(circle,rgba(184,46,18,.14) 1.6px,transparent 1.8px);
+    background-size:16px 16px;
+}
+
+.app-bg-dots-br{
+    bottom:22px;
+    right:22px;
+}
+
+@media(max-width:900px){
+    .app-bg-dots-br{ display:none; }
+}
+
+[data-theme="dark"] .app-bg-decor{
+    display:none;
 }
 
 .sidebar{
@@ -231,8 +325,12 @@ a, button, .card, .menu li, input, select, textarea{
     position:fixed;
     top:0;
     left:0;
-    background:linear-gradient(180deg,var(--color-primary),var(--color-primary-dark));
-    color:#fff;
+    background:rgba(255,251,243,.7);
+    backdrop-filter:blur(24px) saturate(160%);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    border-radius:0 28px 28px 0;
+    box-shadow:6px 0 34px rgba(184,46,18,.1);
+    color:var(--color-primary);
     padding:25px 20px;
     transition:width .3s ease, padding .3s ease;
     overflow-y:auto;
@@ -240,7 +338,7 @@ a, button, .card, .menu li, input, select, textarea{
     scroll-behavior:smooth;
     z-index:500;
     scrollbar-width:thin;
-    scrollbar-color:rgba(255,255,255,.25) transparent;
+    scrollbar-color:rgba(184,46,18,.2) transparent;
 }
 
 .sidebar::-webkit-scrollbar{
@@ -252,12 +350,48 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .sidebar::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,.25);
+    background:rgba(184,46,18,.2);
     border-radius:10px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover{
-    background:rgba(255,255,255,.4);
+    background:rgba(184,46,18,.35);
+}
+
+/* Decorative wave + dot-grid bleeding up from the bottom-left corner,
+   echoing the login page's background language - purely visual (behind
+   the nav content), built once here so it appears on every page that
+   loads this stylesheet instead of needing per-page markup. */
+.sidebar::before{
+    content:"";
+    position:absolute;
+    left:-10%;
+    bottom:-8%;
+    width:140%;
+    height:38%;
+    background:linear-gradient(135deg,var(--color-highlight),var(--color-accent));
+    opacity:.16;
+    border-radius:50% 50% 0 0/60% 60% 0 0;
+    pointer-events:none;
+    z-index:0;
+}
+
+.sidebar::after{
+    content:"";
+    position:absolute;
+    left:20px;
+    bottom:24px;
+    width:96px;
+    height:80px;
+    background-image:radial-gradient(circle,rgba(184,46,18,.18) 1.6px,transparent 1.8px);
+    background-size:14px 14px;
+    pointer-events:none;
+    z-index:0;
+}
+
+.sidebar > *{
+    position:relative;
+    z-index:1;
 }
 
 .sidebar-toggle{
@@ -266,10 +400,10 @@ a, button, .card, .menu li, input, select, textarea{
     justify-content:center;
     width:40px;
     height:40px;
-    background:rgba(255,255,255,.12);
+    background:rgba(184,46,18,.1);
     border:none;
-    border-radius:10px;
-    color:#fff;
+    border-radius:50%;
+    color:var(--color-primary);
     font-size:16px;
     cursor:pointer;
     margin-bottom:20px;
@@ -277,7 +411,7 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .sidebar-toggle:hover{
-    background:rgba(255,255,255,.25);
+    background:rgba(184,46,18,.18);
 }
 
 .logo{
@@ -288,52 +422,44 @@ a, button, .card, .menu li, input, select, textarea{
 .logo h2{
     font-size:28px;
     white-space:nowrap;
+    color:var(--color-primary);
 }
 
 .logo p{
-    color:rgba(255,255,255,.7);
+    color:var(--color-text-muted);
     font-size:14px;
     white-space:nowrap;
 }
 
-.session-badge{
-    margin-top:12px;
-    display:inline-block;
-    background:rgba(255,255,255,.15);
-    color:#fff;
-    padding:5px 14px;
-    border-radius:20px;
-    font-size:12px;
-    white-space:nowrap;
+/* ================= NOTIFICATIONS =================
+   Bell button lives in the app-topbar's icon cluster (see
+   js/common.js's lingkodInitNotifications, which builds a
+   .topbar-icon-wrap and inserts it into .app-topbar-actions) - a normal
+   light icon button rather than sidebar chrome, so it follows theme like
+   the rest of the topbar. The dropdown panel hangs directly below it. */
+
+.topbar-icon-wrap{
+    position:relative;
 }
 
-/* ================= NOTIFICATIONS =================
-   Bell button lives in the sidebar's fixed purple chrome (see
-   js/common.js's lingkodInitNotifications) so it stays the brand color
-   in both themes, same as the rest of the sidebar - the dropdown PANEL
-   underneath it is a normal surface and does follow theme. */
-
 .notification-bell-btn{
-    position:absolute;
-    top:22px;
-    right:18px;
-    width:36px;
-    height:36px;
+    width:40px;
+    height:40px;
     padding:0;
     border-radius:50%;
     border:none;
-    background:rgba(255,255,255,.12);
-    color:#fff;
+    background:var(--color-bg);
+    color:var(--color-primary);
     font-size:15px;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
-    z-index:20;
+    position:relative;
 }
 
 .notification-bell-btn:hover{
-    background:rgba(255,255,255,.22);
+    background:var(--color-border);
     transform:none;
     box-shadow:none;
 }
@@ -355,15 +481,15 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .notification-panel{
-    position:fixed;
-    top:70px;
-    left:330px;
+    position:absolute;
+    top:calc(100% + 14px);
+    right:0;
     width:330px;
     max-height:70vh;
     background:var(--color-surface);
     color:var(--color-text);
-    border-radius:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    border-radius:var(--radius-lg);
+    box-shadow:0 20px 50px rgba(184,46,18,.18);
     display:flex;
     flex-direction:column;
     opacity:0;
@@ -423,7 +549,7 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .notification-item.unread{
-    background:rgba(63,81,181,.07);
+    background:rgba(231,63,30,.07);
 }
 
 .notification-item.unread .notification-item-title::before{
@@ -463,6 +589,7 @@ a, button, .card, .menu li, input, select, textarea{
 
 @media(max-width:900px){
     .notification-panel{
+        position:fixed;
         left:16px;
         right:16px;
         width:auto;
@@ -485,15 +612,16 @@ a, button, .card, .menu li, input, select, textarea{
     align-items:center;
     gap:10px;
     padding:14px 12px;
-    color:#fff;
+    color:var(--color-primary);
     text-decoration:none;
     white-space:normal;
     line-height:1.3;
     font-size:14.5px;
+    font-weight:500;
 }
 
 .menu li i{
-    color:#fff;
+    color:var(--color-primary);
     width:20px;
     text-align:center;
     flex-shrink:0;
@@ -501,7 +629,7 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .menu li:hover{
-    background:rgba(255,255,255,.1);
+    background:rgba(184,46,18,.08);
 }
 
 .menu li:hover i{
@@ -509,8 +637,13 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .menu li.active{
-    background:var(--color-highlight);
-    box-shadow:0 6px 16px rgba(225,88,115,.35);
+    background:var(--gradient-brand);
+    box-shadow:0 8px 18px rgba(184,46,18,.28);
+}
+
+.menu li.active a,
+.menu li.active i{
+    color:#fff;
 }
 
 /* ================= SERVICES SUBMENU ================= */
@@ -530,15 +663,16 @@ a, button, .card, .menu li, input, select, textarea{
     background:none;
     border:none;
     border-radius:10px;
-    color:#fff;
+    color:var(--color-primary);
     font-size:14.5px;
+    font-weight:500;
     font-family:inherit;
     text-align:left;
     cursor:pointer;
 }
 
 .menu-toggle:hover{
-    background:rgba(255,255,255,.1);
+    background:rgba(184,46,18,.08);
     transform:none;
     box-shadow:none;
 }
@@ -547,7 +681,7 @@ a, button, .card, .menu li, input, select, textarea{
     width:20px;
     text-align:center;
     flex-shrink:0;
-    color:#fff;
+    color:var(--color-primary);
 }
 
 .menu-toggle span{
@@ -566,7 +700,7 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .menu-parent.active > .menu-toggle{
-    background:rgba(255,255,255,.14);
+    background:rgba(184,46,18,.08);
 }
 
 .submenu{
@@ -588,12 +722,190 @@ a, button, .card, .menu li, input, select, textarea{
 }
 
 .submenu li:hover{
-    background:rgba(255,255,255,.1);
+    background:rgba(184,46,18,.08);
 }
 
 .submenu li.active{
-    background:var(--color-highlight);
-    box-shadow:0 6px 16px rgba(225,88,115,.35);
+    background:var(--gradient-brand);
+    box-shadow:0 8px 18px rgba(184,46,18,.28);
+}
+
+.submenu li.active a,
+.submenu li.active i{
+    color:#fff;
+}
+
+/* ================= UNIVERSAL APP TOPBAR =================
+   Built once by js/common.js (lingkodBuildAppTopbar) and inserted as the
+   first child of .content on every page that loads this stylesheet -
+   search bar + notification/message icons + profile cluster, consistent
+   regardless of what each page's own .header/hero content below it
+   looks like. Distinct from ".topbar" (dashboard/announcements' own
+   page-specific header markup) to avoid any collision. */
+
+.app-topbar{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:25px;
+}
+
+.app-topbar-search{
+    flex:1;
+    max-width:420px;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#fff;
+    padding:12px 18px;
+    border-radius:30px;
+    box-shadow:0 4px 16px rgba(184,46,18,.06);
+    color:var(--color-text-muted);
+}
+
+.app-topbar-search i{
+    font-size:14px;
+}
+
+.app-topbar-search input{
+    flex:1;
+    min-width:0;
+    width:auto;
+    border:none;
+    background:none;
+    padding:0;
+    font-size:13.5px;
+    color:var(--color-text);
+    outline:none;
+}
+
+.app-topbar-search input::placeholder{
+    color:var(--color-text-muted);
+}
+
+.app-topbar-actions{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-left:auto;
+}
+
+.topbar-icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:var(--color-bg);
+    color:var(--color-primary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+    flex-shrink:0;
+}
+
+.topbar-icon-btn:hover{
+    background:var(--color-border);
+    transform:none;
+    box-shadow:none;
+}
+
+.app-topbar-user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 14px 6px 6px;
+    background:#fff;
+    border-radius:30px;
+    box-shadow:0 4px 16px rgba(184,46,18,.06);
+    color:var(--color-text);
+    text-decoration:none;
+}
+
+.app-topbar-user:hover{
+    box-shadow:0 6px 20px rgba(184,46,18,.12);
+    transform:none;
+    color:var(--color-text);
+    opacity:1;
+}
+
+.app-topbar-avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--color-primary);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    overflow:hidden;
+}
+
+.app-topbar-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.app-topbar-user-info{
+    display:flex;
+    flex-direction:column;
+    line-height:1.3;
+}
+
+.app-topbar-user-name{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--color-primary);
+    text-transform:uppercase;
+    letter-spacing:.02em;
+}
+
+.app-topbar-user-role{
+    font-size:11.5px;
+    color:var(--color-text-muted);
+}
+
+.app-topbar-chevron{
+    font-size:10px;
+    color:var(--color-text-muted);
+    margin-left:2px;
+}
+
+@media(max-width:900px){
+
+.app-topbar{
+    margin-top:56px;
+    flex-wrap:wrap;
+}
+
+.app-topbar-search{
+    order:3;
+    max-width:none;
+    width:100%;
+}
+
+}
+
+@media(max-width:520px){
+
+.app-topbar-user-info{
+    display:none;
+}
+
+.app-topbar-user{
+    padding:4px;
+}
+
+.app-topbar-chevron{
+    display:none;
+}
+
 }
 
 .content{
@@ -612,8 +924,8 @@ a, button, .card, .menu li, input, select, textarea{
 .header{
     background:#fff;
     padding:25px;
-    border-radius:15px;
-    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    border-radius:var(--radius-lg);
+    box-shadow:0 8px 24px rgba(184,46,18,.08);
     margin-bottom:25px;
 }
 
@@ -638,8 +950,7 @@ a, button, .card, .menu li, input, select, textarea{
     margin-left:84px;
 }
 
-.sidebar.collapsed .logo p,
-.sidebar.collapsed .session-badge{
+.sidebar.collapsed .logo p{
     display:none;
 }
 
@@ -688,34 +999,6 @@ a, button, .card, .menu li, input, select, textarea{
     padding:15px 0;
 }
 
-/* The bell's default position:absolute + top:22px/right:18px was tuned
-   for the 300px expanded sidebar - at the 84px collapsed width, right:18px
-   lands it almost exactly on top of the now horizontally-centered
-   .sidebar-toggle above (see the auto-margin rule for it above), instead
-   of below it. Switching to position:relative + margin:auto drops it
-   into normal document flow instead - centered regardless of the
-   collapsed rail's actual width (never hardcoded), and naturally placed
-   right after the toggle button, since js/common.js's
-   lingkodInitNotifications() inserts it immediately after that button in
-   the DOM specifically for this. position:relative (not static) is
-   required here, not just any non-positioned value - .notification-badge
-   is still position:absolute and needs the bell to remain its containing
-   block, or the unread count would detach and anchor to the sidebar
-   itself instead of the bell. */
-.sidebar.collapsed .notification-bell-btn{
-    position:relative;
-    top:auto;
-    right:auto;
-    margin:0 auto 20px;
-}
-
-/* The dropdown panel's left:330px (see its base rule) assumes the 300px
-   expanded sidebar plus a 30px gap - kept proportional here rather than
-   left pinned far away from an 84px-wide collapsed rail. */
-.sidebar.collapsed .notification-panel{
-    left:100px;
-}
-
 }
 
 /* ================= SHARED FORM ELEMENTS ================= */
@@ -726,7 +1009,7 @@ textarea{
     width:100%;
     padding:12px;
     border:1px solid #ccc;
-    border-radius:8px;
+    border-radius:var(--radius-sm);
     font-size:15px;
     font-family:inherit;
 }
@@ -736,7 +1019,7 @@ select:focus,
 textarea:focus{
     outline:none;
     border-color:var(--color-secondary);
-    box-shadow:0 0 0 3px rgba(63,81,181,.15);
+    box-shadow:0 0 0 3px rgba(231,63,30,.15);
 }
 
 textarea{
@@ -879,7 +1162,7 @@ textarea{
     width:200px;
     background:#fff;
     border-radius:12px;
-    box-shadow:0 14px 34px rgba(54,42,93,.22);
+    box-shadow:0 14px 34px rgba(184,46,18,.22);
     padding:6px;
     opacity:0;
     transform:translateY(-6px) scale(.98);
@@ -941,7 +1224,7 @@ button{
 button:hover{
     background:var(--color-accent-dark);
     transform:translateY(-1px);
-    box-shadow:0 6px 14px rgba(217,125,52,.3);
+    box-shadow:0 6px 14px rgba(251,108,0,.3);
 }
 
 /* ================= SHARED TABLE ELEMENTS ================= */
@@ -1122,7 +1405,7 @@ button:disabled{
 
 .modal{
     background:#fff;
-    border-radius:16px;
+    border-radius:var(--radius-lg);
     width:100%;
     max-width:560px;
     max-height:85vh;
@@ -1656,9 +1939,9 @@ button:disabled{
 
 .announcement-card{
     background:#fff;
-    border-radius:15px;
+    border-radius:var(--radius-lg);
     padding:25px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:0 8px 22px rgba(184,46,18,.08);
     transition:.3s;
     border-left:8px solid var(--color-primary);
 }
@@ -1761,11 +2044,11 @@ button:disabled{
 
 .empty-state{
     background:#fff;
-    border-radius:15px;
+    border-radius:var(--radius-lg);
     padding:40px 25px;
     text-align:center;
     color:var(--color-text-muted);
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:0 8px 22px rgba(184,46,18,.08);
 }
 
 @media(max-width:768px){

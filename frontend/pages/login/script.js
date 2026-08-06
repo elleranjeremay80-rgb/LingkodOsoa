@@ -66,11 +66,12 @@ async function redirectIfAlreadyLoggedIn(){
 
 lingkodWirePasswordToggles();
 
-const savedStudentNumber = localStorage.getItem("lingkod_studentNumber");
-if(savedStudentNumber){
-    studentNumberInput.value = savedStudentNumber;
-    rememberMeCheckbox.checked = true;
-}
+// The Student Number field and the Remember Me checkbox always start
+// empty/unchecked on page load, regardless of any previous login - this
+// page no longer restores either from a past session. Purges any value
+// saved by an older build of this page that did, so a browser that
+// already has one left over doesn't keep resurfacing it forever.
+localStorage.removeItem("lingkod_studentNumber");
 
 // Looks up whether a student number belongs to a registered account by
 // querying the profiles table directly (no RPC). Only the columns
@@ -278,12 +279,6 @@ function completeMfaChallengeIfNeeded(authClient){
 }
 
 function finishLogin(account, studentNumber){
-    if(rememberMeCheckbox.checked){
-        localStorage.setItem("lingkod_studentNumber", studentNumber);
-    } else {
-        localStorage.removeItem("lingkod_studentNumber");
-    }
-
     lingkodSetSession(account);
     window.location.href = "../dashboard/index.html";
 }

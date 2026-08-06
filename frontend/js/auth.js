@@ -59,7 +59,7 @@ async function lingkodGetAuthedProfile(){
 
     const { data: profile, error } = await supabaseClient
         .from("profiles")
-        .select("id, full_name, student_number, organization, organization_id, role, avatar_url")
+        .select("id, full_name, first_name, student_number, organization, organization_id, role, avatar_url")
         .eq("id", userData.user.id)
         .single();
 

@@ -5,50 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LINGKOD Meneses - Registration</title>
 <link rel="icon" href="../../pictures/BULSU.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="page">
-<div class="container">
 
-<div class="logo-badge">
-<img src="../../pictures/osoa logo clear bg.png" alt="OSOA Logo">
+<!-- Decorative background - purely visual, no functional role -->
+<div class="bg-decor" aria-hidden="true">
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+<div class="bg-blob bg-blob-3"></div>
+<svg class="bg-wave" viewBox="0 0 800 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="waveGradReg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#E73F1E"/>
+<stop offset="55%" stop-color="#FB6C00"/>
+<stop offset="100%" stop-color="#F9B637"/>
+</linearGradient>
+</defs>
+<path fill="url(#waveGradReg)" opacity="0.22" d="M0,180 C150,80 300,260 480,190 C620,140 720,240 800,200 L800,420 L0,420 Z"/>
+<path fill="url(#waveGradReg)" opacity="0.32" d="M0,240 C180,160 320,320 500,250 C640,200 720,300 800,260 L800,420 L0,420 Z"/>
+</svg>
+<div class="bg-dots bg-dots-tr"></div>
+<div class="bg-dots bg-dots-br"></div>
 </div>
 
-<h2>Create Account</h2>
-<p>Register to access LINGKOD Meneses.</p>
+<div class="page">
+
+<div class="register-brand">
+<img src="../../pictures/osoa logo new clear bg.png" alt="OSOA Logo" class="register-brand-logo">
+<h1 class="register-brand-title">LINGKOD OSOA Meneses Management System</h1>
+</div>
+
+<div class="register-panel">
+
+<div class="register-card" id="registerCard">
+
+<h2>Create Your Account</h2>
+<p class="register-subtitle">Register to access the LINGKOD Meneses Management System.</p>
 
 <form id="registerForm">
 
+<div class="form-grid">
+
+<div class="form-col">
+
 <div class="input-group">
-<label>Last Name</label>
-<input type="text" name="lastName" placeholder="Enter your last name" required>
+<label for="lastName">Last Name</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-user"></i></span>
+<input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
+</div>
 <small class="field-error" id="lastNameError"></small>
 </div>
 
 <div class="input-group">
-<label>First Name</label>
-<input type="text" name="firstName" placeholder="Enter your first name" required>
+<label for="firstName">First Name</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-user"></i></span>
+<input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
+</div>
 <small class="field-error" id="firstNameError"></small>
 </div>
 
 <div class="input-group">
-<label>Middle Name</label>
-<input type="text" name="middleName" placeholder="Enter your middle name" required>
+<label for="middleName">Middle Name</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-user"></i></span>
+<input type="text" id="middleName" name="middleName" placeholder="Enter your middle name" required>
+</div>
 <small class="field-error" id="middleNameError"></small>
 </div>
 
 <div class="input-group">
-<label>Student Number</label>
-<input type="text" name="studentNumber" placeholder="e.g. 2023123456" inputmode="numeric" maxlength="10" required>
+<label for="studentNumber">Student Number</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
+<input type="text" id="studentNumber" name="studentNumber" placeholder="e.g. 2023123456" inputmode="numeric" maxlength="10" required>
+</div>
 <small class="field-error" id="studentNumberError"></small>
 </div>
 
 <div class="input-group">
-<label>Department</label>
-<select name="department" required>
+<label for="email">Email Address</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
+<input type="email" id="email" name="email" placeholder="example@email.com" required>
+</div>
+<small class="field-error" id="emailError"></small>
+</div>
+
+</div>
+
+<div class="form-col">
+
+<div class="input-group">
+<label for="department">Department</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-building-columns"></i></span>
+<select id="department" name="department" required>
 <option value="" disabled selected>Select Department</option>
 <option value="information-technology">Information Technology</option>
 <option value="business-administration">Business Administration</option>
@@ -58,12 +115,15 @@
 <option value="computer-engineering">Computer Engineering</option>
 <option value="teacher-education">Teacher Education</option>
 </select>
+</div>
 <small class="field-error" id="departmentError"></small>
 </div>
 
 <div class="input-group">
-<label>Student Organization Name</label>
-<select name="organization" required>
+<label for="organization">Student Organization</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-people-group"></i></span>
+<select id="organization" name="organization" required>
 <option value="" disabled selected>Select Organization</option>
 <option value="rac-bmc">Rotaract Club of BulSU Meneses Campus (RAC BMC)</option>
 <option value="chem">Community Events of Hospitality Management (CHEM)</option>
@@ -83,38 +143,42 @@
 <option value="sda">Sovereign Dance Athletics (SDA)</option>
 <option value="osoa-meneses">Office of Student Organization and Activities (OSOA) – Meneses Campus</option>
 </select>
+</div>
 <small class="field-error" id="organizationError"></small>
 </div>
 
 <div class="input-group">
-<label>Position in the Student Organization</label>
+<label for="positionSelect">Position in Organization</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-user-tie"></i></span>
 <select name="position" id="positionSelect" required disabled>
 <option value="" disabled selected>Select an organization first</option>
 </select>
+</div>
 <small class="field-error" id="positionError"></small>
 </div>
 
 <div class="input-group">
-<label>Email Address</label>
-<input type="email" name="email" placeholder="example@email.com" required>
-<small class="field-error" id="emailError"></small>
-</div>
-
-<div class="input-group">
-<label>Password</label>
-<div class="password-field">
+<label for="password">Password</label>
+<div class="input-field password-field">
+<span class="input-icon"><i class="fa-solid fa-lock"></i></span>
 <input type="password" id="password" placeholder="Enter password" required>
 <button type="button" class="toggle-password" data-target="password" aria-label="Show password">
 <i class="fa-regular fa-eye"></i>
 </button>
+</div>
+<div class="password-strength" id="passwordStrength" hidden>
+<div class="password-strength-track"><div class="password-strength-bar" id="passwordStrengthBar"></div></div>
+<span class="password-strength-label" id="passwordStrengthLabel"></span>
 </div>
 <small class="field-hint" id="passwordHint">Must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.</small>
 <small class="field-error" id="passwordError"></small>
 </div>
 
 <div class="input-group">
-<label>Confirm Password</label>
-<div class="password-field">
+<label for="confirmPassword">Confirm Password</label>
+<div class="input-field password-field">
+<span class="input-icon"><i class="fa-solid fa-lock"></i></span>
 <input type="password" id="confirmPassword" placeholder="Re-enter password" required>
 <button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Show password">
 <i class="fa-regular fa-eye"></i>
@@ -123,17 +187,24 @@
 <small class="field-error" id="confirmPasswordError"></small>
 </div>
 
+</div>
+
+</div>
+
 <div class="form-status" id="formStatus"></div>
 
-<button type="submit">Register</button>
-</form>
+<button type="submit">Create Account</button>
 
 <div class="login-link">
-Already have an account?
-<a href="../login/index.html">Log In</a>
+Already have an account? <a href="../login/index.html">Log in</a>
+</div>
+
+</form>
+
 </div>
 
 </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

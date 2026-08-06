@@ -14,37 +14,62 @@
 
 <body>
 
+<!-- Decorative background - purely visual, no functional role -->
+<div class="bg-decor" aria-hidden="true">
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+<div class="bg-blob bg-blob-3"></div>
+<svg class="bg-wave" viewBox="0 0 800 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#E73F1E"/>
+<stop offset="55%" stop-color="#FB6C00"/>
+<stop offset="100%" stop-color="#F9B637"/>
+</linearGradient>
+</defs>
+<path fill="url(#waveGrad)" opacity="0.28" d="M0,180 C150,80 300,260 480,190 C620,140 720,240 800,200 L800,420 L0,420 Z"/>
+<path fill="url(#waveGrad)" opacity="0.4" d="M0,240 C180,160 320,320 500,250 C640,200 720,300 800,260 L800,420 L0,420 Z"/>
+</svg>
+<div class="bg-dots bg-dots-tl"></div>
+<div class="bg-dots bg-dots-bl"></div>
+</div>
+
 <!-- Intro splash animation -->
 <div class="splash" id="splash">
 <div class="splash-ring"></div>
 <div class="splash-logo-wrap">
-<img src="../../pictures/osoa logo.jpg" alt="OSOA Logo" class="splash-logo">
+<img src="../../pictures/osoa logo new clear bg.png" alt="OSOA Logo" class="splash-logo">
 </div>
 </div>
 
 <div class="page">
 
 <div class="login-brand">
-<img src="../../pictures/osoa logo clear bg.png" alt="OSOA Logo" class="login-brand-logo">
+<img src="../../pictures/osoa logo new clear bg.png" alt="OSOA Logo" class="login-brand-logo">
+<h1 class="login-brand-title">LINGKOD OSOA Meneses Management System</h1>
 </div>
 
 <div class="login-panel">
 
 <div class="login-card" id="loginCard">
 
-<h2>Log In to Your Account</h2>
-<p>Enter your credentials to access your account</p>
+<h2>Welcome Back!</h2>
+<p>Log in to continue accessing the <span class="brand-name">LINGKOD OSOA Meneses Management System</span>.</p>
 
 <form id="loginForm">
 
 <div class="input-box">
-<label>Student Number</label>
+<label for="studentNumber">Student Number</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-user"></i></span>
 <input type="text" id="studentNumber" placeholder="Enter your student number" required>
+</div>
 </div>
 
 <div class="input-box">
-<label>Password</label>
-<div class="password-field">
+<label for="password">Password</label>
+<div class="input-field password-field">
+<span class="input-icon"><i class="fa-solid fa-lock"></i></span>
 <input type="password" id="password" placeholder="Enter your password" required>
 <button type="button" class="toggle-password" data-target="password" aria-label="Show password">
 <i class="fa-regular fa-eye"></i>
@@ -59,16 +84,14 @@
 
 <div class="form-status" id="loginStatus"></div>
 
-<button type="submit">Log In</button>
+<button type="submit" class="btn-arrow">Log In</button>
 
 <div class="register">
-Don't have an account?
-<a href="../register/index.html">Register Here</a>
+Don't have an account? <a href="../register/index.html">Register here</a>
 </div>
 
 <div class="register register-browse">
-Don't have an Organization?
-<a href="../organizations/index.html">Browse Here</a>
+Don't have an organization? <a href="../organizations/index.html">Browse here</a>
 </div>
 
 </form>
@@ -83,13 +106,16 @@ Don't have an Organization?
 <form id="forgotForm">
 
 <div class="input-box">
-<label>Email Address</label>
+<label for="forgotEmail">Email Address</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
 <input type="email" id="forgotEmail" placeholder="example@email.com" required>
+</div>
 </div>
 
 <div class="form-status" id="forgotStatus"></div>
 
-<button type="submit">Send Reset Link</button>
+<button type="submit" class="btn-arrow">Send Reset Link</button>
 
 <div class="register">
 <a href="#" id="backToLoginLink">Back to Log In</a>
@@ -107,13 +133,16 @@ Don't have an Organization?
 <form id="mfaForm">
 
 <div class="input-box">
-<label>Verification Code</label>
+<label for="mfaCode">Verification Code</label>
+<div class="input-field">
+<span class="input-icon"><i class="fa-solid fa-shield-halved"></i></span>
 <input type="text" id="mfaCode" placeholder="000000" inputmode="numeric" maxlength="6" required>
+</div>
 </div>
 
 <div class="form-status" id="mfaStatus"></div>
 
-<button type="submit">Verify</button>
+<button type="submit" class="btn-arrow">Verify</button>
 
 <div class="register">
 <a href="#" id="mfaCancelLink">Cancel and sign out</a>

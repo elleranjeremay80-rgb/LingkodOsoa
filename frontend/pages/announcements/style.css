@@ -1,34 +1,67 @@
-.topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:30px;
+/* ================= HERO / PAGE TITLE =================
+   Replaces the old .topbar (page-title + inline search) - the search box
+   now lives in .filter-bar below, since the universal .app-topbar (see
+   css/common.css) already has a global search field, and keeping a
+   second one here right underneath it read as duplicated/cluttered. */
+
+.page-title{
+    background:
+        radial-gradient(ellipse 460px 240px at 100% 0%, rgba(249,182,55,.32), transparent 70%),
+        linear-gradient(135deg,#ffffff 0%,var(--color-purple-wash) 100%);
+    padding:32px 36px;
+    border-radius:22px;
+    box-shadow:0 5px 15px rgba(184,46,18,.06);
+    margin-bottom:25px;
 }
 
 .page-title h1{
     color:var(--color-heading);
+    font-size:26px;
+    font-weight:700;
 }
 
 .page-title p{
-    color:#666;
-    margin-top:5px;
+    color:var(--color-text-muted);
+    margin-top:8px;
+    font-size:14px;
+    line-height:1.6;
+    max-width:720px;
 }
 
+/* ================= SEARCH BOX =================
+   Sits as the first item inside the shared .filter-bar (css/common.css)
+   alongside the date/visibility/sort dropdowns - same pill/shadow
+   language as those, just with an icon + wider min-width. */
+
 .search-box{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:240px;
     background:#fff;
-    padding:10px 15px;
+    padding:12px 18px;
     border-radius:30px;
-    box-shadow:0 3px 10px rgba(0,0,0,.1);
+    box-shadow:0 3px 10px rgba(184,46,18,.08);
+    transition:box-shadow .2s ease;
+}
+
+.search-box:focus-within{
+    box-shadow:0 0 0 3px rgba(231,63,30,.16);
 }
 
 .search-box input{
     border:none;
     outline:none;
-    width:220px;
+    box-shadow:none;
+    padding:0;
+    width:100%;
+    background:none;
 }
 
 .search-box i{
-    color:var(--color-heading);
+    color:var(--color-text-muted);
+    font-size:13px;
 }
 
 /* ================= ANNOUNCEMENT CARDS ================= */
@@ -46,25 +79,46 @@
 /* ================= SUBMIT ANNOUNCEMENT FORM ================= */
 
 .manage-box{
-    background:#fff;
-    padding:25px;
-    border-radius:16px;
-    box-shadow:0 5px 15px rgba(54,42,93,.08);
+    background:
+        radial-gradient(ellipse 380px 220px at 100% 0%, rgba(249,182,55,.22), transparent 70%),
+        linear-gradient(135deg,#ffffff 0%,var(--color-purple-wash) 100%);
+    padding:30px 32px;
+    border-radius:22px;
+    box-shadow:0 5px 15px rgba(184,46,18,.07);
     margin-bottom:25px;
 }
 
 .manage-box h2{
     color:var(--color-heading);
-    margin-bottom:20px;
+    margin-bottom:22px;
 }
 
 .manage-box form{
     display:grid;
-    gap:15px;
+    gap:16px;
+}
+
+.manage-box input,
+.manage-box select,
+.manage-box textarea{
+    background:#fff;
+    border:1px solid transparent;
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+    box-shadow:0 2px 8px rgba(184,46,18,.05);
+    transition:box-shadow .2s ease, border-color .2s ease;
+}
+
+.manage-box input:focus,
+.manage-box select:focus,
+.manage-box textarea:focus{
+    border-color:var(--color-primary);
+    box-shadow:0 0 0 3px rgba(231,63,30,.14);
 }
 
 .manage-box textarea{
     height:100px;
+    resize:none;
 }
 
 .manage-box .form-actions{
@@ -76,34 +130,48 @@
     flex:1;
 }
 
+.manage-box button[type="submit"]{
+    background:var(--gradient-brand);
+    background-size:160% 160%;
+    border-radius:30px;
+    font-weight:700;
+    transition:background-position .35s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+.manage-box button[type="submit"]:hover{
+    background-position:100% 50%;
+    transform:translateY(-2px);
+    box-shadow:0 12px 24px rgba(184,46,18,.3);
+}
+
 .cancel-edit-btn{
-    background:#fff;
-    color:var(--color-text-muted);
-    border:1px solid var(--color-border);
+    background:var(--color-purple-wash);
+    color:var(--color-primary-dark);
+    border:1.5px solid var(--color-primary);
     box-shadow:none;
 }
 
 .cancel-edit-btn:hover{
-    background:var(--color-bg);
-    color:var(--color-text);
+    background:#fff;
+    color:var(--color-primary-dark);
     transform:none;
     box-shadow:none;
 }
 
 @media(max-width:768px){
 
-.topbar{
+.page-title{
+    padding:26px 24px;
+}
+
+.filter-bar{
     flex-direction:column;
-    gap:20px;
-    align-items:flex-start;
+    align-items:stretch;
 }
 
 .search-box{
     width:100%;
-}
-
-.search-box input{
-    width:90%;
+    min-width:0;
 }
 
 }

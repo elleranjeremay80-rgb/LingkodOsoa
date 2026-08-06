@@ -744,6 +744,143 @@ function renderTopbarAvatar(profile){
     wrap.appendChild(lingkodBuildAvatarElement(profile, "topbar-avatar"));
 }
 
+/* ================= WELCOME BANNER + STATISTICS =================
+   OSOA EB and Organization President share the same welcome/stats
+   markup structure but not its content - a single .welcome banner
+   (personalized here regardless of role) plus two separate .stats-row
+   blocks in the HTML (data-role-view="admin"/"staff"), each already
+   built for its own role's numbers. Only the one matching the viewer's
+   actual role is ever visible; the other's load function below just
+   returns immediately since its own DOM elements aren't present/aren't
+   relevant. */
+
+function renderWelcomeGreeting(profile){
+    const headingEl = document.getElementById("dashboardWelcomeHeading");
+    const subtitleEl = document.getElementById("dashboardWelcomeSubtitle");
+    if(!profile || !headingEl) return;
+
+    // full_name is generated as "LAST, FIRST MIDDLE" (see
+    // 20260717000000_registration_name_split_and_validation.sql) - not
+    // "FIRST LAST", so splitting it on whitespace grabs the last name
+    // (comma included) instead. first_name is a real, separate column;
+    // use it directly rather than trying to parse it back out.
+    const firstName = (profile.first_name || "").trim() || "there";
+    headingEl.textContent = "Welcome back, " + firstName + "!";
+
+    if(subtitleEl){
+        subtitleEl.textContent = profile.role === "org_president" && profile.organization
+            ? "Here's what's happening in " + profile.organization + " today."
+            : "Here's what's happening in OSOA - Meneses Campus today.";
+    }
+}
+
+// osoa_eb only - platform-wide counts. Row counts only (head:true), not
+// full row fetches, since nothing here needs the actual data.
+async function loadOsoaStats(profile){
+    const el = document.getElementById("statTotalOrganizations");
+    if(!el || !profile || profile.role !== "osoa_eb") return;
+
+    const [orgsResult, membersResult, usersResult, pendingResult] = await Promise.all([
+        supabaseClient.from("organizations").select("id", { count: "exact", head: true }),
+        supabaseClient.from("profiles").select("id", { count: "exact", head: true })
+            .eq("status", "active").not("organization_id", "is", null),
+        supabaseClient.from("profiles").select("id", { count: "exact", head: true })
+            .eq("status", "active"),
+        supabaseClient.from("requests").select("id", { count: "exact", head: true })
+            .eq("status", "pending")
+    ]);
+
+    document.getElementById("statTotalOrganizations").textContent = orgsResult.count != null ? orgsResult.count : "—";
+    document.getElementById("statTotalMembers").textContent = membersResult.count != null ? membersResult.count : "—";
+    document.getElementById("statTotalUsers").textContent = usersResult.count != null ? usersResult.count : "—";
+    document.getElementById("statPendingRequests").textContent = pendingResult.count != null ? pendingResult.count : "—";
+
+    [orgsResult, membersResult, usersResult, pendingResult].forEach(function(r){
+        if(r.error) console.error("[dashboard] OSOA stat load failed:", r.error);
+    });
+}
+
+// org_president only - scoped to their own organization. "Pending
+// Requests" is deliberately scoped to requests THEY personally
+// submitted, not their whole organization's - requests_select RLS
+// (20260722020000_requests_enhancements.sql) only grants a requester
+// their own rows (or osoa_eb, everything); it was never extended to let
+// a president see every member's individual requests, and widening that
+// is a real access-control decision this redesign shouldn't make
+// silently as a side effect.
+async function loadPresidentStats(profile){
+    const el = document.getElementById("statOrgMembers");
+    if(!el || !profile || profile.role !== "org_president" || !profile.organization_id) return;
+
+    const [membersResult, pendingResult, activeProjectsResult, upcomingResult] = await Promise.all([
+        supabaseClient.from("profiles").select("id", { count: "exact", head: true })
+            .eq("status", "active").eq("organization_id", profile.organization_id),
+        supabaseClient.from("requests").select("id", { count: "exact", head: true })
+            .eq("status", "pending").eq("user_id", profile.id),
+        supabaseClient.from("projects_activities").select("id", { count: "exact", head: true })
+            .eq("category", "ongoing_project").eq("status", "ongoing").eq("organization", profile.organization),
+        supabaseClient.from("projects_activities").select("id", { count: "exact", head: true })
+            .eq("category", "upcoming_activity").eq("organization", profile.organization)
+    ]);
+
+    document.getElementById("statOrgMembers").textContent = membersResult.count != null ? membersResult.count : "—";
+    document.getElementById("statOrgPendingRequests").textContent = pendingResult.count != null ? pendingResult.count : "—";
+    document.getElementById("statOrgActiveProjects").textContent = activeProjectsResult.count != null ? activeProjectsResult.count : "—";
+    document.getElementById("statOrgUpcomingActivities").textContent = upcomingResult.count != null ? upcomingResult.count : "—";
+
+    [membersResult, pendingResult, activeProjectsResult, upcomingResult].forEach(function(r){
+        if(r.error) console.error("[dashboard] president stat load failed:", r.error);
+    });
+}
+
+function buildOrgOverviewRow(label, value){
+    const row = document.createElement("div");
+    row.className = "profile-view-row";
+    const dt = document.createElement("span");
+    dt.className = "profile-view-label";
+    dt.textContent = label;
+    const dd = document.createElement("span");
+    dd.className = "profile-view-value";
+    dd.textContent = value || "Not set";
+    row.appendChild(dt);
+    row.appendChild(dd);
+    return row;
+}
+
+// org_president only - the organizations row already carries everything
+// Organization Information (list-of-members) collects (acronym,
+// category, president_name, adviser, member_count - see
+// 20260724000000_organization_information.sql), reused here read-only
+// rather than duplicating that page's own edit form.
+async function loadOrgOverview(profile){
+    const grid = document.getElementById("dashboardOrgOverviewGrid");
+    if(!grid || !profile || profile.role !== "org_president" || !profile.organization_id) return;
+
+    const { data: org, error } = await supabaseClient
+        .from("organizations")
+        .select("name, acronym, category, president_name, adviser, member_count")
+        .eq("id", profile.organization_id)
+        .single();
+
+    grid.innerHTML = "";
+
+    if(error || !org){
+        console.error("[dashboard] organization overview load failed:", error);
+        const p = document.createElement("p");
+        p.className = "preview-empty";
+        p.textContent = "Couldn't load your organization's info.";
+        grid.appendChild(p);
+        return;
+    }
+
+    grid.appendChild(buildOrgOverviewRow("Organization Name", org.name));
+    grid.appendChild(buildOrgOverviewRow("Acronym", org.acronym));
+    grid.appendChild(buildOrgOverviewRow("Category", org.category));
+    grid.appendChild(buildOrgOverviewRow("President", org.president_name));
+    grid.appendChild(buildOrgOverviewRow("Adviser", org.adviser));
+    grid.appendChild(buildOrgOverviewRow("Members", org.member_count != null ? String(org.member_count) : null));
+}
+
 document.addEventListener("DOMContentLoaded", async function(){
     dashboardViewerSession = lingkodGetSession();
     const authedProfile = await lingkodGetAuthedProfile();
@@ -751,6 +888,10 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     if(authedProfile){
         renderTopbarAvatar(authedProfile);
+        renderWelcomeGreeting(authedProfile);
+        loadOsoaStats(authedProfile);
+        loadPresidentStats(authedProfile);
+        loadOrgOverview(authedProfile);
 
         // Live update: if the user changes their profile photo (from
         // this dashboard in another tab, or from the Profile page),

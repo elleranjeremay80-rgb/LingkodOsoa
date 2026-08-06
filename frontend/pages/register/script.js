@@ -120,6 +120,47 @@ wireField(organizationSelect, document.getElementById("organizationError"), func
 wireField(positionSelect, document.getElementById("positionError"), function(){ return isSelectValid(positionSelect); }, "Please select a Position.");
 wireField(emailInput, document.getElementById("emailError"), function(){ return isEmailValid(emailInput.value); }, "Please enter a valid email address.");
 
+// Purely visual feedback (never gates submission - PASSWORD_RULE/
+// isPasswordValid() above remain the only real validation) - counts how
+// many of the five password criteria are currently met and reflects that
+// as a filled bar + label, so the user sees progress while typing instead
+// of only a pass/fail error after the fact.
+const passwordStrengthWrap = document.getElementById("passwordStrength");
+const passwordStrengthBar = document.getElementById("passwordStrengthBar");
+const passwordStrengthLabel = document.getElementById("passwordStrengthLabel");
+const PASSWORD_STRENGTH_LEVELS = [
+    { label: "Very Weak", color: "#DB1B4C" },
+    { label: "Weak", color: "#E73F1E" },
+    { label: "Fair", color: "#FB6C00" },
+    { label: "Good", color: "#F9B637" },
+    { label: "Strong", color: "#1E8A4C" }
+];
+
+function updatePasswordStrength(){
+    const value = passwordInput.value;
+
+    if(!value){
+        passwordStrengthWrap.hidden = true;
+        return;
+    }
+
+    let score = 0;
+    if(value.length >= 8) score++;
+    if(/[A-Z]/.test(value)) score++;
+    if(/[a-z]/.test(value)) score++;
+    if(/\d/.test(value)) score++;
+    if(/[^A-Za-z0-9]/.test(value)) score++;
+
+    const level = PASSWORD_STRENGTH_LEVELS[Math.max(0, score - 1)];
+    passwordStrengthWrap.hidden = false;
+    passwordStrengthBar.style.width = (score / 5 * 100) + "%";
+    passwordStrengthBar.style.backgroundColor = level.color;
+    passwordStrengthLabel.textContent = level.label;
+    passwordStrengthLabel.style.color = level.color;
+}
+
+passwordInput.addEventListener("input", updatePasswordStrength);
+
 function validatePassword(){
     if(!isPasswordValid()){
         showError(passwordInput, passwordError, PASSWORD_MESSAGE);
