@@ -207,10 +207,24 @@ select.invalid{
     display:block;
 }
 
-@media(max-width:900px){
+@media(max-width:767px){
 
 .info-grid{
     grid-template-columns:1fr;
+}
+
+.profile-img{
+    width:100px;
+    height:100px;
+    font-size:44px;
+}
+
+.buttons{
+    flex-direction:column;
+}
+
+.buttons button{
+    width:100%;
 }
 
 }

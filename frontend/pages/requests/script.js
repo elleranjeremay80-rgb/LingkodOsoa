@@ -16,12 +16,22 @@ const requestDateFilter = document.getElementById("requestDateFilter");
 const requestManageTableBody = document.getElementById("requestManageTableBody");
 const requestManagePagination = document.getElementById("requestManagePagination");
 
+const requestRecipientSelect = document.getElementById("requestRecipientSelect");
+const recipientOrgPresidentOption = document.getElementById("recipientOrgPresidentOption");
+const recipientOrgHint = document.getElementById("recipientOrgHint");
+const requestManagementBox = document.getElementById("requestManagementBox");
+
 const MANAGE_PAGE_SIZE = 10;
 
 // requests.status is a Postgres enum: pending/received/under_review/
-// approved/rejected/completed. Row visibility (own requests vs.
-// everyone's for osoa_eb) is already enforced server-side by RLS
-// (requests_select).
+// approved/rejected/completed. Row visibility is enforced server-side
+// by RLS (requests_select/requests_update): a student sees only their
+// own submissions; osoa_eb sees/manages requests addressed to OSOA EB;
+// an org_president sees/manages requests addressed to their own
+// organization; officers of that same organization (role='student'
+// with a non-"Member" position) get the same read visibility as their
+// president, but cannot edit. See canEditRequest()/isManagementRow()
+// below for the client-side mirror of that matrix (cosmetic only).
 const REQUEST_STATUS_LABELS = {
     pending: "Pending",
     received: "Received",
@@ -41,8 +51,8 @@ const REQUEST_STATUS_CLASSES = {
 };
 
 let currentProfile = null;
-let canManageRequests = false;
 let allRequests = [];
+let manageRequests = [];
 let manageCurrentPage = 1;
 
 /* ================= FULL NAME / STUDENT NUMBER AUTO-FILL ================= */
@@ -57,6 +67,52 @@ async function loadIdentity(){
         studentNumberDisplay.value = "Not available for demo accounts";
         requestButton.disabled = true;
     }
+
+    const hasOrg = !!(currentProfile && currentProfile.organization_id);
+    if(recipientOrgPresidentOption) recipientOrgPresidentOption.disabled = !hasOrg;
+    if(recipientOrgHint) recipientOrgHint.style.display = hasOrg ? "none" : "";
+}
+
+/* ================= VISIBILITY / EDIT-RIGHTS HELPERS =================
+   RLS (requests_select/requests_update) is the real enforcement - these
+   only decide what this page renders for the current viewer. */
+
+function isOfficerViewer(){
+    return !!currentProfile
+        && currentProfile.role === "student"
+        && !!currentProfile.organization_id
+        && !!currentProfile.position
+        && currentProfile.position !== "Member";
+}
+
+// Can the current viewer edit status/remarks on this row.
+function canEditRequest(row){
+    if(!currentProfile) return false;
+    if(currentProfile.role === "osoa_eb") return row.assigned_to_role === "osoa_eb";
+    if(currentProfile.role === "org_president"){
+        return row.assigned_to_role === "org_president"
+            && row.assigned_organization_id === currentProfile.organization_id;
+    }
+    return false;
+}
+
+// Does this row belong in the "Request Management" table for the
+// current viewer (editable rows for osoa_eb/org_president, plus
+// read-only rows for officers of an org_president-addressed request).
+function isManagementRow(row){
+    if(canEditRequest(row)) return true;
+    if(isOfficerViewer()){
+        return row.assigned_to_role === "org_president"
+            && row.assigned_organization_id === currentProfile.organization_id;
+    }
+    return false;
+}
+
+function canSeeManagementTable(){
+    if(!currentProfile) return false;
+    return currentProfile.role === "osoa_eb"
+        || currentProfile.role === "org_president"
+        || isOfficerViewer();
 }
 
 /* ================= "PLEASE SPECIFY" SHOW/HIDE ================= */
@@ -109,6 +165,7 @@ function buildRequestViewBody(row){
     if(row.request_type === "Others" && row.specified_type){
         fields.push(["Specified Type", row.specified_type]);
     }
+    fields.push(["Sent To", row.assigned_to_role === "org_president" ? "Organization President" : "OSOA Executive Board"]);
     fields.push(["Date Submitted", parts.date]);
     fields.push(["Time Submitted", parts.time]);
 
@@ -210,7 +267,7 @@ function openRequestViewModal(row){
     wrapper.className = "view-modal";
     wrapper.appendChild(buildRequestViewBody(row));
 
-    if(canManageRequests){
+    if(canEditRequest(row)){
         wrapper.appendChild(buildRequestManageForm(row));
     }
 
@@ -254,7 +311,7 @@ function renderRequests(rows){
     });
 }
 
-/* ================= REQUEST MANAGEMENT (osoa_eb only) ================= */
+/* ================= REQUEST MANAGEMENT (osoa_eb / org_president / officers) ================= */
 
 function getFilteredManageRequests(){
     const query = requestSearch.value.trim().toLowerCase();
@@ -262,7 +319,7 @@ function getFilteredManageRequests(){
     const statusFilter = requestStatusFilter.value;
     const dateFilter = requestDateFilter.value;
 
-    return allRequests.filter(function(row){
+    return manageRequests.filter(function(row){
         if(typeFilter !== "all" && row.request_type !== typeFilter) return false;
         if(statusFilter !== "all" && row.status !== statusFilter) return false;
         if(!lingkodMatchesCalendarDateFilter(row.created_at, dateFilter)) return false;
@@ -324,36 +381,39 @@ function renderManagePage(){
 /* ================= LOAD ================= */
 
 async function loadRequests(){
-    const session = lingkodGetSession();
-    canManageRequests = !!session && session.role === "admin";
-
-    let query = supabaseClient
-        .from("requests")
-        .select("id, request_id, user_id, full_name, student_number, organization, request_type, specified_type, request_description, remarks, status, created_at")
-        .order("created_at", { ascending: false });
-
-    if(!canManageRequests){
-        if(!currentProfile){
-            renderRequests([]);
-            return;
-        }
-        query = query.eq("user_id", currentProfile.id);
+    if(!currentProfile){
+        renderRequests([]);
+        if(requestManagementBox) requestManagementBox.style.display = "none";
+        return;
     }
 
-    const { data, error } = await query;
+    const { data, error } = await supabaseClient
+        .from("requests")
+        .select("id, request_id, user_id, full_name, student_number, organization, assigned_to_role, assigned_organization_id, request_type, specified_type, request_description, remarks, status, created_at, updated_by")
+        .order("created_at", { ascending: false });
 
     if(error){
         console.error("[requests] load failed:", error);
         requestsTableBody.innerHTML = "";
-        requestsTableBody.appendChild(lingkodCreateEmptyRow("Couldn't load requests (" + error.message + ").", 6));
+        requestsTableBody.appendChild(lingkodCreateEmptyRow("Couldn't load requests (" + error.message + ").", 7));
         return;
     }
 
     allRequests = data;
-    renderRequests(data);
 
-    if(canManageRequests && requestManageTableBody){
-        renderManagePage();
+    // "Request Tracking" stays exactly "my own submissions" - RLS may
+    // now also return rows addressed to this viewer that they didn't
+    // submit themselves, so this filter can't be skipped for any role.
+    const myRequests = data.filter(function(row){ return row.user_id === currentProfile.id; });
+    renderRequests(myRequests);
+
+    if(requestManagementBox){
+        const showManagement = canSeeManagementTable();
+        requestManagementBox.style.display = showManagement ? "" : "none";
+        if(showManagement && requestManageTableBody){
+            manageRequests = data.filter(isManagementRow);
+            renderManagePage();
+        }
     }
 }
 
@@ -364,6 +424,7 @@ requestForm.addEventListener("submit", async function(e){
 
     const requestType = requestTypeSelect.value;
     const specifiedType = specifiedTypeInput.value.trim();
+    const assignedToRole = requestRecipientSelect.value;
     const description = requestForm.elements.description.value.trim();
 
     if(!requestType){
@@ -378,6 +439,16 @@ requestForm.addEventListener("submit", async function(e){
         return;
     }
     specifiedTypeError.classList.remove("visible");
+
+    if(!assignedToRole){
+        lingkodToast("Please select who this request is addressed to.", "error");
+        return;
+    }
+
+    if(assignedToRole === "org_president" && !(currentProfile && currentProfile.organization_id)){
+        lingkodToast("You must belong to an organization to address a request to your Organization President.", "error");
+        return;
+    }
 
     if(!description){
         lingkodToast("Please describe your request before submitting.", "error");
@@ -396,6 +467,7 @@ requestForm.addEventListener("submit", async function(e){
             .from("requests")
             .insert({
                 user_id: currentProfile.id,
+                assigned_to_role: assignedToRole,
                 request_type: requestType,
                 specified_type: requestType === "Others" ? specifiedType : null,
                 request_description: description

@@ -321,8 +321,6 @@ async function lookupBySlug(table, slug){
 // below if it isn't), since writing the profile needs an active session,
 // which Supabase only returns immediately when confirmation isn't required.
 async function registerUser(fields){
-    console.log("[register] resolving department/organization:", fields.departmentSlug, fields.organizationSlug);
-
     let department, organization;
     try {
         department = await lookupBySlug("departments", fields.departmentSlug);
@@ -359,8 +357,6 @@ async function registerUser(fields){
         }
     }
 
-    console.log("[register] signing up:", fields.email, fields.studentNumber);
-
     // Without this, Supabase falls back to whatever "Site URL" is set to
     // in your dashboard (Authentication -> URL Configuration) after email
     // confirmation — which is almost certainly why the confirmation link
@@ -368,7 +364,6 @@ async function registerUser(fields){
     // instead of hardcoding a port means this keeps working if you ever
     // run the app from a different port or a real domain later.
     const emailRedirectTo = window.location.origin + "/login/index.html";
-    console.log("[register] emailRedirectTo:", emailRedirectTo);
 
     const { data, error } = await supabaseClient.auth.signUp({
         email: fields.email,
@@ -394,8 +389,6 @@ async function registerUser(fields){
         console.error("[register] auth.signUp failed:", error);
         throw new Error("Authentication failed: " + error.message);
     }
-
-    console.log("[register] auth user created:", data.user && data.user.id, "session active:", !!data.session);
 
     if(!data.session){
         // No session means Supabase Auth still has "Confirm email" turned
@@ -455,7 +448,6 @@ async function registerUser(fields){
         throw new Error("Profile insertion failed: " + profileError.message);
     }
 
-    console.log("[register] profile row confirmed for:", data.user.id);
     return data;
 }
 

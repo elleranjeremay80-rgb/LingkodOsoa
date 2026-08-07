@@ -529,21 +529,17 @@ button[type="submit"]::after{
 
 }
 
-/* Tablet portrait and below the form's two columns get cramped -
-   collapse to one column, still side-by-side brand/card until 900px. */
-@media(max-width:1023px){
+@media(max-width:900px){
 
 .form-grid{
     grid-template-columns:1fr;
     gap:0;
 }
 
-}
-
-@media(max-width:900px){
 
 .page{
     flex-direction:column;
+    justify-content:center;
     padding-bottom:40px;
 }
 

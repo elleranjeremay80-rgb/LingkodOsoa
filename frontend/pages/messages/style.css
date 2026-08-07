@@ -1,9 +1,37 @@
+/* Grid, not flex: js/common.js's lingkodBuildAppTopbar() inserts the
+   shared .app-topbar as this element's first child on every page - a
+   plain flex row would squeeze it in as a third column alongside
+   .contacts/.chat instead of a full-width bar above them (that was the
+   original bug this page had - no .app-topbar override existed at all).
+   Grid areas let each of the three existing children be placed exactly
+   where they need to go without any HTML change - .app-topbar spans the
+   full width on its own row, .contacts/.chat share the row below it. */
 .main{
     flex:1;
-    display:flex;
+    display:grid;
+    grid-template-columns:340px 1fr;
+    grid-template-rows:auto 1fr;
+    grid-template-areas:
+        "topbar topbar"
+        "contacts chat";
     padding:25px;
     gap:20px;
     height:calc(100vh - 50px);
+}
+
+.main > .app-topbar{
+    grid-area:topbar;
+    margin-bottom:0;
+}
+
+.main > .contacts{
+    grid-area:contacts;
+    min-height:0;
+}
+
+.main > .chat{
+    grid-area:chat;
+    min-height:0;
 }
 
 /* ================= CONTACTS (LEFT PANEL) ================= */

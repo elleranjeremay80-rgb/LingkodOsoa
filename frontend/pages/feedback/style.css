@@ -114,29 +114,29 @@
    Received/Blue, Under Review/Orange, In Progress/Purple, Resolved/Green,
    Closed/Gray. */
 
-.status.received{
-    background:#E5F0FF;
-    color:#1D5FBF;
-}
-
-.status.review{
+.status.pending{
     background:#FFF4E0;
     color:#B8790B;
 }
 
-.status.in-progress{
-    background:#F1E7FB;
-    color:#7B3FBF;
+.status.under-review{
+    background:#FFE8D6;
+    color:#C2600B;
 }
 
-.status.resolved{
+.status.approved{
     background:#E6F7EC;
     color:#1E8A4C;
 }
 
-.status.closed{
-    background:#EEEEF0;
-    color:#5B5B66;
+.status.rejected{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.status.completed{
+    background:#F1E7FB;
+    color:#7B3FBF;
 }
 
 .view-btn{

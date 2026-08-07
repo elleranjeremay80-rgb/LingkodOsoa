@@ -103,8 +103,6 @@ async function findRegisteredLoginInfo(studentNumber){
         throw new Error("We couldn't check your account right now (" + error.message + "). Please try again.");
     }
 
-    console.log("[login] lookup result for \"" + studentNumber + "\":", data);
-
     return data;
 }
 
@@ -137,11 +135,8 @@ async function loginWithSupabase(studentNumber, password, authClient){
     }
 
     if(info.status !== "active"){
-        console.log("[login] account found but not active (status: " + info.status + "):", studentNumber);
         return { status: "inactive" };
     }
-
-    console.log("[login] account found, attempting sign-in for:", info.email);
 
     const { data, error } = await authClient.auth.signInWithPassword({
         email: info.email,
@@ -152,8 +147,6 @@ async function loginWithSupabase(studentNumber, password, authClient){
         console.error("[login] signInWithPassword failed:", error.message);
         return { status: "wrong_password" };
     }
-
-    console.log("[login] authenticated, fetching profile for:", data.user.id);
 
     const { data: profile, error: profileError } = await authClient
         .from("profiles")
@@ -168,8 +161,6 @@ async function loginWithSupabase(studentNumber, password, authClient){
         await authClient.auth.signOut();
         return { status: "profile_error", message: profileError ? profileError.message : "Profile not found." };
     }
-
-    console.log("[login] profile loaded, role:", profile.role);
 
     return { status: "ok", account: lingkodBuildAccountFromProfile(profile) };
 }

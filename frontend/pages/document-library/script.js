@@ -348,6 +348,10 @@ async function loadDocuments(){
 
     allDocuments = documentsResult.data || [];
 
+    if(orgsResult.error){
+        console.error("[document-library] organization names load failed:", orgsResult.error);
+    }
+
     organizationNames = {};
     (orgsResult.data || []).forEach(function(org){ organizationNames[org.id] = org.name; });
 

@@ -132,12 +132,6 @@ Directory
 </a>
 </li>
 
-<li data-roles="admin staff">
-<a href="../documents/index.html">
-<i class="fa-solid fa-file-lines"></i>
-Documents
-</a>
-</li>
 
 <li data-roles="admin">
 <a href="../list-of-members/index.html">
@@ -266,10 +260,13 @@ Upload Document
 
 <select id="myStatusFilter">
 <option value="all">All Statuses</option>
-<option value="pending">Pending Review</option>
+<option value="pending">Submitted</option>
+<option value="received">Received</option>
+<option value="under_review">Under Review</option>
 <option value="approved">Approved</option>
 <option value="rejected">Rejected</option>
-<option value="needs_revision">Needs Revision</option>
+<option value="needs_revision">Returned</option>
+<option value="completed">Completed</option>
 </select>
 
 <select id="mySort">
@@ -320,10 +317,13 @@ Upload Document
 
 <select id="reviewStatusFilter">
 <option value="all">All</option>
-<option value="pending">Pending Review</option>
+<option value="pending">Submitted</option>
+<option value="received">Received</option>
+<option value="under_review">Under Review</option>
 <option value="approved">Approved</option>
 <option value="rejected">Rejected</option>
-<option value="needs_revision">Needs Revision</option>
+<option value="needs_revision">Returned</option>
+<option value="completed">Completed</option>
 </select>
 
 <select id="reviewSort">

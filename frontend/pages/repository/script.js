@@ -19,6 +19,61 @@ const REPOSITORY_BUCKET = "public-files";
 
 const repositoryTableBody = document.getElementById("repositoryTableBody");
 
+const RECIPIENT_TYPE_LABELS = {
+    public: "Public",
+    osoa_eb: "OSOA EB",
+    org_presidents: "Organization Presidents",
+    specific_organization: "Specific Organization",
+    specific_organization_members: "Specific Organization Members",
+    multiple_organizations: "Multiple Organizations"
+};
+
+/* ================= RECIPIENT FIELD (upload form) ================= */
+// A student can never reach this form (data-roles="admin staff" on the
+// whole .manage-box), but org_president's own authority is still
+// narrower than osoa_eb's - they may only address their own org, or the
+// two org-agnostic kinds (Public/OSOA EB), matching what the RLS insert
+// policy actually allows (20260801000000_repository_recipient_visibility.sql).
+// This is cosmetic-only convenience (hiding options they'd be rejected
+// for anyway) - RLS is the real enforcement either way.
+
+const repoRecipientSelect = document.getElementById("repoRecipientSelect");
+const repoRecipientOrgWrap = document.getElementById("repoRecipientOrgWrap");
+const repoRecipientOrgSelect = document.getElementById("repoRecipientOrgSelect");
+const repoRecipientOrgsWrap = document.getElementById("repoRecipientOrgsWrap");
+const repoRecipientOrgsCheckboxes = document.getElementById("repoRecipientOrgsCheckboxes");
+
+function updateRecipientFieldVisibility(select, orgWrap, orgsWrap){
+    const value = select.value;
+    orgWrap.classList.toggle("visible", value === "specific_organization" || value === "specific_organization_members");
+    orgsWrap.classList.toggle("visible", value === "multiple_organizations");
+}
+
+if(repoRecipientSelect){
+    repoRecipientSelect.addEventListener("change", function(){
+        updateRecipientFieldVisibility(repoRecipientSelect, repoRecipientOrgWrap, repoRecipientOrgsWrap);
+    });
+
+    lingkodPopulateOrganizationSelectById(repoRecipientOrgSelect, null);
+    lingkodPopulateOrganizationCheckboxes(repoRecipientOrgsCheckboxes, []);
+
+    lingkodGetAuthedProfile().then(function(profile){
+        if(!profile || profile.role !== "org_president") return;
+
+        ["org_presidents", "multiple_organizations"].forEach(function(value){
+            const opt = repoRecipientSelect.querySelector("option[value=\"" + value + "\"]");
+            if(opt) opt.remove();
+        });
+
+        // Lock the org select to their own org once the list finishes
+        // loading, rather than racing it.
+        lingkodPopulateOrganizationSelectById(repoRecipientOrgSelect, profile.organization_id).then(function(){
+            if(profile.organization_id) repoRecipientOrgSelect.value = profile.organization_id;
+            repoRecipientOrgSelect.disabled = !!profile.organization_id;
+        });
+    });
+}
+
 const REPOSITORY_CATEGORY_LABELS = {
     renewal: "Renewal",
     financial_report: "Financial Report",
@@ -102,9 +157,25 @@ if(repoUploadForm){
         const title = repoUploadForm.elements.title.value.trim();
         const category = repoUploadForm.elements.category.value;
         const file = repoUploadForm.elements.file.files[0];
+        const recipientType = repoRecipientSelect ? repoRecipientSelect.value : "";
 
         if(!category){
             lingkodToast("Please select a category.", "error");
+            return;
+        }
+        if(!recipientType){
+            lingkodToast("Please select who this document is for.", "error");
+            return;
+        }
+        if((recipientType === "specific_organization" || recipientType === "specific_organization_members") && !repoRecipientOrgSelect.value){
+            lingkodToast("Please select an organization.", "error");
+            return;
+        }
+        const selectedOrgIds = recipientType === "multiple_organizations"
+            ? Array.from(repoRecipientOrgsCheckboxes.querySelectorAll("input:checked")).map(function(cb){ return cb.value; })
+            : [];
+        if(recipientType === "multiple_organizations" && selectedOrgIds.length === 0){
+            lingkodToast("Please select at least one organization.", "error");
             return;
         }
         if(!file){
@@ -121,7 +192,7 @@ if(repoUploadForm){
         lingkodSetButtonLoading(uploadButton, true, "Uploading...");
 
         try {
-            const storagePath = "repository/" + Date.now() + "-" + file.name;
+            const storagePath = "repository/" + crypto.randomUUID() + "-" + sanitizeRepoFileName(file.name);
 
             const { error: uploadError } = await supabaseClient
                 .storage
@@ -143,7 +214,11 @@ if(repoUploadForm){
                     category: category,
                     organization: profile.organization,
                     is_public: true,
+                    recipient_type: recipientType,
+                    recipient_organization_id: (recipientType === "specific_organization" || recipientType === "specific_organization_members") ? repoRecipientOrgSelect.value : null,
+                    recipient_organization_ids: recipientType === "multiple_organizations" ? selectedOrgIds : null,
                     file_name: file.name,
+                    file_path: storagePath,
                     file_url: urlData.publicUrl,
                     file_size: file.size,
                     file_type: file.type,
@@ -158,6 +233,7 @@ if(repoUploadForm){
 
             lingkodToast("Document uploaded successfully.", "success");
             repoUploadForm.reset();
+            updateRecipientFieldVisibility(repoRecipientSelect, repoRecipientOrgWrap, repoRecipientOrgsWrap);
             // The realtime subscription below will also pick this up, but
             // refreshing directly means the uploader's own view updates
             // immediately rather than waiting on the round trip.
@@ -169,9 +245,15 @@ if(repoUploadForm){
     });
 }
 
+// Mirrors submission/script.js's sanitizeFileName - strips anything that
+// isn't safe in a Storage object key.
+function sanitizeRepoFileName(name){
+    return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+}
+
 /* ================= EDIT ================= */
 
-function openEditRepositoryModal(row){
+async function openEditRepositoryModal(row){
     const form = document.createElement("form");
     form.className = "edit-profile-form";
 
@@ -190,6 +272,50 @@ function openEditRepositoryModal(row){
     });
     form.appendChild(lingkodBuildFormField("Category", categorySelect));
 
+    const recipientSelect = document.createElement("select");
+    Object.keys(RECIPIENT_TYPE_LABELS).forEach(function(value){
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = RECIPIENT_TYPE_LABELS[value];
+        if(row.recipient_type === value) opt.selected = true;
+        recipientSelect.appendChild(opt);
+    });
+    form.appendChild(lingkodBuildFormField("Recipient", recipientSelect));
+
+    const orgWrap = document.createElement("div");
+    orgWrap.className = "specify-field";
+    const orgSelect = document.createElement("select");
+    orgWrap.appendChild(lingkodBuildFormField("Select Organization", orgSelect));
+    form.appendChild(orgWrap);
+
+    const orgsWrap = document.createElement("div");
+    orgsWrap.className = "specify-field";
+    const orgsCheckboxes = document.createElement("div");
+    orgsCheckboxes.className = "checkbox-group";
+    orgsWrap.appendChild(lingkodBuildFormField("Select Organizations", orgsCheckboxes));
+    form.appendChild(orgsWrap);
+
+    await Promise.all([
+        lingkodPopulateOrganizationSelectById(orgSelect, row.recipient_organization_id),
+        lingkodPopulateOrganizationCheckboxes(orgsCheckboxes, row.recipient_organization_ids || [])
+    ]);
+    updateRecipientFieldVisibility(recipientSelect, orgWrap, orgsWrap);
+    recipientSelect.addEventListener("change", function(){
+        updateRecipientFieldVisibility(recipientSelect, orgWrap, orgsWrap);
+    });
+
+    const fileField = lingkodBuildFormField("Replace File (optional)", (function(){
+        const input = document.createElement("input");
+        input.type = "file";
+        return input;
+    })());
+    const fileInput = fileField.querySelector("input[type=\"file\"]");
+    const currentFileNote = document.createElement("small");
+    currentFileNote.className = "feedback-reply-note";
+    currentFileNote.textContent = "Current file: " + (row.file_name || "—") + ". Leave blank to keep it.";
+    fileField.appendChild(currentFileNote);
+    form.appendChild(fileField);
+
     const saveBtn = document.createElement("button");
     saveBtn.type = "submit";
     saveBtn.textContent = "Save Changes";
@@ -204,28 +330,93 @@ function openEditRepositoryModal(row){
             return;
         }
 
-        lingkodSetButtonLoading(saveBtn, true, "Saving...");
-
-        const { error } = await supabaseClient
-            .from("repository_files")
-            .update({ title: newTitle, category: categorySelect.value })
-            .eq("id", row.id);
-
-        lingkodSetButtonLoading(saveBtn, false);
-
-        if(error){
-            console.error("[repository] update failed:", error);
-            lingkodToast("Couldn't update this document: " + error.message, "error");
+        const recipientType = recipientSelect.value;
+        if((recipientType === "specific_organization" || recipientType === "specific_organization_members") && !orgSelect.value){
+            lingkodToast("Please select an organization.", "error");
+            return;
+        }
+        const selectedOrgIds = recipientType === "multiple_organizations"
+            ? Array.from(orgsCheckboxes.querySelectorAll("input:checked")).map(function(cb){ return cb.value; })
+            : [];
+        if(recipientType === "multiple_organizations" && selectedOrgIds.length === 0){
+            lingkodToast("Please select at least one organization.", "error");
             return;
         }
 
-        lingkodCloseModal();
-        lingkodToast("Document updated successfully.", "success");
-        await loadRepository();
-        // Category may have just changed, and the summary cards' Policies/
-        // Organization Records counts are category-based - keep them in
-        // sync rather than only refreshing on upload/delete.
-        await computeAndRenderStats();
+        lingkodSetButtonLoading(saveBtn, true, "Saving...");
+
+        const patch = {
+            title: newTitle,
+            category: categorySelect.value,
+            recipient_type: recipientType,
+            recipient_organization_id: (recipientType === "specific_organization" || recipientType === "specific_organization_members") ? orgSelect.value : null,
+            recipient_organization_ids: recipientType === "multiple_organizations" ? selectedOrgIds : null
+        };
+
+        const newFile = fileInput.files[0];
+        let uploadedPath = null;
+
+        try {
+            if(newFile){
+                uploadedPath = "repository/" + crypto.randomUUID() + "-" + sanitizeRepoFileName(newFile.name);
+
+                const { error: uploadError } = await supabaseClient
+                    .storage
+                    .from(REPOSITORY_BUCKET)
+                    .upload(uploadedPath, newFile);
+
+                if(uploadError){
+                    console.error("[repository] replacement file upload failed:", uploadError);
+                    lingkodToast("File upload failed: " + uploadError.message, "error");
+                    return;
+                }
+
+                const { data: urlData } = supabaseClient.storage.from(REPOSITORY_BUCKET).getPublicUrl(uploadedPath);
+                patch.file_name = newFile.name;
+                patch.file_path = uploadedPath;
+                patch.file_url = urlData.publicUrl;
+                patch.file_size = newFile.size;
+                patch.file_type = newFile.type;
+            }
+
+            const { error } = await supabaseClient
+                .from("repository_files")
+                .update(patch)
+                .eq("id", row.id);
+
+            if(error){
+                console.error("[repository] update failed:", error);
+                lingkodToast("Couldn't update this document: " + error.message, "error");
+                // The DB row wasn't updated - clean up the newly-uploaded
+                // replacement so it doesn't linger as an orphaned object.
+                if(uploadedPath){
+                    supabaseClient.storage.from(REPOSITORY_BUCKET).remove([uploadedPath]).catch(function(){});
+                }
+                return;
+            }
+
+            // Old file only deleted after the row update succeeds and now
+            // points at the new one - same ordering as delete's own
+            // "DB first, Storage cleanup second" rule.
+            if(newFile){
+                const oldPath = row.file_path || extractStoragePath(row.file_url, REPOSITORY_BUCKET);
+                if(oldPath){
+                    supabaseClient.storage.from(REPOSITORY_BUCKET).remove([oldPath]).catch(function(err){
+                        console.error("[repository] old file cleanup failed:", err);
+                    });
+                }
+            }
+
+            lingkodCloseModal();
+            lingkodToast("Document updated successfully.", "success");
+            await loadRepository();
+            // Category may have just changed, and the summary cards' Policies/
+            // Organization Records counts are category-based - keep them in
+            // sync rather than only refreshing on upload/delete.
+            await computeAndRenderStats();
+        } finally {
+            lingkodSetButtonLoading(saveBtn, false);
+        }
     });
 
     lingkodOpenModal("Edit Document", form);
@@ -250,7 +441,7 @@ function deleteRepositoryFile(row){
             // never leaves an orphaned "row still references a deleted
             // file" state; a leftover Storage object is the safer failure
             // mode of the two.
-            const path = extractStoragePath(row.file_url, REPOSITORY_BUCKET);
+            const path = row.file_path || extractStoragePath(row.file_url, REPOSITORY_BUCKET);
             if(path){
                 const { error: storageError } = await supabaseClient.storage.from(REPOSITORY_BUCKET).remove([path]);
                 if(storageError) console.error("[repository] storage object delete failed:", storageError);
@@ -371,12 +562,13 @@ function renderRepository(rows, uploaderNames){
     repositoryTableBody.innerHTML = "";
 
     if(rows.length === 0){
-        repositoryTableBody.appendChild(lingkodCreateEmptyRow("No repository documents available.", 7));
+        repositoryTableBody.appendChild(lingkodCreateEmptyRow("No repository documents available.", 8));
         return;
     }
 
     rows.forEach(function(row){
         const tr = document.createElement("tr");
+        tr.appendChild(lingkodCreateCell(row.title || "—"));
         tr.appendChild(lingkodCreateCell(row.file_name));
         tr.appendChild(lingkodCreateCell(REPOSITORY_CATEGORY_LABELS[row.category] || row.category));
         tr.appendChild(lingkodCreateCell(uploaderNames[row.uploaded_by] || "—"));
@@ -391,14 +583,14 @@ function renderRepository(rows, uploaderNames){
 async function loadRepository(){
     const { data, error } = await supabaseClient
         .from("repository_files")
-        .select("id, title, file_name, file_url, file_type, file_size, category, uploaded_by, created_at")
+        .select("id, title, file_name, file_url, file_path, file_type, file_size, category, uploaded_by, created_at, recipient_type, recipient_organization_id, recipient_organization_ids")
         .order("created_at", { ascending: false });
 
     repositoryTableBody.innerHTML = "";
 
     if(error){
         console.error("[repository] load failed:", error);
-        repositoryTableBody.appendChild(lingkodCreateEmptyRow("Couldn't load the repository (" + error.message + ").", 7));
+        repositoryTableBody.appendChild(lingkodCreateEmptyRow("Couldn't load the repository (" + error.message + ").", 8));
         return;
     }
 

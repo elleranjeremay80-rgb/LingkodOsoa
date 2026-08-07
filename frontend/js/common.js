@@ -118,6 +118,7 @@ function lingkodBuildAppTopbar(session){
     search.innerHTML = "<i class=\"fa-solid fa-magnifying-glass\"></i>";
     const searchInput = document.createElement("input");
     searchInput.type = "text";
+    searchInput.id = "lingkodTopbarSearchInput";
     searchInput.placeholder = "Search anything...";
     searchInput.setAttribute("aria-label", "Search");
     search.appendChild(searchInput);
@@ -746,6 +747,10 @@ function lingkodConfirmAction(options){
     cancelBtn.textContent = options.cancelLabel || "Cancel";
     cancelBtn.addEventListener("click", lingkodCloseModal);
 
+    if(options.onCancel){
+        cancelBtn.addEventListener("click", options.onCancel);
+    }
+
     const confirmBtn = document.createElement("button");
     confirmBtn.type = "button";
     confirmBtn.className = options.destructive === false ? "btn-primary-action" : "btn-danger";
@@ -1028,21 +1033,27 @@ function lingkodRenderAnnouncementEmptyState(container, message){
     container.appendChild(empty);
 }
 
-async function lingkodDeleteAnnouncementRow(id, triggerButton){
-    if(!confirm("Delete this announcement? This can't be undone.")) return false;
+function lingkodDeleteAnnouncementRow(id){
+    return new Promise(function(resolve){
+        lingkodConfirmDelete({
+            title: "Delete Announcement?",
+            message: "This action cannot be undone.",
+            onCancel: function(){ resolve(false); },
+            onConfirm: async function(){
+                const { error } = await supabaseClient.from("announcements").delete().eq("id", id);
 
-    lingkodSetButtonLoading(triggerButton, true, "Deleting...");
-    const { error } = await supabaseClient.from("announcements").delete().eq("id", id);
-    lingkodSetButtonLoading(triggerButton, false);
+                if(error){
+                    console.error("[announcements] delete failed:", error);
+                    lingkodToast("Failed to delete announcement: " + error.message, "error");
+                    resolve(false);
+                    throw error;
+                }
 
-    if(error){
-        console.error("[announcements] delete failed:", error);
-        lingkodToast("Failed to delete announcement: " + error.message, "error");
-        return false;
-    }
-
-    lingkodToast("Announcement Deleted Successfully", "success");
-    return true;
+                lingkodToast("Announcement Deleted Successfully", "success");
+                resolve(true);
+            }
+        });
+    });
 }
 
 /* ================= PROFILE VIEW ROW ================= */
@@ -2057,6 +2068,43 @@ async function lingkodPopulateOrganizationSelectById(selectEl, selectedId){
     });
 }
 
+// Mirrors lingkodPopulateOrganizationSelectById above, but for a
+// "pick any number of organizations" checkbox list (Repository's
+// "Multiple Organizations" recipient) rather than a single-select -
+// there's no <select multiple> anywhere in this codebase, and a
+// checkbox list is more usable/touch-friendly for a handful of orgs
+// anyway. containerEl gets one <label><input type="checkbox"></label>
+// per organization; selectedIds pre-checks whichever ones are already
+// assigned (edit flow).
+async function lingkodPopulateOrganizationCheckboxes(containerEl, selectedIds){
+    if(!containerEl) return;
+
+    const selected = new Set(selectedIds || []);
+
+    const { data, error } = await supabaseClient
+        .from("organizations")
+        .select("id, name")
+        .order("name");
+
+    containerEl.innerHTML = "";
+
+    if(error){
+        console.error("[common] failed to load organizations for checkbox list:", error);
+        return;
+    }
+
+    (data || []).forEach(function(org){
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.value = org.id;
+        input.checked = selected.has(org.id);
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(" " + org.name));
+        containerEl.appendChild(label);
+    });
+}
+
 // Mirrors lingkodPopulateOrganizationSelectById above - departments is
 // the same shape of lookup table (text id, name), used by Registered
 // Users' Edit User modal so OSOA EB has a real way to set/correct a
@@ -2147,14 +2195,23 @@ function initSidebarToggle(){
     mobileToggle.innerHTML = "<i class=\"fa-solid fa-bars\"></i>";
     document.body.appendChild(mobileToggle);
 
+    // Breakpoint scheme: desktop >=1025px, tablet 768-1024px, mobile
+    // <768px (matches common.css's own @media boundaries for the
+    // sidebar shell). Tablet reuses the desktop icon-rail (.collapsed)
+    // as its default state instead of the mobile off-canvas overlay.
     function isMobile(){
-        return window.innerWidth <= 900;
+        return window.innerWidth <= 767;
+    }
+
+    function isTablet(){
+        return window.innerWidth >= 768 && window.innerWidth <= 1024;
     }
 
     function closeMobile(){
         sidebar.classList.remove("mobile-open");
         backdrop.classList.remove("visible");
         mobileToggle.classList.remove("hide");
+        document.body.style.overflow = "";
     }
 
     function toggleSidebar(){
@@ -2163,19 +2220,35 @@ function initSidebarToggle(){
             sidebar.classList.toggle("mobile-open", opening);
             backdrop.classList.toggle("visible", opening);
             mobileToggle.classList.toggle("hide", opening);
+            document.body.style.overflow = opening ? "hidden" : "";
         } else {
             const collapsed = sidebar.classList.toggle("collapsed");
             localStorage.setItem("lingkod_sidebar_collapsed", collapsed ? "1" : "0");
         }
     }
 
-    if(!isMobile() && localStorage.getItem("lingkod_sidebar_collapsed") === "1"){
+    // Explicit user preference (desktop or tablet toggle) always wins.
+    // With no preference saved yet, tablet defaults to the collapsed
+    // icon-rail (per spec: "hidden by default or collapsed into icons");
+    // desktop defaults to expanded, same as before.
+    const storedCollapsed = localStorage.getItem("lingkod_sidebar_collapsed");
+    if(!isMobile() && (storedCollapsed === "1" || (storedCollapsed === null && isTablet()))){
         sidebar.classList.add("collapsed");
     }
 
     toggle.addEventListener("click", toggleSidebar);
     mobileToggle.addEventListener("click", toggleSidebar);
     backdrop.addEventListener("click", closeMobile);
+
+    // Selecting a menu item should close the mobile/tablet overlay, not
+    // leave it open behind the page it just navigated to (the next
+    // page's own DOMContentLoaded rebuilds the sidebar fresh anyway, but
+    // this avoids a stale "open" flash before that next page paints).
+    sidebar.querySelectorAll(".menu a").forEach(function(link){
+        link.addEventListener("click", function(){
+            if(isMobile()) closeMobile();
+        });
+    });
 
     const topbarHamburger = document.querySelector(".topbar > i.fa-bars");
     if(topbarHamburger){

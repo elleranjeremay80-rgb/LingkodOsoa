@@ -25,6 +25,14 @@ const incomeSubmitBtn = document.getElementById("incomeSubmitBtn");
 let viewerProfile = null;
 let selectedImageBlob = null;
 
+// projects_activities.created_by is a bare uuid (no FK to profiles), so
+// PostgREST can't auto-embed the uploader's name - fetched separately and
+// keyed by id, same batch-lookup pattern as submission/feedback's own
+// profile lookups. See js/common.js's lingkodFetchProfilesById. Populated
+// once per loadIncomeProjects() call; openDetailModal() below reads it
+// synchronously since it's only ever opened after cards have rendered.
+let incomeProfilesById = {};
+
 if(incomeImageInput){
     lingkodWireSquareImageInput({
         fileInput: incomeImageInput,
@@ -144,6 +152,13 @@ function buildCard(row){
 
     card.appendChild(bodyEl);
 
+    // Clicking anywhere on the card opens the read-only detail modal - the
+    // three-dot menu button below stops its own click from bubbling here
+    // (see lingkodBuildCardMenuButton in js/common.js), so this never fires
+    // when a manager opens the Edit/Delete menu instead.
+    card.style.cursor = "pointer";
+    card.addEventListener("click", function(){ openDetailModal(row); });
+
     if(canManageRow(row)){
         card.appendChild(lingkodBuildCardMenuButton([
             { label: "Edit Activity", icon: "fa-pen", onClick: function(){ openEditModal(row); } },
@@ -154,12 +169,138 @@ function buildCard(row){
     return card;
 }
 
+/* ================= DETAIL MODAL (read-only, all roles) ================= */
+// Every role - including students, who have no Edit/Delete access at all -
+// can open this by clicking a card. Edit/Delete only appear in the actions
+// row for viewers canManageRow(row) already allows to manage this specific
+// row; they call the page's existing openEditModal/deleteProject verbatim.
+// Unlike the other three project/activity pages, this one has no single
+// page-specific date field - price and who_can_avail take its place.
+
+function buildDetailImagePanel(row){
+    const panel = document.createElement("div");
+    panel.className = "view-modal-preview";
+
+    if(row.image_url){
+        const img = document.createElement("img");
+        img.src = row.image_url;
+        img.alt = row.title + " cover image";
+        panel.appendChild(img);
+    } else {
+        lingkodShowPreviewMessage(panel, "fa-solid fa-image", "No image available.");
+    }
+
+    return panel;
+}
+
+function buildDetailInfoPanel(row){
+    const uploader = incomeProfilesById[row.created_by];
+    const statusInfo = STATUS_LABELS[row.status] || STATUS_LABELS.ongoing;
+
+    const panel = document.createElement("div");
+    panel.className = "view-modal-info";
+
+    const badge = document.createElement("span");
+    badge.className = statusInfo.className;
+    badge.textContent = statusInfo.text;
+    panel.appendChild(badge);
+
+    const h4 = document.createElement("h4");
+    h4.textContent = row.title;
+    panel.appendChild(h4);
+
+    [
+        ["Organization", row.organization],
+        ["Price", "₱" + formatPrice(row.price)],
+        ["Who Can Avail", row.who_can_avail && row.who_can_avail.length ? row.who_can_avail.join(", ") : "Not set"]
+    ].forEach(function(pair){
+        const field = document.createElement("div");
+        field.className = "view-modal-field";
+        const dt = document.createElement("label");
+        dt.textContent = pair[0];
+        const dd = document.createElement("span");
+        dd.textContent = pair[1];
+        field.appendChild(dt);
+        field.appendChild(dd);
+        panel.appendChild(field);
+    });
+
+    // Description gets its own <p> field (long free text, not truncated) -
+    // matches feedback/script.js's buildFeedbackViewBody's feedback_message
+    // field.
+    const descField = document.createElement("div");
+    descField.className = "view-modal-field";
+    const descLabel = document.createElement("label");
+    descLabel.textContent = "Description";
+    descField.appendChild(descLabel);
+    const descValue = document.createElement("p");
+    descValue.textContent = row.description || "No description provided.";
+    descField.appendChild(descValue);
+    panel.appendChild(descField);
+
+    [
+        ["Status", statusInfo.text],
+        ["Uploaded By", uploader ? uploader.full_name : "Unknown"],
+        ["Uploaded Date", lingkodFormatDate(row.created_at)]
+    ].forEach(function(pair){
+        const field = document.createElement("div");
+        field.className = "view-modal-field";
+        const dt = document.createElement("label");
+        dt.textContent = pair[0];
+        const dd = document.createElement("span");
+        dd.textContent = pair[1];
+        field.appendChild(dt);
+        field.appendChild(dd);
+        panel.appendChild(field);
+    });
+
+    return panel;
+}
+
+function buildDetailActions(row){
+    const actions = document.createElement("div");
+    actions.className = "view-modal-actions";
+
+    if(canManageRow(row)){
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-secondary";
+        editBtn.innerHTML = "<i class=\"fa-solid fa-pen\"></i> Edit";
+        editBtn.addEventListener("click", function(){ openEditModal(row); });
+        actions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i> Delete";
+        deleteBtn.addEventListener("click", function(){ deleteProject(row); });
+        actions.appendChild(deleteBtn);
+    }
+
+    return actions;
+}
+
+function openDetailModal(row){
+    const wrapper = document.createElement("div");
+    wrapper.className = "view-modal";
+
+    const layout = document.createElement("div");
+    layout.className = "view-modal-layout";
+    layout.appendChild(buildDetailInfoPanel(row));
+    layout.appendChild(buildDetailImagePanel(row));
+    wrapper.appendChild(layout);
+
+    wrapper.appendChild(buildDetailActions(row));
+
+    lingkodOpenModal(row.title, wrapper, "modal-wide");
+}
+
 async function loadIncomeProjects(){
     if(!incomeGrid) return;
 
     const { data, error } = await supabaseClient
         .from("projects_activities")
-        .select("id, title, description, organization, price, who_can_avail, status, image_url, created_at")
+        .select("id, title, description, organization, price, who_can_avail, status, image_url, created_at, created_by")
         .eq("category", CATEGORY)
         .order("created_at", { ascending: false });
 
@@ -179,6 +320,8 @@ async function loadIncomeProjects(){
         incomeGrid.appendChild(p);
         return;
     }
+
+    incomeProfilesById = await lingkodFetchProfilesById(data.map(function(row){ return row.created_by; }));
 
     data.forEach(function(row){
         incomeGrid.appendChild(buildCard(row));

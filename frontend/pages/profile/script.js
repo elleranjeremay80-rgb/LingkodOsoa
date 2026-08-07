@@ -294,13 +294,24 @@ async function saveProfileEdits(fields, saveBtn){
 
     lingkodSetButtonLoading(saveBtn, true, "Saving...");
 
+    // last_name/first_name are required (validated above) and always
+    // sent. middle_name/username/contact_number are optional - only
+    // included when the field actually has a value, so leaving one
+    // blank (whether never filled in, or just not touched this edit)
+    // preserves whatever is already saved instead of overwriting it
+    // with null/empty string.
     const patch = {
         last_name: fields.lastName.value.trim(),
-        first_name: fields.firstName.value.trim(),
-        middle_name: fields.middleName.value.trim(),
-        username: newUsername || null,
-        contact_number: fields.contactNumber.value.trim() || null
+        first_name: fields.firstName.value.trim()
     };
+
+    const middleNameValue = fields.middleName.value.trim();
+    if(middleNameValue) patch.middle_name = middleNameValue;
+
+    if(newUsername) patch.username = newUsername;
+
+    const contactNumberValue = fields.contactNumber.value.trim();
+    if(contactNumberValue) patch.contact_number = contactNumberValue;
 
     try {
         // Photo uploads only at Save, not at crop-confirm time - if

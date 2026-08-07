@@ -9,6 +9,18 @@
     box-shadow:0 4px 16px rgba(184,46,18,.06);
 }
 
+/* Dashboard-only: no search bar in the shared .app-topbar (js/common.js's
+   lingkodBuildAppTopbar builds it the same way on every page - this page
+   just hides it and pushes the notification/message/profile cluster to
+   the right, same as .app-topbar-search's flex:1 would have). */
+.app-topbar-search{
+    display:none;
+}
+
+.app-topbar{
+    justify-content:flex-end;
+}
+
 /* .user is an <a> (whole avatar+name section links to Profile) rather
    than a plain div - reset the global a{text-decoration:none} anchor's
    own hover/focus look isn't otherwise a concern here since nothing else
@@ -752,6 +764,30 @@ table{
 @media(max-width:480px){
 
 .stats-row{
+    grid-template-columns:1fr;
+}
+
+}
+
+/* Bring .stats-row and .ongoing-projects-grid in line with the app-wide
+   tablet(768-1024)=2/row, mobile(<768)=1/row card-grid convention - the
+   ad-hoc 900/480/1100/700 breakpoints above already get most of the way
+   there, so these just plug the gaps rather than replacing them. */
+@media(max-width:1024px){
+
+.stats-row{
+    grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:767px){
+
+.stats-row{
+    grid-template-columns:1fr;
+}
+
+.ongoing-projects-grid{
     grid-template-columns:1fr;
 }
 

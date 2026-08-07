@@ -5,6 +5,20 @@
     flex-wrap:wrap;
 }
 
+@media(max-width:767px){
+
+.filters-row{
+    flex-direction:column;
+}
+
+.filters-row .search,
+.filters-row select{
+    width:100%;
+    min-width:0;
+}
+
+}
+
 .search{
     flex:1;
     min-width:220px;
@@ -140,11 +154,14 @@
     padding:40px 0;
 }
 
-/* ================= FOUR-SECTION LAYOUT (every role) =================
-   Officer cards reuse .item-card/.directory-card-cover from above - only
-   the per-organization section wrapper, header, and manage-menu are new
-   here. Padding-bottom leaves room for the floating Manage Directory
-   button (osoa_eb only) so it never overlaps the last section's cards. */
+/* ================= ORG-FIRST LAYOUT (every role) =================
+   One panel per organization (see #directoryOrgPanels in script.js),
+   each showing that org's full visible roster - president, officers,
+   then members - together. Officer cards reuse .item-card/
+   .directory-card-cover from above - only the per-organization panel
+   wrapper, header, and manage-menu are new here. Padding-bottom leaves
+   room for the floating Manage Directory button (osoa_eb only) so it
+   never overlaps the last panel's cards. */
 
 #directoryView{
     padding-bottom:80px;
@@ -165,8 +182,7 @@
     color:var(--color-secondary);
 }
 
-#sectionOsoa,
-#sectionPresidents{
+#directoryOrgPanels{
     margin-top:4px;
 }
 

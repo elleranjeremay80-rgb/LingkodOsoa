@@ -205,7 +205,10 @@ body{
     margin-bottom:12px;
 }
 
-@media(max-width:600px){
+@media(max-width:767px){
     .doclib-page{ padding:18px 16px 40px; }
     .doclib-topbar{ justify-content:center; text-align:center; }
+    .doclib-filters{ flex-direction:column; }
+    .doclib-filters .search{ width:100%; min-width:0; }
+    .doclib-filters select{ width:100%; min-width:0; }
 }

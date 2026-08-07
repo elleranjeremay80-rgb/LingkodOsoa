@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- This page deliberately doesn't load js/common.js (see body comment
+     below), so it never picks up the cached-theme fast path that lives
+     there - without this, a user's Dark Mode preference wouldn't apply
+     here even though common.css already ships the [data-theme="dark"]
+     rules for this page. Same localStorage key/logic as
+     lingkodApplyCachedThemeFastPath() in js/common.js, kept in sync by
+     lingkodApplyTheme() whenever Dark Mode is toggled on any full page. -->
+<script>
+if(localStorage.getItem("lingkod_dark_mode") === "1"){
+    document.documentElement.setAttribute("data-theme", "dark");
+}
+</script>
+
 <title>LINGKOD | Organization Directory</title>
 
 <link rel="icon" href="../../pictures/BULSU.png">

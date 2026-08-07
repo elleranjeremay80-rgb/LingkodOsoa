@@ -330,18 +330,27 @@ twoFactorToggle.addEventListener("change", async function(){
         twoFactorToggle.checked = enrolled;
         if(enrolled) await updateField(twoFactorToggle, "two_factor_enabled", true, false);
     } else if(!wantsOn && currentlyEnrolled){
-        if(!confirm("Disable Two-Factor Authentication? Your account will only require your password to sign in.")){
-            twoFactorToggle.checked = true;
-            return;
-        }
-        setToggleSaving(twoFactorToggle, true);
-        const reallyDisabled = await disableTwoFactor();
-        setToggleSaving(twoFactorToggle, false);
-        twoFactorToggle.checked = !reallyDisabled;
-        if(reallyDisabled){
-            await updateField(twoFactorToggle, "two_factor_enabled", false, true);
-            lingkodToast("Two-Factor Authentication has been disabled.", "success");
-        }
+        twoFactorToggle.checked = true;
+        lingkodConfirmAction({
+            title: "Disable Two-Factor Authentication?",
+            message: "Your account will only require your password to sign in.",
+            icon: "fa-shield-halved",
+            confirmLabel: "Disable",
+            loadingLabel: "Disabling...",
+            destructive: true,
+            onConfirm: async function(){
+                setToggleSaving(twoFactorToggle, true);
+                const reallyDisabled = await disableTwoFactor();
+                setToggleSaving(twoFactorToggle, false);
+                twoFactorToggle.checked = !reallyDisabled;
+                if(reallyDisabled){
+                    await updateField(twoFactorToggle, "two_factor_enabled", false, true);
+                    lingkodToast("Two-Factor Authentication has been disabled.", "success");
+                } else {
+                    throw new Error("disable failed");
+                }
+            }
+        });
     }
 });
 

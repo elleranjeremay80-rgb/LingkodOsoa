@@ -84,3 +84,75 @@
     margin-right:6px;
     color:var(--color-accent);
 }
+
+/* ================= DETAIL MODAL (card click, all roles) =================
+   Same layout/field markup as submission/style.css's view modal - .view-
+   modal-preview/.modal-wide/.view-modal-actions are shared (css/common.css)
+   since they're generic to any modal on any page; the info-panel layout
+   below isn't shared there, so it's duplicated here (and in feedback/
+   style.css, ongoing-projects/style.css, implemented-activities/style.css,
+   income-projects/style.css) rather than added to common.css. */
+
+.view-modal-layout{
+    display:grid;
+    grid-template-columns:1fr 1.4fr;
+    gap:24px;
+    margin-bottom:20px;
+}
+
+.view-modal-info .status{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:5px 14px;
+    border-radius:20px;
+    font-weight:600;
+    font-size:12px;
+}
+
+.view-modal-info h4{
+    color:var(--color-heading);
+    margin-bottom:16px;
+}
+
+.view-modal-field{
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:3px;
+}
+
+.view-modal-field span,
+.view-modal-field p{
+    font-size:14px;
+    color:var(--color-text);
+    line-height:1.6;
+}
+
+@media(max-width:768px){
+
+.view-modal-layout{
+    grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:1024px){
+
+.items-grid{
+    grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:767px){
+
+.items-grid{
+    grid-template-columns:1fr;
+}
+
+}

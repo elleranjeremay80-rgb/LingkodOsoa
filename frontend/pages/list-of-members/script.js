@@ -149,23 +149,25 @@ function openOrgLogoModal(org){
         removeBtn.type = "button";
         removeBtn.className = "btn-secondary";
         removeBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i> Remove Logo";
-        removeBtn.addEventListener("click", async function(){
-            if(!confirm("Remove " + org.name + "'s logo? This can't be undone.")) return;
+        removeBtn.addEventListener("click", function(){
+            lingkodConfirmDelete({
+                title: "Remove Logo?",
+                message: "Remove " + org.name + "'s logo? This can't be undone.",
+                onConfirm: async function(){
+                    try {
+                        await lingkodRemoveOrgLogo(org.id);
+                        const { error } = await supabaseClient.from("organizations").update({ logo_url: null }).eq("id", org.id);
+                        if(error) throw error;
 
-            lingkodSetButtonLoading(removeBtn, true, "Removing...");
-            try {
-                await lingkodRemoveOrgLogo(org.id);
-                const { error } = await supabaseClient.from("organizations").update({ logo_url: null }).eq("id", org.id);
-                if(error) throw error;
-
-                applyOrgLogoUpdate(org, null);
-                lingkodToast("Logo removed successfully.", "success");
-                lingkodCloseModal();
-            } catch(err){
-                console.error("[list-of-members] logo remove failed:", err);
-                lingkodToast("Failed to remove the logo: " + err.message, "error");
-                lingkodSetButtonLoading(removeBtn, false);
-            }
+                        applyOrgLogoUpdate(org, null);
+                        lingkodToast("Logo removed successfully.", "success");
+                    } catch(err){
+                        console.error("[list-of-members] logo remove failed:", err);
+                        lingkodToast("Failed to remove the logo: " + err.message, "error");
+                        throw err;
+                    }
+                }
+            });
         });
         actions.appendChild(removeBtn);
     }

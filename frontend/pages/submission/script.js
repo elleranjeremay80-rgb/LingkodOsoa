@@ -24,11 +24,20 @@ const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
 // LINGKOD_SUBMISSION_CATEGORY_LABELS in js/common.js.
 const SUBMISSION_CATEGORY_LABELS = LINGKOD_SUBMISSION_CATEGORY_LABELS;
 
+// Kept "rejected" and "needs_revision" as distinct statuses (rather than
+// collapsing both into a single "Returned" status) - they already drive
+// genuinely different, working UI (separate Reject/Return-for-Revision
+// buttons, separate rejected_at tracking) and merging them would destroy
+// that distinction for no functional gain; "needs_revision" is simply
+// relabeled "Returned" to match the requested wording.
 const SUBMISSION_STATUS_LABELS = {
-    pending: "🟡 Pending Review",
+    pending: "🟡 Submitted",
+    received: "🔵 Received",
+    under_review: "🟣 Under Review",
     approved: "🟢 Approved",
     rejected: "🔴 Rejected",
-    needs_revision: "🔵 Needs Revision"
+    needs_revision: "🟠 Returned",
+    completed: "⚪ Completed"
 };
 
 /* ================= "PLEASE SPECIFY" SHOW/HIDE ================= */
@@ -298,12 +307,49 @@ async function applyReviewDecision(row, status, remarks){
     return true;
 }
 
-async function approveSubmission(row){
-    if(!confirm("Approve \"" + row.document_title + "\"? It will become visible on dashboards once approved.")) return;
+function approveSubmission(row){
+    lingkodConfirmAction({
+        title: "Approve Submission?",
+        message: "Approve \"" + row.document_title + "\"? It will become visible on dashboards once approved.",
+        icon: "fa-check",
+        confirmLabel: "Approve",
+        loadingLabel: "Approving...",
+        destructive: false,
+        onConfirm: async function(){
+            const ok = await applyReviewDecision(row, "approved", row.remarks);
+            if(!ok) throw new Error("approve failed");
+            lingkodToast("Submission Approved Successfully", "success");
+            await loadSubmissions();
+        }
+    });
+}
 
-    const ok = await applyReviewDecision(row, "approved", row.remarks);
+// Lightweight intake-progress quick actions - single click, no remarks,
+// same shape as approveSubmission() above. Sit before the Approve/Reject/
+// Return decision buttons in the workflow: Submitted -> Received ->
+// Under Review -> (Approved/Rejected/Returned) -> Completed.
+async function markSubmissionReceived(row){
+    const ok = await applyReviewDecision(row, "received", row.remarks);
     if(ok){
-        lingkodToast("Submission Approved Successfully", "success");
+        lingkodToast("Submission marked as Received.", "success");
+        lingkodCloseModal();
+        await loadSubmissions();
+    }
+}
+
+async function markSubmissionUnderReview(row){
+    const ok = await applyReviewDecision(row, "under_review", row.remarks);
+    if(ok){
+        lingkodToast("Submission marked as Under Review.", "success");
+        lingkodCloseModal();
+        await loadSubmissions();
+    }
+}
+
+async function markSubmissionCompleted(row){
+    const ok = await applyReviewDecision(row, "completed", row.remarks);
+    if(ok){
+        lingkodToast("Submission marked as Completed.", "success");
         lingkodCloseModal();
         await loadSubmissions();
     }
@@ -425,6 +471,24 @@ function buildViewModalActions(row, canReview){
     actions.className = "view-modal-actions";
 
     if(canReview){
+        if(row.status === "pending"){
+            const receivedBtn = document.createElement("button");
+            receivedBtn.type = "button";
+            receivedBtn.className = "btn-secondary";
+            receivedBtn.innerHTML = "<i class=\"fa-solid fa-inbox\"></i> Mark as Received";
+            receivedBtn.addEventListener("click", function(){ markSubmissionReceived(row); });
+            actions.appendChild(receivedBtn);
+        }
+
+        if(row.status === "pending" || row.status === "received"){
+            const reviewBtn = document.createElement("button");
+            reviewBtn.type = "button";
+            reviewBtn.className = "btn-secondary";
+            reviewBtn.innerHTML = "<i class=\"fa-solid fa-magnifying-glass\"></i> Mark as Under Review";
+            reviewBtn.addEventListener("click", function(){ markSubmissionUnderReview(row); });
+            actions.appendChild(reviewBtn);
+        }
+
         const approveBtn = document.createElement("button");
         approveBtn.type = "button";
         approveBtn.className = "approve-btn";
@@ -445,6 +509,15 @@ function buildViewModalActions(row, canReview){
         revisionBtn.innerHTML = "<i class=\"fa-solid fa-rotate-left\"></i> Return for Revision";
         revisionBtn.addEventListener("click", function(){ openDecisionModal(row, "needs_revision"); });
         actions.appendChild(revisionBtn);
+
+        if(row.status === "approved"){
+            const completeBtn = document.createElement("button");
+            completeBtn.type = "button";
+            completeBtn.className = "btn-secondary";
+            completeBtn.innerHTML = "<i class=\"fa-solid fa-flag-checkered\"></i> Mark as Completed";
+            completeBtn.addEventListener("click", function(){ markSubmissionCompleted(row); });
+            actions.appendChild(completeBtn);
+        }
     }
 
     if(row.file_path){

@@ -532,6 +532,7 @@ button:disabled{
 
 .page{
     flex-direction:column;
+    justify-content:center;
 }
 
 .login-brand{

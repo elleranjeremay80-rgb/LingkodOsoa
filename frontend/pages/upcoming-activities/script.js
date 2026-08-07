@@ -20,6 +20,29 @@ const activitySubmitBtn = document.getElementById("activitySubmitBtn");
 let viewerProfile = null;
 let selectedImageBlob = null;
 
+// projects_activities.created_by is a bare uuid (no FK to profiles), so
+// PostgREST can't auto-embed the uploader's name - fetched separately and
+// keyed by id, same batch-lookup pattern as submission/feedback's own
+// profile lookups. See js/common.js's lingkodFetchProfilesById. Populated
+// once per loadActivities() call; openDetailModal() below reads it
+// synchronously since it's only ever opened after cards have rendered.
+let activityProfilesById = {};
+
+// Rows on this page only ever carry a single status ("planned" - set on
+// insert, with no status editor in openEditModal below), unlike Ongoing
+// Projects/Income-Generating Projects which have a real multi-value status
+// map. Kept as a one-entry map anyway (same PROJECT_STATUS_LABELS/
+// PROJECT_STATUS_CLASSES shape as ongoing-projects/script.js) so the detail
+// modal's status badge is driven by the same lookup pattern as every other
+// page instead of a special case.
+const ACTIVITY_STATUS_LABELS = {
+    planned: "Scheduled"
+};
+
+const ACTIVITY_STATUS_CLASSES = {
+    planned: "pending"
+};
+
 if(activityImageInput){
     lingkodWireSquareImageInput({
         fileInput: activityImageInput,
@@ -127,6 +150,13 @@ function buildCard(row){
 
     card.appendChild(bodyEl);
 
+    // Clicking anywhere on the card opens the read-only detail modal - the
+    // three-dot menu button below stops its own click from bubbling here
+    // (see lingkodBuildCardMenuButton in js/common.js), so this never fires
+    // when a manager opens the Edit/Delete menu instead.
+    card.style.cursor = "pointer";
+    card.addEventListener("click", function(){ openDetailModal(row); });
+
     if(canManageRow(row)){
         card.appendChild(lingkodBuildCardMenuButton([
             { label: "Edit Activity", icon: "fa-pen", onClick: function(){ openEditModal(row); } },
@@ -137,12 +167,134 @@ function buildCard(row){
     return card;
 }
 
+/* ================= DETAIL MODAL (read-only, all roles) ================= */
+// Every role - including students, who have no Edit/Delete access at all -
+// can open this by clicking a card. Edit/Delete only appear in the actions
+// row for viewers canManageRow(row) already allows to manage this specific
+// row; they call the page's existing openEditModal/deleteActivity verbatim.
+
+function buildDetailImagePanel(row){
+    const panel = document.createElement("div");
+    panel.className = "view-modal-preview";
+
+    if(row.image_url){
+        const img = document.createElement("img");
+        img.src = row.image_url;
+        img.alt = row.title + " cover image";
+        panel.appendChild(img);
+    } else {
+        lingkodShowPreviewMessage(panel, "fa-solid fa-image", "No image available.");
+    }
+
+    return panel;
+}
+
+function buildDetailInfoPanel(row){
+    const uploader = activityProfilesById[row.created_by];
+
+    const panel = document.createElement("div");
+    panel.className = "view-modal-info";
+
+    const badge = document.createElement("span");
+    badge.className = "status " + (ACTIVITY_STATUS_CLASSES[row.status] || "pending");
+    badge.textContent = ACTIVITY_STATUS_LABELS[row.status] || row.status;
+    panel.appendChild(badge);
+
+    const h4 = document.createElement("h4");
+    h4.textContent = row.title;
+    panel.appendChild(h4);
+
+    [
+        ["Organization", row.organization],
+        ["Date", formatDate(row.start_date)]
+    ].forEach(function(pair){
+        const field = document.createElement("div");
+        field.className = "view-modal-field";
+        const dt = document.createElement("label");
+        dt.textContent = pair[0];
+        const dd = document.createElement("span");
+        dd.textContent = pair[1];
+        field.appendChild(dt);
+        field.appendChild(dd);
+        panel.appendChild(field);
+    });
+
+    // Description gets its own <p> field (long free text, not truncated) -
+    // matches feedback/script.js's buildFeedbackViewBody's feedback_message
+    // field.
+    const descField = document.createElement("div");
+    descField.className = "view-modal-field";
+    const descLabel = document.createElement("label");
+    descLabel.textContent = "Description";
+    descField.appendChild(descLabel);
+    const descValue = document.createElement("p");
+    descValue.textContent = row.description || "No description provided.";
+    descField.appendChild(descValue);
+    panel.appendChild(descField);
+
+    [
+        ["Status", ACTIVITY_STATUS_LABELS[row.status] || row.status],
+        ["Uploaded By", uploader ? uploader.full_name : "Unknown"],
+        ["Uploaded Date", lingkodFormatDate(row.created_at)]
+    ].forEach(function(pair){
+        const field = document.createElement("div");
+        field.className = "view-modal-field";
+        const dt = document.createElement("label");
+        dt.textContent = pair[0];
+        const dd = document.createElement("span");
+        dd.textContent = pair[1];
+        field.appendChild(dt);
+        field.appendChild(dd);
+        panel.appendChild(field);
+    });
+
+    return panel;
+}
+
+function buildDetailActions(row){
+    const actions = document.createElement("div");
+    actions.className = "view-modal-actions";
+
+    if(canManageRow(row)){
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-secondary";
+        editBtn.innerHTML = "<i class=\"fa-solid fa-pen\"></i> Edit";
+        editBtn.addEventListener("click", function(){ openEditModal(row); });
+        actions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i> Delete";
+        deleteBtn.addEventListener("click", function(){ deleteActivity(row); });
+        actions.appendChild(deleteBtn);
+    }
+
+    return actions;
+}
+
+function openDetailModal(row){
+    const wrapper = document.createElement("div");
+    wrapper.className = "view-modal";
+
+    const layout = document.createElement("div");
+    layout.className = "view-modal-layout";
+    layout.appendChild(buildDetailInfoPanel(row));
+    layout.appendChild(buildDetailImagePanel(row));
+    wrapper.appendChild(layout);
+
+    wrapper.appendChild(buildDetailActions(row));
+
+    lingkodOpenModal(row.title, wrapper, "modal-wide");
+}
+
 async function loadActivities(){
     if(!activitiesGrid) return;
 
     const { data, error } = await supabaseClient
         .from("projects_activities")
-        .select("id, title, description, organization, start_date, image_url, created_at")
+        .select("id, title, description, organization, start_date, status, image_url, created_at, created_by")
         .eq("category", CATEGORY)
         .order("created_at", { ascending: false });
 
@@ -162,6 +314,8 @@ async function loadActivities(){
         activitiesGrid.appendChild(p);
         return;
     }
+
+    activityProfilesById = await lingkodFetchProfilesById(data.map(function(row){ return row.created_by; }));
 
     data.forEach(function(row){
         activitiesGrid.appendChild(buildCard(row));

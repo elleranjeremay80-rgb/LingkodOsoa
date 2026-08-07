@@ -949,3 +949,32 @@ textarea.invalid{
     background:var(--color-surface);
 }
 
+/* ================= MOBILE ================= */
+
+@media(max-width:767px){
+
+/* Filter bar above the members table (search + status/position selects) -
+   base rules only flex-wrap, which still leaves narrow pill-shaped
+   controls on a phone; stack them into full-width rows instead. */
+.filters-row{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+.search{
+    min-width:0;
+}
+
+.filters-row select{
+    width:100%;
+    min-width:0;
+}
+
+/* Org name + logo heading (member-list view) - let it wrap instead of
+   forcing the heading text against a fixed-width logo on narrow screens. */
+.org-members-heading{
+    flex-wrap:wrap;
+}
+
+}
+

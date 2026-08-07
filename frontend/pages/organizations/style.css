@@ -247,6 +247,14 @@ body{
     .org-browse-grid{ grid-template-columns:1fr; }
 }
 
+/* Extends the 1-column collapse down through the rest of the mobile
+   range (600-767px) too - the 600px breakpoint above predates this
+   session's tablet(768-1024)=2/row, mobile(<768)=1/row convention and
+   left a 2-column gap between 601-767px. */
+@media(max-width:767px){
+    .org-browse-grid{ grid-template-columns:1fr; }
+}
+
 .org-browse-card{
     background:#fff;
     border-radius:24px;
@@ -548,7 +556,7 @@ body{
 }
 
 .org-detail-section{
-    background:var(--color-bg-light, #FFF8EE);
+    background:#FFF8EE;
     border-radius:18px;
     padding:18px 20px;
     display:flex;
@@ -624,6 +632,22 @@ body{
     .org-browse-topbar{ justify-content:center; text-align:center; }
 }
 
+/* Filter bar (search + category select) stacks full-width on mobile
+   instead of wrapping each control to its own auto-width row. */
+@media(max-width:767px){
+
+.org-browse-filters{
+    flex-direction:column;
+}
+
+.org-browse-filters .search,
+.org-browse-filters select{
+    width:100%;
+    min-width:0;
+}
+
+}
+
 /* ================= ORG DETAIL MODAL RESPONSIVE ================= */
 
 @media(max-width:820px){
@@ -662,4 +686,30 @@ body{
     gap:12px;
 }
 
+}
+
+/* ================= DARK MODE =================
+   This page's own hardcoded #fff panels inside the org-detail modal and
+   filter bar aren't covered by common.css's shared [data-theme="dark"]
+   rules (those only target common class names like .card/.modal) - left
+   as light-mode #fff otherwise, white text on white would be unreadable. */
+
+[data-theme="dark"] .org-detail-section{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .org-detail-header{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .modal-org-detail .modal-close{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .org-detail-social-link{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .org-browse-filters .search{
+    background:var(--color-surface);
 }

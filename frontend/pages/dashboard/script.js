@@ -787,7 +787,7 @@ async function loadOsoaStats(profile){
         supabaseClient.from("profiles").select("id", { count: "exact", head: true })
             .eq("status", "active"),
         supabaseClient.from("requests").select("id", { count: "exact", head: true })
-            .eq("status", "pending")
+            .eq("status", "pending").eq("assigned_to_role", "osoa_eb")
     ]);
 
     document.getElementById("statTotalOrganizations").textContent = orgsResult.count != null ? orgsResult.count : "—";
@@ -801,13 +801,11 @@ async function loadOsoaStats(profile){
 }
 
 // org_president only - scoped to their own organization. "Pending
-// Requests" is deliberately scoped to requests THEY personally
-// submitted, not their whole organization's - requests_select RLS
-// (20260722020000_requests_enhancements.sql) only grants a requester
-// their own rows (or osoa_eb, everything); it was never extended to let
-// a president see every member's individual requests, and widening that
-// is a real access-control decision this redesign shouldn't make
-// silently as a side effect.
+// Requests" counts requests addressed to this organization's president
+// (assigned_to_role='org_president' AND assigned_organization_id=theirs),
+// not just ones they personally submitted - requests_select/requests_update
+// RLS (20260730000000_requests_recipient_routing.sql) now grants a
+// president read/update access to every request routed to their org.
 async function loadPresidentStats(profile){
     const el = document.getElementById("statOrgMembers");
     if(!el || !profile || profile.role !== "org_president" || !profile.organization_id) return;
@@ -816,7 +814,7 @@ async function loadPresidentStats(profile){
         supabaseClient.from("profiles").select("id", { count: "exact", head: true })
             .eq("status", "active").eq("organization_id", profile.organization_id),
         supabaseClient.from("requests").select("id", { count: "exact", head: true })
-            .eq("status", "pending").eq("user_id", profile.id),
+            .eq("status", "pending").eq("assigned_to_role", "org_president").eq("assigned_organization_id", profile.organization_id),
         supabaseClient.from("projects_activities").select("id", { count: "exact", head: true })
             .eq("category", "ongoing_project").eq("status", "ongoing").eq("organization", profile.organization),
         supabaseClient.from("projects_activities").select("id", { count: "exact", head: true })

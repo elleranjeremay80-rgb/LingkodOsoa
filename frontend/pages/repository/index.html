@@ -132,12 +132,6 @@ Directory
 </a>
 </li>
 
-<li data-roles="admin staff">
-<a href="../documents/index.html">
-<i class="fa-solid fa-file-lines"></i>
-Documents
-</a>
-</li>
 
 <li data-roles="admin">
 <a href="../list-of-members/index.html">
@@ -264,6 +258,26 @@ The Digital Repository allows the OSOA Executive Board and Organization Officers
 <option value="other">Other</option>
 </select>
 
+<select name="recipientType" id="repoRecipientSelect" required>
+<option value="">Select Recipient</option>
+<option value="public">Public</option>
+<option value="osoa_eb">OSOA EB</option>
+<option value="org_presidents">Organization Presidents</option>
+<option value="specific_organization">Specific Organization</option>
+<option value="specific_organization_members">Specific Organization Members</option>
+<option value="multiple_organizations">Multiple Organizations</option>
+</select>
+
+<div class="specify-field" id="repoRecipientOrgWrap">
+<label for="repoRecipientOrgSelect">Select Organization</label>
+<select id="repoRecipientOrgSelect"></select>
+</div>
+
+<div class="specify-field" id="repoRecipientOrgsWrap">
+<label>Select Organizations</label>
+<div class="checkbox-group" id="repoRecipientOrgsCheckboxes"></div>
+</div>
+
 <input type="file" name="file" required>
 
 <button type="submit">
@@ -282,6 +296,7 @@ Upload to Repository
 <table>
 
 <tr>
+<th>Document Title</th>
 <th>File Name</th>
 <th>Category</th>
 <th>Uploaded By</th>

@@ -41,22 +41,22 @@ const FEEDBACK_TYPE_LABELS = {
 };
 
 // feedback.status is a Postgres enum: new/reviewed/in_progress/resolved/
-// closed. Row visibility (own feedback vs. everyone's for osoa_eb) is
+// completed. Row visibility (own feedback vs. everyone's for osoa_eb) is
 // already enforced server-side by RLS (feedback_select).
 const FEEDBACK_STATUS_LABELS = {
-    new: "Received",
-    reviewed: "Under Review",
-    in_progress: "In Progress",
-    resolved: "Resolved",
-    closed: "Closed"
+    pending: "Pending",
+    under_review: "Under Review",
+    approved: "Approved",
+    rejected: "Rejected",
+    completed: "Completed"
 };
 
 const FEEDBACK_STATUS_CLASSES = {
-    new: "received",
-    reviewed: "review",
-    in_progress: "in-progress",
-    resolved: "resolved",
-    closed: "closed"
+    pending: "pending",
+    under_review: "under-review",
+    approved: "approved",
+    rejected: "rejected",
+    completed: "completed"
 };
 
 let currentProfile = null;

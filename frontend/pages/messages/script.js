@@ -694,22 +694,34 @@ function menuToggleArchive(entry){
     });
 }
 
+// Permanent, for both participants - not a per-user hide. Deletes the
+// conversation/messages/membership rows via the hard_delete_conversation
+// RPC (security definer - the base messaging tables' own RLS was never
+// captured in this repo, so the RPC bypasses it and re-checks membership
+// itself), then removes every attachment file the RPC reports from
+// Storage. If either side starts a new conversation afterward, it's a
+// genuinely new conversations row with no history - the old one no
+// longer exists to find.
 function menuDeleteChat(entry){
     lingkodConfirmDelete({
         title: "Delete Conversation?",
-        message: "Are you sure you want to delete this conversation? This action cannot be undone.",
+        message: "This will permanently delete this conversation for both you and the other person, including all messages and attachments. This action cannot be undone.",
         onConfirm: async function(){
-            const { error } = await supabaseClient
-                .from("conversation_settings")
-                .upsert(
-                    { conversation_id: entry.conversationId, user_id: myProfile.id, is_deleted: true },
-                    { onConflict: "conversation_id,user_id" }
-                );
+            const { data: attachmentPaths, error } = await supabaseClient
+                .rpc("hard_delete_conversation", { p_conversation_id: entry.conversationId });
 
             if(error){
                 console.error("[messages] delete chat failed:", error);
                 lingkodToast("Couldn't delete this conversation.", "error");
                 throw error;
+            }
+
+            if(attachmentPaths && attachmentPaths.length > 0){
+                const { error: storageError } = await supabaseClient
+                    .storage
+                    .from(MESSAGE_ATTACHMENTS_BUCKET)
+                    .remove(attachmentPaths);
+                if(storageError) console.error("[messages] attachment cleanup failed:", storageError);
             }
 
             if(activeConversationId === entry.conversationId){
@@ -1984,7 +1996,7 @@ function renderMessages(rows){
         chatBody.appendChild(row);
     });
 
-    chatBody.scrollTop = chatBody.scrollHeight;
+    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
 }
 
 const MESSAGES_BASE_COLUMNS = "id, sender_id, content, created_at, is_read, removed_for_everyone, removed_by, removed_at, forwarded_from_message_id";

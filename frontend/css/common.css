@@ -877,7 +877,7 @@ a, button, .card, .menu li, input, select, textarea{
     margin-left:2px;
 }
 
-@media(max-width:900px){
+@media(max-width:767px){
 
 .app-topbar{
     margin-top:56px;
@@ -977,13 +977,15 @@ a, button, .card, .menu li, input, select, textarea{
     margin-right:auto;
 }
 
-/* Icon-only desktop rail has no room for a nested submenu's labels - force
-   it shut regardless of the Services menu's own remembered expand state.
-   Scoped to desktop only (never max-width:900px, where .sidebar.collapsed
+/* Icon-only rail has no room for a nested submenu's labels - force it
+   shut regardless of the Services menu's own remembered expand state.
+   Scoped to tablet+desktop (never max-width:767px, where .sidebar.collapsed
    is reused to mean "mobile flyout open," not "icon rail") so it can never
    fight the JS-driven inline max-height that actually drives the submenu
-   on mobile. */
-@media(min-width:901px){
+   on mobile. Tablet (768-1024px) reuses this exact icon-rail styling as
+   its default collapsed state - see initSidebarToggle()'s isTablet()
+   default in js/common.js. */
+@media(min-width:768px){
 
 .sidebar.collapsed .submenu{
     max-height:0 !important;
@@ -2079,8 +2081,12 @@ button:disabled{
 }
 
 /* ================= RESPONSIVE SHELL ================= */
+/* Mobile only (below 768px, per the app's breakpoint scheme - desktop
+   >=1025px, tablet 768-1024px, mobile <768px). Tablet gets the
+   icon-rail (.sidebar.collapsed, defined above) as its default state
+   instead of this off-canvas overlay - see isTablet() in js/common.js. */
 
-@media(max-width:900px){
+@media(max-width:767px){
 
 .mobile-menu-btn{
     display:flex;
@@ -2147,6 +2153,141 @@ button:disabled{
 table{
     display:block;
     overflow-x:auto;
+}
+
+}
+
+/* ================= RESPONSIVE TYPOGRAPHY, TABLES, MODALS, FORMS =====
+   Desktop (>=1025px) is untouched by every rule below - these are pure
+   size/spacing overrides layered on the existing shared classes, not a
+   redesign. Tablet (768-1024px) gets a light reduction; mobile (<768px)
+   a larger one, while staying readable (never below ~13px body text). */
+
+@media(min-width:768px) and (max-width:1024px){
+
+.header h1{
+    font-size:24px;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+th, td{
+    padding:12px;
+}
+
+.modal{
+    max-width:520px;
+}
+
+}
+
+@media(max-width:767px){
+
+/* ---- Typography: page titles, sidebar wordmark, table headers ---- */
+
+.header h1{
+    font-size:21px;
+}
+
+.header p{
+    font-size:13.5px;
+}
+
+.logo h2{
+    font-size:22px;
+}
+
+.logo p{
+    font-size:12px;
+}
+
+th, td{
+    padding:10px 12px;
+    font-size:13.5px;
+}
+
+button{
+    font-size:14.5px;
+    padding:12px;
+}
+
+.status{
+    font-size:12px;
+    padding:5px 12px;
+}
+
+/* ---- Tables: sticky header while the body scrolls vertically, and
+   the table itself scrolls horizontally (display:block above) rather
+   than ever forcing the page wider than the viewport. ---- */
+
+thead, th{
+    position:sticky;
+    top:0;
+    z-index:2;
+}
+
+/* ---- Modals: ~95% of the viewport instead of the desktop max-width,
+   tighter header/body padding, footer buttons stay reachable without
+   the modal itself ever exceeding the screen. .modal-body already
+   scrolls (overflow-y:auto, common.css above) for long content. ---- */
+
+.modal-overlay{
+    padding:10px;
+}
+
+.modal, .modal-wide, .modal-confirm{
+    max-width:95vw;
+    max-height:90vh;
+}
+
+.modal-header{
+    padding:16px 18px;
+}
+
+.modal-body{
+    padding:16px 18px;
+}
+
+.view-modal-actions{
+    flex-wrap:wrap;
+}
+
+.view-modal-actions button,
+.view-modal-actions a{
+    flex:1 1 auto;
+}
+
+/* ---- Forms: full-width, touch-friendly controls. Inputs are already
+   width:100% (common.css above) - this only tunes touch target height
+   and stops labels/buttons from clipping at narrow widths. ---- */
+
+input, select, textarea{
+    font-size:16px;
+    padding:12px 14px;
+}
+
+/* Only real form-submit buttons go full width - a blanket button{}
+   rule here would also stretch table row actions (View/Edit/Delete),
+   icon buttons, and modal-footer buttons, which are meant to stay
+   inline/compact. */
+button[type="submit"]{
+    width:100%;
+    min-height:44px;
+}
+
+/* ---- Overflow safety net: nothing should ever push the viewport
+   wider than the screen, regardless of what a page's own style.css
+   does or doesn't handle. ---- */
+
+img, svg{
+    max-width:100%;
+    height:auto;
+}
+
+.content{
+    overflow-x:hidden;
 }
 
 }

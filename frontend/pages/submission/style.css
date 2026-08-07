@@ -89,8 +89,23 @@
 }
 
 .status.needs_revision{
+    background:#FFE0E6;
+    color:#C2185B;
+}
+
+.status.received{
     background:#E5F0FF;
     color:#1D5FBF;
+}
+
+.status.under_review{
+    background:#FFE8D6;
+    color:#C2600B;
+}
+
+.status.completed{
+    background:#F1E7FB;
+    color:#7B3FBF;
 }
 
 /* See requests/style.css for why this exists: moving data rows into
@@ -277,6 +292,27 @@
 
 .view-modal-layout{
     grid-template-columns:1fr;
+}
+
+}
+
+/* ================= MOBILE: FILTER BARS ================= */
+/* .filter-bar's base rules live in css/common.css (shared with
+   Announcements/Organizations) and just wrap - stack it into a single
+   column here so the two filter bars above the submissions/review
+   tables don't get squeezed into unreadable pill widths on a phone. */
+
+@media(max-width:767px){
+
+.filter-bar{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+.filter-bar select,
+.filter-bar input[type="text"]{
+    width:100%;
+    min-width:0;
 }
 
 }
