@@ -2177,9 +2177,26 @@ function initSidebarToggle(){
     const sidebar = document.querySelector(".sidebar");
     if(!sidebar) return;
 
+    // .container establishes its own stacking context (position:relative
+    // + z-index:1, common.css) - appending the backdrop/hamburger to
+    // document.body instead of inside .container used to put them in the
+    // ROOT stacking context, compared against .container as a single
+    // unit stuck at z-index:1, regardless of .sidebar's own z-index:500.
+    // Since the backdrop's z-index:400 (and the hamburger's :450) both
+    // beat .container's 1, the backdrop actually painted ABOVE the
+    // entire sidebar on real devices - every tap on a menu item landed
+    // on the invisible-ish backdrop instead and just closed the sidebar,
+    // which is exactly the "opens but nothing is tappable" bug. Appending
+    // both inside .container instead puts them in the SAME stacking
+    // context as .sidebar, so their z-index values compare correctly
+    // against it directly. (Layout is unaffected either way - both are
+    // position:fixed, which positions relative to the viewport
+    // regardless of DOM nesting.)
+    const container = sidebar.closest(".container") || document.body;
+
     const backdrop = document.createElement("div");
     backdrop.className = "sidebar-backdrop";
-    document.body.appendChild(backdrop);
+    container.appendChild(backdrop);
 
     const toggle = document.createElement("button");
     toggle.className = "sidebar-toggle";
@@ -2193,7 +2210,7 @@ function initSidebarToggle(){
     mobileToggle.className = "mobile-menu-btn";
     mobileToggle.setAttribute("aria-label", "Open menu");
     mobileToggle.innerHTML = "<i class=\"fa-solid fa-bars\"></i>";
-    document.body.appendChild(mobileToggle);
+    container.appendChild(mobileToggle);
 
     // Breakpoint scheme: desktop >=1025px, tablet 768-1024px, mobile
     // <768px (matches common.css's own @media boundaries for the
@@ -2211,6 +2228,7 @@ function initSidebarToggle(){
         sidebar.classList.remove("mobile-open");
         backdrop.classList.remove("visible");
         mobileToggle.classList.remove("hide");
+        mobileToggle.setAttribute("aria-expanded", "false");
         document.body.style.overflow = "";
     }
 
@@ -2220,6 +2238,7 @@ function initSidebarToggle(){
             sidebar.classList.toggle("mobile-open", opening);
             backdrop.classList.toggle("visible", opening);
             mobileToggle.classList.toggle("hide", opening);
+            mobileToggle.setAttribute("aria-expanded", opening ? "true" : "false");
             document.body.style.overflow = opening ? "hidden" : "";
         } else {
             const collapsed = sidebar.classList.toggle("collapsed");
@@ -2236,9 +2255,21 @@ function initSidebarToggle(){
         sidebar.classList.add("collapsed");
     }
 
+    mobileToggle.setAttribute("aria-expanded", "false");
+
     toggle.addEventListener("click", toggleSidebar);
     mobileToggle.addEventListener("click", toggleSidebar);
     backdrop.addEventListener("click", closeMobile);
+
+    // ESC closes the mobile/tablet overlay - the modal system already
+    // does this for modals/notifications (see lingkodOpenModal), this is
+    // the sidebar's own equivalent.
+    document.addEventListener("keydown", function(e){
+        if(e.key === "Escape" && sidebar.classList.contains("mobile-open")){
+            closeMobile();
+            mobileToggle.focus();
+        }
+    });
 
     // Selecting a menu item should close the mobile/tablet overlay, not
     // leave it open behind the page it just navigated to (the next

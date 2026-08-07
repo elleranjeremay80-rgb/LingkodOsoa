@@ -511,6 +511,12 @@
     opacity:.8;
 }
 
+.chat-header-info p.typing-indicator-text{
+    color:var(--color-secondary);
+    font-style:italic;
+    opacity:1;
+}
+
 .chat-body{
     flex:1;
     padding:20px;

@@ -107,7 +107,67 @@ function renderNoResults(container, message){
     container.appendChild(div);
 }
 
+/* ================= TYPING INDICATOR =================
+   Ephemeral (Realtime Broadcast, not a DB table) - nothing to persist,
+   no migration needed. Keyed by both participants' ids (sorted, so both
+   sides compute the same channel name) rather than the conversation id,
+   since a brand-new conversation has no conversations row - and no
+   activeConversationId - until the first message is actually sent
+   (see ensureConversation()/ensureConversationWith() above), but two
+   people can still be typing to each other before that point. */
+
+let typingChannel = null;
+let typingIndicatorTimeout = null;
+let lastTypingBroadcastAt = 0;
+let activeChatRoleLine = null;
+
+function typingChannelName(otherUserId){
+    return "typing:" + [myProfile.id, otherUserId].sort().join(":");
+}
+
+function subscribeTypingChannel(otherAccount){
+    if(typingChannel){
+        supabaseClient.removeChannel(typingChannel);
+        typingChannel = null;
+    }
+    if(!otherAccount) return;
+
+    typingChannel = supabaseClient
+        .channel(typingChannelName(otherAccount.id))
+        .on("broadcast", { event: "typing" }, function(){ showTypingIndicator(); })
+        .subscribe();
+}
+
+function showTypingIndicator(){
+    if(!activeChatRoleLine) return;
+    if(!activeChatRoleLine.dataset.originalText){
+        activeChatRoleLine.dataset.originalText = activeChatRoleLine.textContent;
+    }
+    activeChatRoleLine.textContent = "Typing...";
+    activeChatRoleLine.classList.add("typing-indicator-text");
+
+    clearTimeout(typingIndicatorTimeout);
+    typingIndicatorTimeout = setTimeout(function(){
+        if(activeChatRoleLine){
+            activeChatRoleLine.textContent = activeChatRoleLine.dataset.originalText;
+            activeChatRoleLine.classList.remove("typing-indicator-text");
+        }
+    }, 3000);
+}
+
+// Throttled to one broadcast every 2s of continued typing, not one per
+// keystroke - a "typing" signal only needs to be roughly current, and
+// the receiving side's own 3s timeout (above) already covers the gap.
+function broadcastTyping(){
+    if(!typingChannel) return;
+    const now = Date.now();
+    if(now - lastTypingBroadcastAt < 2000) return;
+    lastTypingBroadcastAt = now;
+    typingChannel.send({ type: "broadcast", event: "typing", payload: {} });
+}
+
 function renderChatEmpty(message){
+    subscribeTypingChannel(null);
     chatPanel.innerHTML = "";
     const wrap = document.createElement("div");
     wrap.className = "chat-empty";
@@ -2544,6 +2604,7 @@ function buildEmojiPicker(){
 }
 
 function renderChatWindow(account){
+    subscribeTypingChannel(account);
     chatPanel.innerHTML = "";
     pendingAttachments.forEach(function(item){ if(item.previewUrl) URL.revokeObjectURL(item.previewUrl); });
     pendingAttachments = [];
@@ -2573,6 +2634,7 @@ function renderChatWindow(account){
     roleLine.textContent = roleLabel(account.role);
     info.appendChild(name);
     info.appendChild(roleLine);
+    activeChatRoleLine = roleLine;
 
     header.appendChild(backBtn);
     header.appendChild(avatarWrap);
@@ -2642,6 +2704,7 @@ function renderChatWindow(account){
     chatInput.id = "chatInput";
     chatInput.rows = 1;
     chatInput.placeholder = "Type your message...";
+    chatInput.addEventListener("input", broadcastTyping);
 
     const sendBtn = document.createElement("button");
     sendBtn.className = "send-btn";
