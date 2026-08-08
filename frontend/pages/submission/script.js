@@ -141,9 +141,18 @@ function buildReviewForm(row){
     return wrapper;
 }
 
-// Review (osoa_eb only) is the sole remaining Actions-column entry - View
-// and Download for the uploaded file now live in the Uploaded File column
-// instead (see lingkodBuildFileInfoCell).
+// A submitter may edit/delete their own document only before OSOA EB has
+// actually started acting on it - matches the submissions_update/
+// submissions_delete RLS policies added in
+// 20260808000000_submissions_owner_edit_delete.sql (the frontend gate
+// here is a UX nicety; the database is the real enforcement, so this list
+// must stay in sync with that migration's `status in (...)` clauses).
+const SUBMISSION_EDITABLE_STATUSES = ["pending", "needs_revision"];
+
+// Review (osoa_eb) / Edit+Delete (submitter, while still editable) / "—"
+// (submitter, once OSOA has started reviewing) - View and Download for the
+// uploaded file live in the Uploaded File column instead (see
+// lingkodBuildFileInfoCell).
 function buildActionsCell(row, canReview){
     const td = document.createElement("td");
 
@@ -156,11 +165,190 @@ function buildActionsCell(row, canReview){
             lingkodOpenModal("Review: " + row.document_title, buildReviewForm(row));
         });
         td.appendChild(reviewBtn);
+    } else if(SUBMISSION_EDITABLE_STATUSES.includes(row.status)){
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "icon-btn edit";
+        editBtn.title = "Edit";
+        editBtn.innerHTML = "<i class=\"fa-solid fa-pen\"></i>";
+        editBtn.addEventListener("click", function(){ openEditSubmissionModal(row); });
+        td.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "icon-btn delete";
+        deleteBtn.title = "Delete";
+        deleteBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i>";
+        deleteBtn.addEventListener("click", function(){ deleteSubmission(row); });
+        td.appendChild(deleteBtn);
     } else {
         td.textContent = "—";
     }
 
     return td;
+}
+
+/* ================= EDIT / DELETE (submitter, own document) ================= */
+
+function openEditSubmissionModal(row){
+    const form = document.createElement("form");
+    form.className = "review-form";
+
+    const categorySelect = document.createElement("select");
+    Object.keys(SUBMISSION_CATEGORY_LABELS).forEach(function(value){
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = SUBMISSION_CATEGORY_LABELS[value];
+        if(row.category === value) opt.selected = true;
+        categorySelect.appendChild(opt);
+    });
+    form.appendChild(lingkodBuildFormField("Document Type", categorySelect));
+
+    const specifyWrap = document.createElement("div");
+    specifyWrap.className = "specify-field";
+    const specifyInput = document.createElement("input");
+    specifyInput.type = "text";
+    specifyInput.placeholder = "e.g. New Organization Application";
+    specifyInput.value = row.specified_type || "";
+    specifyWrap.appendChild(lingkodBuildFormField("Please Specify", specifyInput));
+    form.appendChild(specifyWrap);
+
+    function syncSpecifyVisibility(){
+        specifyWrap.classList.toggle("visible", categorySelect.value === "other");
+    }
+    syncSpecifyVisibility();
+    categorySelect.addEventListener("change", syncSpecifyVisibility);
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.value = row.document_title;
+    form.appendChild(lingkodBuildFormField("Document Title", titleInput));
+
+    const fileField = lingkodBuildFormField("Replace File (optional)", (function(){
+        const input = document.createElement("input");
+        input.type = "file";
+        return input;
+    })());
+    const fileInput = fileField.querySelector("input[type=\"file\"]");
+    const currentFileNote = document.createElement("small");
+    currentFileNote.className = "field-hint";
+    currentFileNote.textContent = "Current file: " + (row.file_name || "None") + ". Leave blank to keep it.";
+    fileField.appendChild(currentFileNote);
+    form.appendChild(fileField);
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "submit";
+    saveBtn.textContent = "Save Changes";
+    form.appendChild(saveBtn);
+
+    form.addEventListener("submit", async function(e){
+        e.preventDefault();
+
+        const newTitle = titleInput.value.trim();
+        if(!newTitle){
+            lingkodToast("Please enter a document title.", "error");
+            return;
+        }
+
+        const newCategory = categorySelect.value;
+        const specifiedType = specifyInput.value.trim();
+        if(newCategory === "other" && !specifiedType){
+            lingkodToast("Please specify the document type.", "error");
+            return;
+        }
+
+        const newFile = fileInput.files[0];
+        if(newFile && newFile.size > MAX_FILE_SIZE_BYTES){
+            lingkodToast("That file is too large - the limit is 20MB.", "error");
+            return;
+        }
+
+        lingkodSetButtonLoading(saveBtn, true, "Saving...");
+
+        const patch = {
+            document_title: newTitle,
+            category: newCategory,
+            specified_type: newCategory === "other" ? specifiedType : null
+        };
+
+        // Uploaded fresh (own submitter id, same scheme uploadSubmissionFile
+        // already uses for a brand-new submission) rather than overwriting
+        // the existing Storage object in place - so a failed DB update below
+        // never leaves the row pointing at a half-replaced file.
+        let uploadedMeta = null;
+
+        try {
+            if(newFile){
+                try {
+                    uploadedMeta = await uploadSubmissionFile(newFile, row.submitted_by);
+                } catch(uploadError){
+                    console.error("[submission] replacement file upload failed:", uploadError);
+                    lingkodToast("File upload failed: " + uploadError.message, "error");
+                    return;
+                }
+                Object.assign(patch, uploadedMeta);
+            }
+
+            const { error } = await supabaseClient
+                .from("submissions")
+                .update(patch)
+                .eq("id", row.id);
+
+            if(error){
+                console.error("[submission] update failed:", error);
+                lingkodToast("Failed to update this submission: " + error.message, "error");
+                // The row wasn't updated - clean up the just-uploaded
+                // replacement so it doesn't linger as an orphaned object.
+                if(uploadedMeta){
+                    supabaseClient.storage.from(LINGKOD_SUBMISSION_BUCKET).remove([uploadedMeta.file_path]).catch(function(){});
+                }
+                return;
+            }
+
+            // Old file only deleted after the row update succeeds and now
+            // points at the new one - a leftover Storage object is a safer
+            // failure mode than a row pointing at nothing.
+            if(uploadedMeta && row.file_path){
+                supabaseClient.storage.from(LINGKOD_SUBMISSION_BUCKET).remove([row.file_path]).catch(function(err){
+                    console.error("[submission] old file cleanup failed:", err);
+                });
+            }
+
+            lingkodCloseModal();
+            lingkodToast("Document Updated Successfully", "success");
+            await loadSubmissions();
+        } finally {
+            lingkodSetButtonLoading(saveBtn, false);
+        }
+    });
+
+    lingkodOpenModal("Edit Document", form);
+}
+
+function deleteSubmission(row){
+    lingkodConfirmDelete({
+        title: "Delete Document?",
+        message: "Delete \"" + row.document_title + "\"? This action cannot be undone.",
+        onConfirm: async function(){
+            const { error } = await supabaseClient.from("submissions").delete().eq("id", row.id);
+
+            if(error){
+                console.error("[submission] delete failed:", error);
+                lingkodToast("Failed to delete this submission: " + error.message, "error");
+                throw error;
+            }
+
+            // Storage cleanup only after the row delete succeeds, best-effort -
+            // same ordering as the edit flow's old-file cleanup above.
+            if(row.file_path){
+                const { error: storageError } = await supabaseClient.storage.from(LINGKOD_SUBMISSION_BUCKET).remove([row.file_path]);
+                if(storageError) console.error("[submission] storage object delete failed:", storageError);
+            }
+
+            lingkodToast("Document Deleted Successfully", "success");
+            await loadSubmissions();
+        }
+    });
 }
 
 let allMySubmissions = [];
@@ -518,6 +706,20 @@ function buildViewModalActions(row, canReview){
             completeBtn.addEventListener("click", function(){ markSubmissionCompleted(row); });
             actions.appendChild(completeBtn);
         }
+    } else if(SUBMISSION_EDITABLE_STATUSES.includes(row.status)){
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-secondary";
+        editBtn.innerHTML = "<i class=\"fa-solid fa-pen\"></i> Edit";
+        editBtn.addEventListener("click", function(){ openEditSubmissionModal(row); });
+        actions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn-danger";
+        deleteBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i> Delete";
+        deleteBtn.addEventListener("click", function(){ deleteSubmission(row); });
+        actions.appendChild(deleteBtn);
     }
 
     if(row.file_path){

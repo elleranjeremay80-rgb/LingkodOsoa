@@ -214,6 +214,28 @@
     background:#ffd8b8;
 }
 
+/* Own-document Edit/Delete (submitter, not osoa_eb) - same icon-btn
+   pattern as the review actions above, own color pairing so they're not
+   confused with Approve/Reject/Return-for-Revision. */
+
+.icon-btn.edit{
+    background:#E8EAF6;
+    color:#3949AB;
+}
+
+.icon-btn.edit:hover{
+    background:#d3d8f0;
+}
+
+.icon-btn.delete{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.icon-btn.delete:hover{
+    background:#fad1d5;
+}
+
 /* ================= VIEW MODAL (document review) ================= */
 /* .view-modal-preview/.preview-unavailable/.view-modal-actions are shared
    (see css/common.css) since lingkodOpenSimpleFilePreview can open on any

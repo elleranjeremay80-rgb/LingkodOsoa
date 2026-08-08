@@ -9,7 +9,7 @@
 <link rel="icon" href="../../pictures/BULSU.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="../../css/common.css?v=5">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=12">
 
 </head>
 <body>
@@ -229,11 +229,20 @@ Browse every registered organization, then view members from there.
 <div class="org-members-heading">
 <div id="selectedOrgLogoWrap"></div>
 <h1 id="selectedOrgName">Organization Name</h1>
+<button type="button" class="org-info-modal-btn" id="orgInfoModalBtn">
+<i class="fa-solid fa-circle-info"></i> Organization Information
+</button>
 </div>
 
 </div>
 
-<div class="org-info-card" id="orgInfoCard">
+<!-- No longer shown inline on this page - openOrgDetailsModal's own
+     "Edit Organization Information" button (list-of-members/script.js)
+     relocates this whole node into the shared modal on demand instead.
+     Kept populated in the background the whole time (see refreshOrgMembers's
+     renderOrgInfo(org) call) so it's always ready the moment Edit is
+     clicked, with no extra fetch/build step. -->
+<div class="org-info-card hidden" id="orgInfoCard">
 
 <div class="org-info-card-header">
 <h2>Organization Information</h2>
@@ -366,6 +375,6 @@ Browse every registered organization, then view members from there.
 <script src="../../js/supabase.js"></script>
 <script src="../../js/auth.js"></script>
 <script src="../../js/common.js?v=2"></script>
-<script src="script.js?v=3"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>

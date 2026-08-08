@@ -138,9 +138,19 @@ function buildSubmissionPreviewItem(row){
         downloadBtn.type = "button";
         downloadBtn.className = "file-action-btn";
         downloadBtn.innerHTML = "<i class=\"fa-solid fa-download\"></i> Download";
-        downloadBtn.addEventListener("click", function(){ lingkodDownloadFile(row, downloadBtn); });
+        downloadBtn.addEventListener("click", function(e){
+            e.stopPropagation();
+            lingkodDownloadFile(row, downloadBtn);
+        });
         item.appendChild(downloadBtn);
     }
+
+    // Clicking anywhere else on the item opens the same preview/download
+    // modal the Submission & Tracking table's own "View" action uses
+    // (lingkodOpenSimpleFilePreview, js/common.js) - previously this list
+    // was static text with only the Download button doing anything.
+    item.style.cursor = "pointer";
+    item.addEventListener("click", function(){ lingkodOpenSimpleFilePreview(row); });
 
     return item;
 }
@@ -489,6 +499,117 @@ const PROJECT_EMPTY_TEXT = {
     income: "No income-generating projects available."
 };
 
+// Each of the 4 project/activity categories keeps its own tiny status
+// vocabulary on its own dedicated page (ongoing-projects/script.js's
+// ONGOING_STATUS_LABELS above is the "ongoing" one) - these mirror
+// upcoming-activities/script.js, implemented-activities/script.js, and
+// income-projects/script.js's own maps so the dashboard's preview modal
+// shows the same label text, without pulling in those pages' full status
+// *pill* styling (not defined on this page's stylesheet - see
+// buildDashboardDetailModal, which renders these as a plain field instead
+// of a colored badge).
+const PREVIEW_STATUS_LABELS = {
+    upcoming: { planned: "Scheduled" },
+    implemented: { completed: "Completed" },
+    income: { ongoing: "Active", completed: "Closed" }
+};
+
+/* ================= DASHBOARD PREVIEW DETAIL MODAL =================
+   Read-only - clicking any Ongoing Project card or Upcoming/Implemented/
+   Income preview item opens this instead of doing nothing. Edit/Delete
+   intentionally live only on the 4 dedicated pages (their own
+   canManageRow-gated card menu) - duplicating that permission check here
+   would just be a second place for it to drift out of sync. */
+
+function buildDashboardDetailField(label, value){
+    const field = document.createElement("div");
+    field.className = "view-modal-field";
+    const dt = document.createElement("label");
+    dt.textContent = label;
+    field.appendChild(dt);
+    const dd = document.createElement("span");
+    dd.textContent = value;
+    field.appendChild(dd);
+    return field;
+}
+
+// opts: { statusText, statusClass (omit for a plain "Status" field instead
+// of a colored pill - see PREVIEW_STATUS_LABELS comment above),
+// dateFieldLabel/dateFieldValue (optional), extraFields: [[label,value],...],
+// uploaderName }
+function buildDashboardDetailModal(row, opts){
+    const layout = document.createElement("div");
+    layout.className = "view-modal-layout";
+
+    const info = document.createElement("div");
+    info.className = "view-modal-info";
+
+    if(opts.statusText && opts.statusClass){
+        const badge = document.createElement("span");
+        badge.className = "status " + opts.statusClass;
+        badge.textContent = opts.statusText;
+        info.appendChild(badge);
+    }
+
+    const h4 = document.createElement("h4");
+    h4.textContent = row.title;
+    info.appendChild(h4);
+
+    info.appendChild(buildDashboardDetailField("Organization", row.organization || "Unspecified Organization"));
+
+    if(opts.dateFieldLabel && opts.dateFieldValue){
+        info.appendChild(buildDashboardDetailField(opts.dateFieldLabel, opts.dateFieldValue));
+    }
+
+    if(!opts.statusClass && opts.statusText){
+        info.appendChild(buildDashboardDetailField("Status", opts.statusText));
+    }
+
+    (opts.extraFields || []).forEach(function(pair){
+        info.appendChild(buildDashboardDetailField(pair[0], pair[1]));
+    });
+
+    const descField = document.createElement("div");
+    descField.className = "view-modal-field";
+    const descLabel = document.createElement("label");
+    descLabel.textContent = "Description";
+    descField.appendChild(descLabel);
+    const descValue = document.createElement("p");
+    descValue.textContent = row.description || "No description provided.";
+    descField.appendChild(descValue);
+    info.appendChild(descField);
+
+    info.appendChild(buildDashboardDetailField("Uploaded By", opts.uploaderName));
+    info.appendChild(buildDashboardDetailField("Uploaded Date", lingkodFormatDate(row.created_at)));
+
+    const imagePanel = document.createElement("div");
+    imagePanel.className = "view-modal-preview";
+    if(row.image_url){
+        const img = document.createElement("img");
+        img.src = row.image_url;
+        img.alt = row.title + " cover image";
+        imagePanel.appendChild(img);
+    } else {
+        lingkodShowPreviewMessage(imagePanel, "fa-solid fa-image", "No image available.");
+    }
+
+    layout.appendChild(info);
+    layout.appendChild(imagePanel);
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "view-modal";
+    wrapper.appendChild(layout);
+
+    lingkodOpenModal(row.title, wrapper, "modal-wide");
+}
+
+async function openDashboardProjectModal(row, opts){
+    const profilesById = await lingkodFetchProfilesById([row.created_by]);
+    const uploader = profilesById[row.created_by];
+    opts.uploaderName = uploader ? uploader.full_name : "Unknown";
+    buildDashboardDetailModal(row, opts);
+}
+
 function buildPreviewItem(previewType, row){
     const item = document.createElement("div");
     item.className = "preview-item";
@@ -533,6 +654,27 @@ function buildPreviewItem(previewType, row){
     }
 
     item.appendChild(meta);
+
+    item.style.cursor = "pointer";
+    item.addEventListener("click", function(){
+        const opts = { statusText: null, statusClass: null, dateFieldLabel: null, dateFieldValue: null, extraFields: [] };
+
+        if(previewType === "upcoming"){
+            opts.statusText = PREVIEW_STATUS_LABELS.upcoming[row.status] || row.status;
+            opts.dateFieldLabel = "Date";
+            opts.dateFieldValue = row.start_date ? lingkodFormatDate(row.start_date) : "Date to be announced";
+        } else if(previewType === "implemented"){
+            opts.statusText = PREVIEW_STATUS_LABELS.implemented[row.status] || row.status;
+            opts.dateFieldLabel = "Completed";
+            opts.dateFieldValue = row.end_date ? lingkodFormatDate(row.end_date) : "Not set";
+        } else if(previewType === "income"){
+            opts.statusText = PREVIEW_STATUS_LABELS.income[row.status] || row.status;
+            opts.extraFields.push(["Price", row.price != null ? "₱" + Number(row.price).toLocaleString("en-US") : "Not set"]);
+        }
+
+        openDashboardProjectModal(row, opts);
+    });
+
     return item;
 }
 
@@ -606,6 +748,15 @@ function buildOngoingProjectCard(row){
     body.appendChild(statusRow);
 
     card.appendChild(body);
+
+    card.style.cursor = "pointer";
+    card.addEventListener("click", function(){
+        openDashboardProjectModal(row, {
+            statusText: ONGOING_STATUS_LABELS[row.status] || "On Going",
+            statusClass: ONGOING_STATUS_CLASSES[row.status] || "ongoing"
+        });
+    });
+
     return card;
 }
 
@@ -614,8 +765,8 @@ async function loadOngoingProjectsSection(){
     if(grids.length === 0) return;
 
     const selectColumns = projectsSupportImageColumn
-        ? "id, title, description, organization, status, image_url, created_at"
-        : "id, title, description, organization, status, created_at";
+        ? "id, title, description, organization, status, image_url, created_at, created_by"
+        : "id, title, description, organization, status, created_at, created_by";
 
     let { data, error } = await supabaseClient
         .from("projects_activities")
@@ -630,7 +781,7 @@ async function loadOngoingProjectsSection(){
         projectsSupportImageColumn = false;
         const retry = await supabaseClient
             .from("projects_activities")
-            .select("id, title, description, organization, status, created_at")
+            .select("id, title, description, organization, status, created_at, created_by")
             .eq("category", "ongoing_project")
             .eq("status", "ongoing")
             .order("created_at", { ascending: false })
@@ -665,7 +816,7 @@ async function loadOngoingProjectsSection(){
     });
 }
 
-const PROJECT_PREVIEW_BASE_COLUMNS = "id, title, organization, start_date, end_date, price, created_at";
+const PROJECT_PREVIEW_BASE_COLUMNS = "id, title, description, status, organization, start_date, end_date, price, created_at, created_by";
 // Flips to false the first time image_url turns out not to exist yet (the
 // project-cover-images migration hasn't been run on this project) - every
 // subsequent load then skips straight to the safe query. This single

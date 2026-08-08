@@ -125,7 +125,7 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    background:linear-gradient(160deg,var(--color-primary),var(--color-primary-dark));
+    background:linear-gradient(160deg,#FFF8F0 0%,#FFE8D2 55%,#FFD6A8 100%);
     transition:opacity .6s ease, transform .6s ease;
 }
 
@@ -140,7 +140,7 @@ body{
     width:170px;
     height:170px;
     border-radius:50%;
-    border:3px solid rgba(255,255,255,.5);
+    border:3px solid rgba(251,108,0,.22);
     animation:ringPulse 1.6s ease-out infinite;
 }
 
@@ -153,7 +153,7 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    box-shadow:0 15px 40px rgba(0,0,0,.25);
+    box-shadow:0 15px 40px rgba(184,46,18,.15);
     animation:logoPop .9s cubic-bezier(.34,1.56,.64,1) both;
 }
 

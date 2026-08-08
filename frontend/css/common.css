@@ -358,25 +358,38 @@ a, button, .card, .menu li, input, select, textarea{
     background:rgba(184,46,18,.35);
 }
 
-/* Decorative wave + dot-grid bleeding up from the bottom-left corner,
-   echoing the login page's background language - purely visual (behind
-   the nav content), built once here so it appears on every page that
-   loads this stylesheet instead of needing per-page markup. */
-.sidebar::before{
+/* Decorative wave + dot-grid, echoing the login page's background
+   language - injected as a real trailing element inside the scrollable
+   menu content (see js/common.js's lingkodBuildSidebarDecor) rather than
+   an absolutely-positioned ::before/::after pinned to the sidebar's own
+   fixed 100vh box. The old pseudo-element approach measured `bottom`
+   against that fixed box height, so it stayed anchored partway up the
+   sidebar (detached-looking) whenever the Services submenu expanded and
+   pushed real content taller than 100vh, forcing the sidebar to scroll.
+   Living in normal flow after the menu instead means this decoration
+   always sits at the true end of the content and scrolls into view with
+   it, at any sidebar height. */
+.sidebar-bg-decor{
+    position:relative;
+    height:110px;
+    margin-top:20px;
+    overflow:hidden;
+    pointer-events:none;
+}
+
+.sidebar-bg-decor::before{
     content:"";
     position:absolute;
     left:-10%;
-    bottom:-8%;
+    bottom:-40%;
     width:140%;
-    height:38%;
+    height:180%;
     background:linear-gradient(135deg,var(--color-highlight),var(--color-accent));
     opacity:.16;
     border-radius:50% 50% 0 0/60% 60% 0 0;
-    pointer-events:none;
-    z-index:0;
 }
 
-.sidebar::after{
+.sidebar-bg-decor::after{
     content:"";
     position:absolute;
     left:20px;
@@ -385,8 +398,6 @@ a, button, .card, .menu li, input, select, textarea{
     height:80px;
     background-image:radial-gradient(circle,rgba(184,46,18,.18) 1.6px,transparent 1.8px);
     background-size:14px 14px;
-    pointer-events:none;
-    z-index:0;
 }
 
 .sidebar > *{

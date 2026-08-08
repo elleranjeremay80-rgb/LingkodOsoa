@@ -794,42 +794,248 @@ async function fetchDirectoryManagementData(){
     return true;
 }
 
-/* ================= ORG-FIRST RENDER (every role) =================
-   One panel per organization, OSOA first then the rest alphabetically
-   (getOrderedOrganizations - unchanged), each holding that org's WHOLE
-   visible roster (president, officers, members together) via a single
-   getAllForOrg(org) call and one buildManagedOrgSection() box - not
-   three separate president-only/officers-only/members-only passes like
-   the old four fixed sections.
+/* ================= ROLE-TIER RENDER (every role) =================
+   Four panels spanning every visible organization - OSOA EB Officers,
+   Organization Presidents, Organization Officers, Organization Members -
+   instead of one panel per organization. Officers/Members are further
+   grouped by organization inside their own tier (a compact sub-header per
+   org - buildDirectoryOrgSubgroup below), so which organization each card
+   belongs to stays obvious once more than one shows up in the same tier.
 
-   Deliberately almost no role-branching here: get_directory_visible_
-   officers/get_directory_visible_profiles (see fetchDirectoryManagement
-   Data above) already trimmed osoaOfficers/osoaRegisteredOfficers down
-   to exactly what this viewer may see before this function ever runs -
-   an org_president/student's getAllForOrg(someOtherOrg) can only ever
-   contain that org's President row (that's all the RPCs returned for a
-   non-osoa_eb/non-own-org organization), so the same "build a panel if
-   there's anything to show" loop naturally reproduces the spec's
-   visibility rule without checking viewerProfile.role anywhere below.
-   The one exception is empty organizations: a panel still renders with
-   zero cards (and an Add button) when the viewer can manage that org -
-   the org's own president/EB needs a place to add its first officer -
-   otherwise a panel is skipped whenever it would come up empty for this
-   viewer (either genuinely no visible roster, or a search/filter
-   leaving nothing in it).
+   Still deliberately almost no role-branching: get_directory_visible_
+   officers/get_directory_visible_profiles (see fetchDirectoryManagementData
+   above) already trimmed osoaOfficers/osoaRegisteredOfficers down to
+   exactly what this viewer may see before this function ever runs - an
+   org_president/student's getAllForOrg(someOtherOrg) can only ever contain
+   that org's President row, so a plain "does this org have a visible
+   president/officer/member row" pass naturally reproduces the spec's
+   visibility rule (every viewer sees every org's President; only the
+   viewer's own org ever contributes to Officers/Members) without checking
+   viewerProfile.role anywhere below. The one exception is the Officers/
+   Members sub-groups: one still renders (empty, with an Add button) when
+   the viewer can manage that org - same "the org's own president/EB needs
+   a place to add its first entry" reason the old org-first panels kept -
+   see collectGroupedTierEntries.
 
-   The "section" filter still exists (All Sections / OSOA Executive
-   Board / Organization Presidents / Organization Officers / Organization
-   Members) but now narrows what appears INSIDE each panel rather than
-   toggling one of four fixed containers: "osoa_eb" isolates the OSOA
-   panel (its full roster, unfiltered by category); the other three
-   values narrow every panel (OSOA included) down to just that card
-   category via cardCategory() below. */
+   The "section" filter (All Sections / OSOA Executive Board / Organization
+   Presidents / Organization Officers / Organization Members) now isolates
+   one tier panel outright instead of narrowing cards inside every org
+   panel - the four values already map 1:1 onto DIRECTORY_TIERS below.
+   Search/org/position filters still narrow which cards/sub-groups appear
+   inside whichever tier(s) are showing, via the same officerMatchesFilters()
+   as before. */
 
 function cardCategory(officer, orgId){
     if(isPresidentOfficer(officer, orgId)) return "president";
     if(isMemberPosition(officer.position)) return "member";
     return "officer";
+}
+
+const DIRECTORY_TIERS = [
+    { key: "president", title: "Organization Presidents", icon: "fa-user-tie" },
+    { key: "officer", title: "Organization Officers", icon: "fa-users-gear" },
+    { key: "member", title: "Organization Members", icon: "fa-users" }
+];
+
+// Cards shown per flat tier (Presidents) / organization sub-groups shown
+// per grouped tier (Officers, Members) before collapsing behind "View All".
+const DIRECTORY_TIER_CARD_LIMIT = 10;
+const DIRECTORY_TIER_GROUP_LIMIT = 3;
+
+// OSOA EB Officers is just the OSOA organization's own panel - reuses
+// buildManagedOrgSection exactly as the old org-first render already did
+// for it (unchanged), wrapped in the same .directory-section title/View
+// All shell every other tier gets. No cap/View All here: an executive
+// board is inherently small, unlike an organization's full member roster.
+function buildDirectoryOsoaTier(filters, isFiltering){
+    const osoaOrg = getOrderedOrganizations().find(function(o){ return o.slug === "osoa-meneses"; });
+    if(!osoaOrg) return null;
+
+    const roster = getAllForOrg(osoaOrg).filter(function(o){ return officerMatchesFilters(o, osoaOrg, filters); });
+    const canManage = canManageOrg(osoaOrg.id);
+
+    if(roster.length === 0 && (isFiltering || !canManage)) return null;
+
+    const addActions = canManage ? [
+        { label: "Add Officer", onClick: function(){ openAddOfficerModal(osoaOrg, { includePosition: true }); } },
+        { label: "Add Member", onClick: function(){ openAddOfficerModal(osoaOrg, { includePosition: false }); } }
+    ] : [];
+
+    const section = document.createElement("div");
+    section.className = "directory-section";
+
+    const header = document.createElement("div");
+    header.className = "directory-section-header";
+    const h2 = document.createElement("h2");
+    h2.innerHTML = "<i class=\"fa-solid fa-user-shield\"></i> OSOA EB Officers";
+    header.appendChild(h2);
+    section.appendChild(header);
+
+    section.appendChild(buildManagedOrgSection(osoaOrg, roster, {
+        showOrgCrud: !!(viewerProfile && viewerProfile.role === "osoa_eb"),
+        addActions: addActions,
+        canManage: canManage,
+        emptyText: "No OSOA Executive Board members have been added yet."
+    }));
+
+    return { section: section, count: roster.length };
+}
+
+// Flat {officer, org} pairs for a tier that doesn't group by organization
+// (Organization Presidents) - every visible organization contributes at
+// most its President row(s).
+function collectFlatTierEntries(tierKey, filters){
+    const entries = [];
+
+    getOrderedOrganizations().forEach(function(org){
+        if(org.slug === "osoa-meneses") return;
+
+        getAllForOrg(org).forEach(function(officer){
+            if(!officerMatchesFilters(officer, org, filters)) return;
+            if(cardCategory(officer, org.id) !== tierKey) return;
+            entries.push({ officer: officer, org: org });
+        });
+    });
+
+    return entries;
+}
+
+// One sub-group per organization for a tier that DOES group by
+// organization (Organization Officers, Organization Members) - mirrors
+// the exact "show it if it has visible rows, or if the viewer can manage
+// this org and isn't mid-filter" guard the old org-first panels used.
+function collectGroupedTierEntries(tierKey, filters, isFiltering){
+    const groups = [];
+
+    getOrderedOrganizations().forEach(function(org){
+        if(org.slug === "osoa-meneses") return;
+
+        const roster = getAllForOrg(org).filter(function(officer){
+            if(!officerMatchesFilters(officer, org, filters)) return false;
+            return cardCategory(officer, org.id) === tierKey;
+        });
+
+        const canManage = canManageOrg(org.id);
+        if(roster.length === 0 && (isFiltering || !canManage)) return;
+
+        groups.push({ org: org, roster: roster, canManage: canManage });
+    });
+
+    return groups;
+}
+
+function buildDirectoryFlatGrid(entries){
+    const grid = document.createElement("div");
+    grid.className = "items-grid osoa-officer-grid";
+    entries.forEach(function(entry){
+        grid.appendChild(buildOfficerCard(entry.officer, entry.org, canManageOrg(entry.org.id)));
+    });
+    return grid;
+}
+
+function buildDirectoryOrgSubgroup(group, tierKey){
+    const wrap = document.createElement("div");
+    wrap.className = "directory-org-subgroup";
+
+    const header = document.createElement("div");
+    header.className = "directory-org-subgroup-header";
+    header.appendChild(lingkodBuildOrgLogoElement(group.org, "directory-org-subgroup-logo"));
+
+    const name = document.createElement("h4");
+    name.textContent = group.org.name;
+    header.appendChild(name);
+
+    if(group.canManage){
+        const includePosition = tierKey === "officer";
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "btn-secondary directory-org-subgroup-add";
+        addBtn.innerHTML = "<i class=\"fa-solid fa-user-plus\"></i> " + (includePosition ? "Add Officer" : "Add Member");
+        addBtn.addEventListener("click", function(){ openAddOfficerModal(group.org, { includePosition: includePosition }); });
+        header.appendChild(addBtn);
+    }
+
+    wrap.appendChild(header);
+
+    if(group.roster.length === 0){
+        const empty = document.createElement("p");
+        empty.className = "osoa-officer-empty";
+        empty.textContent = tierKey === "officer"
+            ? "No officers have been added yet."
+            : "No members have been added yet.";
+        wrap.appendChild(empty);
+    } else {
+        const grid = document.createElement("div");
+        grid.className = "items-grid osoa-officer-grid";
+        group.roster.forEach(function(officer){
+            // hideOrgLine: the sub-group header right above already names
+            // this organization - repeating it on every card would be
+            // redundant (unlike the Presidents tier, where each card's own
+            // org line is the only thing saying which org it belongs to).
+            grid.appendChild(buildOfficerCard(officer, group.org, group.canManage, { hideOrgLine: true }));
+        });
+        wrap.appendChild(grid);
+    }
+
+    return wrap;
+}
+
+// Builds one tier's full, uncapped body - called once for the capped
+// main-page render and again (uncapped) if "View All" is clicked.
+function buildDirectoryTierBody(tier, filters, isFiltering){
+    if(tier.key === "president"){
+        const entries = collectFlatTierEntries(tier.key, filters);
+        return { count: entries.length, build: function(cap){
+            return buildDirectoryFlatGrid(cap != null ? entries.slice(0, cap) : entries);
+        } };
+    }
+
+    const groups = collectGroupedTierEntries(tier.key, filters, isFiltering);
+    return { count: groups.length, build: function(cap){
+        const wrap = document.createElement("div");
+        wrap.className = "directory-org-subgroups";
+        (cap != null ? groups.slice(0, cap) : groups).forEach(function(group){
+            wrap.appendChild(buildDirectoryOrgSubgroup(group, tier.key));
+        });
+        return wrap;
+    } };
+}
+
+function openDirectoryTierViewAllModal(tier, filters, isFiltering){
+    const body = buildDirectoryTierBody(tier, filters, isFiltering);
+    lingkodOpenModal(tier.title, body.build(null), "modal-wide");
+}
+
+function buildDirectoryTierPanel(tier, filters, isFiltering){
+    const body = buildDirectoryTierBody(tier, filters, isFiltering);
+    if(body.count === 0) return null;
+
+    const isGrouped = tier.key === "officer" || tier.key === "member";
+    const limit = isGrouped ? DIRECTORY_TIER_GROUP_LIMIT : DIRECTORY_TIER_CARD_LIMIT;
+
+    const section = document.createElement("div");
+    section.className = "directory-section";
+
+    const header = document.createElement("div");
+    header.className = "directory-section-header";
+
+    const h2 = document.createElement("h2");
+    h2.innerHTML = "<i class=\"fa-solid " + tier.icon + "\"></i> " + tier.title;
+    header.appendChild(h2);
+
+    if(body.count > limit){
+        const viewAllBtn = document.createElement("button");
+        viewAllBtn.type = "button";
+        viewAllBtn.className = "btn-secondary directory-view-all-btn";
+        viewAllBtn.textContent = "View All";
+        viewAllBtn.addEventListener("click", function(){ openDirectoryTierViewAllModal(tier, filters, isFiltering); });
+        header.appendChild(viewAllBtn);
+    }
+
+    section.appendChild(header);
+    section.appendChild(body.build(limit));
+
+    return { section: section, count: body.count };
 }
 
 function renderDirectorySections(){
@@ -839,39 +1045,22 @@ function renderDirectorySections(){
 
     directoryOrgPanelsEl.innerHTML = "";
 
-    getOrderedOrganizations().forEach(function(org){
-        const isOsoa = org.slug === "osoa-meneses";
+    if(!filters.section || filters.section === "osoa_eb"){
+        const osoaTier = buildDirectoryOsoaTier(filters, isFiltering);
+        if(osoaTier){
+            totalCards += osoaTier.count;
+            directoryOrgPanelsEl.appendChild(osoaTier.section);
+        }
+    }
 
-        // "OSOA Executive Board" section filter isolates the OSOA panel
-        // entirely - every other org contributes nothing while it's active.
-        if(filters.section === "osoa_eb" && !isOsoa) return;
+    DIRECTORY_TIERS.forEach(function(tier){
+        if(filters.section && filters.section !== tier.key) return;
 
-        const roster = getAllForOrg(org).filter(function(o){
-            if(!officerMatchesFilters(o, org, filters)) return false;
-            if(filters.section && filters.section !== "osoa_eb" && cardCategory(o, org.id) !== filters.section) return false;
-            return true;
-        });
+        const built = buildDirectoryTierPanel(tier, filters, isFiltering);
+        if(!built) return;
 
-        const canManage = canManageOrg(org.id);
-
-        if(roster.length === 0 && (isFiltering || !canManage)) return;
-
-        totalCards += roster.length;
-
-        const showOrgCrud = !!(viewerProfile && viewerProfile.role === "osoa_eb");
-        const addActions = canManage ? [
-            { label: "Add Officer", onClick: function(){ openAddOfficerModal(org, { includePosition: true }); } },
-            { label: "Add Member", onClick: function(){ openAddOfficerModal(org, { includePosition: false }); } }
-        ] : [];
-
-        directoryOrgPanelsEl.appendChild(buildManagedOrgSection(org, roster, {
-            showOrgCrud: showOrgCrud,
-            addActions: addActions,
-            canManage: canManage,
-            emptyText: isOsoa
-                ? "No OSOA Executive Board members have been added yet."
-                : "No officers or members have been added yet."
-        }));
+        totalCards += built.count;
+        directoryOrgPanelsEl.appendChild(built.section);
     });
 
     directoryNoResultsEl.hidden = !(isFiltering && totalCards === 0);

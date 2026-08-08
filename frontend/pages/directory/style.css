@@ -154,14 +154,16 @@
     padding:40px 0;
 }
 
-/* ================= ORG-FIRST LAYOUT (every role) =================
-   One panel per organization (see #directoryOrgPanels in script.js),
-   each showing that org's full visible roster - president, officers,
-   then members - together. Officer cards reuse .item-card/
-   .directory-card-cover from above - only the per-organization panel
-   wrapper, header, and manage-menu are new here. Padding-bottom leaves
-   room for the floating Manage Directory button (osoa_eb only) so it
-   never overlaps the last panel's cards. */
+/* ================= ROLE-TIER LAYOUT (every role) =================
+   One panel per tier - OSOA EB Officers, Organization Presidents,
+   Organization Officers, Organization Members (see #directoryOrgPanels /
+   renderDirectorySections in script.js) - spanning every organization the
+   viewer may see, rather than one panel per organization. Officer cards
+   reuse .item-card/.directory-card-cover from above - only the tier panel
+   wrapper/header/View All button and the per-organization sub-group
+   (inside Officers/Members) are new here. Padding-bottom leaves room for
+   the floating Manage Directory button (osoa_eb only) so it never
+   overlaps the last panel's cards. */
 
 #directoryView{
     padding-bottom:80px;
@@ -171,15 +173,90 @@
     margin-bottom:48px;
 }
 
-.directory-section > h2{
-    color:var(--color-heading);
-    font-size:20px;
+.directory-section-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
     margin-bottom:16px;
 }
 
-.directory-section > h2 i{
+.directory-section-header h2{
+    color:var(--color-heading);
+    font-size:20px;
+}
+
+.directory-section-header h2 i{
     margin-right:10px;
     color:var(--color-secondary);
+}
+
+.directory-view-all-btn{
+    width:auto;
+    padding:10px 18px;
+    font-size:13px;
+    flex-shrink:0;
+}
+
+/* One organization's roster within the Organization Officers/Members
+   tiers - a compact header (logo + full name + optional Add button)
+   above that org's own card grid, so which organization each card
+   belongs to stays clear once a tier spans more than one. */
+
+.directory-org-subgroups{
+    display:flex;
+    flex-direction:column;
+    gap:32px;
+}
+
+.directory-org-subgroup-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+}
+
+.directory-org-subgroup-logo{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:var(--color-primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:700;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.directory-org-subgroup-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.directory-org-subgroup-header h4{
+    flex:1;
+    min-width:160px;
+    color:var(--color-heading);
+    font-size:15px;
+    font-weight:700;
+    /* Full organization name, never abbreviated or clipped - wraps onto
+       its own line(s) instead of being truncated. */
+    white-space:normal;
+    overflow-wrap:break-word;
+}
+
+.directory-org-subgroup-add{
+    width:auto;
+    padding:8px 14px;
+    font-size:12.5px;
+    flex-shrink:0;
 }
 
 #directoryOrgPanels{

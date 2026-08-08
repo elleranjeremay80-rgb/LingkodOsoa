@@ -22,7 +22,9 @@ const orgPagination = document.getElementById("orgPagination");
 const backToOrgsBtn = document.getElementById("backToOrgsBtn");
 const selectedOrgName = document.getElementById("selectedOrgName");
 const selectedOrgLogoWrap = document.getElementById("selectedOrgLogoWrap");
+const orgInfoModalBtn = document.getElementById("orgInfoModalBtn");
 const orgInfoGrid = document.getElementById("orgInfoGrid");
+const orgInfoCard = document.getElementById("orgInfoCard");
 
 const membersSearch = document.getElementById("membersSearch");
 const membersDeptFilter = document.getElementById("membersDeptFilter");
@@ -268,17 +270,31 @@ function buildOrgLogoWrap(org){
 // exist (20260724020000 leaves them untouched on purpose) but nothing in
 // this file selects, renders, or writes them anymore.
 
+// `section` groups fields into the labeled cards buildOrgInfoFields renders
+// below (Organization Details / Description / Direction / Social Media) -
+// purely a rendering grouping, doesn't change what's read/written per field.
 const ORG_INFO_FIELDS = [
-    { key: "acronym", label: "Organization Acronym", type: "text", required: true, errorId: "orgInfoAcronymError" },
-    { key: "category", label: "Organization Category", type: "select", required: true, errorId: "orgInfoCategoryError" },
-    { key: "president_name", label: "Organization President", type: "text", required: true, errorId: "orgInfoPresidentError" },
-    { key: "adviser", label: "Adviser", type: "text", required: false, errorId: "orgInfoAdviserError" },
-    { key: "member_count", label: "Number of Members", type: "number", required: false, errorId: "orgInfoMemberCountError" },
-    { key: "description", label: "Organization Description", type: "textarea", required: true, errorId: "orgInfoDescriptionError" },
-    { key: "vision", label: "Vision", type: "textarea", required: true, errorId: "orgInfoVisionError" },
-    { key: "mission", label: "Mission", type: "textarea", required: true, errorId: "orgInfoMissionError" },
-    { key: "goals", label: "Goals", type: "textarea", required: true, errorId: "orgInfoGoalsError" },
-    { key: "facebook_url", label: "Facebook Page", type: "facebook", required: false, errorId: "orgInfoFacebookError" }
+    { key: "acronym", label: "Organization Acronym", type: "text", required: true, errorId: "orgInfoAcronymError", section: "details" },
+    { key: "category", label: "Organization Category", type: "select", required: true, errorId: "orgInfoCategoryError", section: "details" },
+    { key: "president_name", label: "Organization President", type: "text", required: true, errorId: "orgInfoPresidentError", section: "details" },
+    { key: "adviser", label: "Adviser", type: "text", required: false, errorId: "orgInfoAdviserError", section: "details" },
+    { key: "member_count", label: "Number of Members", type: "number", required: false, errorId: "orgInfoMemberCountError", section: "details" },
+    { key: "description", label: "Organization Description", type: "textarea", required: true, errorId: "orgInfoDescriptionError", section: "description" },
+    { key: "vision", label: "Vision", type: "textarea", required: true, errorId: "orgInfoVisionError", section: "direction" },
+    { key: "mission", label: "Mission", type: "textarea", required: true, errorId: "orgInfoMissionError", section: "direction" },
+    { key: "goals", label: "Goals", type: "textarea", required: true, errorId: "orgInfoGoalsError", section: "direction" },
+    { key: "facebook_url", label: "Facebook Page", type: "facebook", required: false, errorId: "orgInfoFacebookError", section: "social" }
+];
+
+// fieldsWrap is always a plain .profile-view-grid (common.css) - each row
+// itself decides inline-vs-stacked layout via .org-info-row/.org-info-row-
+// stacked (see buildOrgInfoFieldRow), so the section wrapper doesn't need
+// its own separate grid/stack variant.
+const ORG_INFO_SECTIONS = [
+    { key: "details", title: "Organization Details" },
+    { key: "description", title: "Organization Description" },
+    { key: "direction", title: "Organization Direction" },
+    { key: "social", title: "Social Media" }
 ];
 
 const ORG_INFO_CATEGORIES = ["Academic", "Civic", "Religious", "Sports", "Cultural", "Special Interest"];
@@ -316,6 +332,16 @@ function isValidFacebookUrl(value){
     }
 }
 
+// Grows a textarea to fit its current value (capped by the CSS
+// max-height/overflow set on .org-info-input-textarea, so a genuinely huge
+// paste still scrolls instead of taking over the page) - height:auto first
+// so shrinking (e.g. Cancel reverting to a shorter saved value) actually
+// shrinks the box back down instead of only ever growing.
+function autosizeOrgInfoTextarea(input){
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + "px";
+}
+
 // Sets one field's input to whatever org currently holds - used both when
 // first building the fields and to reset them (Cancel, or the fresh data
 // a successful Save returns).
@@ -327,19 +353,106 @@ function applyOrgInfoFieldValue(field, input, org){
     } else {
         input.value = org[field.key] || "";
     }
+
+    if(field.type === "textarea") autosizeOrgInfoTextarea(input);
 }
 
+// Inline grid-template-columns can't respond to a CSS media query on its
+// own (inline always wins the cascade, including over @media rules in
+// style.css) - re-applied on resize below instead, same 768px breakpoint
+// the rest of the app's sidebar/table/modal rules already use.
+function isOrgInfoMobileWidth(){
+    return window.innerWidth <= 768;
+}
+
+function applyOrgInfoRowColumns(row, isStacked){
+    row.style.gridTemplateColumns = (isStacked || isOrgInfoMobileWidth()) ? "1fr" : "200px minmax(0, 1fr)";
+}
+
+// Base (view-mode) input chrome, inline for the same reason as everything
+// else in this section - a visible border/height/radius/padding regardless
+// of whether style.css's own .org-info-input rules are actually in effect.
+function applyOrgInfoInputBaseStyle(input, field){
+    input.style.border = "1.5px solid #F0E0C8";
+    input.style.borderRadius = "10px";
+    input.style.background = "#fff";
+    input.style.color = "#2B1B12";
+    input.style.fontFamily = "inherit";
+    input.style.fontSize = "14px";
+    input.style.transition = "border-color .2s ease, box-shadow .2s ease";
+    input.style.boxSizing = "border-box";
+    if(field.type === "textarea"){
+        input.style.padding = "12px 14px";
+        input.style.lineHeight = "1.5";
+        input.style.minHeight = "96px";
+        input.style.maxHeight = "600px";
+        input.style.resize = "vertical";
+        input.style.overflowX = "hidden";
+        input.style.overflowY = "auto";
+        input.style.whiteSpace = "pre-wrap";
+        input.style.wordWrap = "break-word";
+        input.style.verticalAlign = "top";
+    } else {
+        input.style.height = "44px";
+        input.style.padding = "0 14px";
+    }
+}
+
+// Two-column form row: a fixed-width label column on the left, the actual
+// input filling the rest of the row on the right - every row's label
+// lines up at the same horizontal position, and the input's width is
+// governed entirely by the grid track (never by the input's own content),
+// so it can't run off the edge regardless of field length. Textarea fields
+// (Description/Vision/Mission/Goals) switch to a single column instead -
+// label above, full-width textarea below - since a paragraph field reads
+// better with the whole row's width than squeezed into a narrow value
+// column next to its label.
+//
+// Layout is set both via CSS classes (org-info-row/org-info-row-stacked,
+// style.css) AND as inline styles right here - belt-and-suspenders, since
+// earlier passes on this exact form kept rendering as if an older
+// stylesheet were still in effect even after hard refreshes. Inline styles
+// come from this same script tag, so there's no separate file/cache for
+// them to fall out of sync with.
 function buildOrgInfoFieldRow(field, org, inputs){
+    const isStacked = field.type === "textarea";
+
     const wrap = document.createElement("div");
     wrap.className = "org-info-field";
+    wrap.style.display = "flex";
+    wrap.style.flexDirection = "column";
+    wrap.style.gap = "4px";
+    wrap.style.width = "100%";
+    wrap.style.minWidth = "0";
+
+    const inputId = "orgInfo-" + field.key;
+
+    const row = document.createElement("div");
+    row.className = "org-info-row" + (isStacked ? " org-info-row-stacked" : "");
+    row.dataset.stacked = isStacked ? "1" : "0";
+    row.style.display = "grid";
+    applyOrgInfoRowColumns(row, isStacked);
+    row.style.alignItems = isStacked ? "stretch" : "center";
+    row.style.gap = isStacked ? "8px" : "10px 20px";
+    row.style.width = "100%";
+    row.style.boxSizing = "border-box";
 
     const label = document.createElement("label");
     label.className = "org-info-label";
+    label.htmlFor = inputId;
     label.textContent = field.label + (field.required ? "" : " (optional)");
-    wrap.appendChild(label);
+    label.style.fontSize = "13px";
+    label.style.fontWeight = "600";
+    label.style.color = "#8B7A6C";
+    row.appendChild(label);
 
-    const controlRow = document.createElement("div");
-    controlRow.className = "org-info-control-row";
+    const valueWrap = document.createElement("span");
+    valueWrap.className = "org-info-value-wrap";
+    valueWrap.style.display = "flex";
+    valueWrap.style.alignItems = "center";
+    valueWrap.style.gap = "8px";
+    valueWrap.style.width = "100%";
+    valueWrap.style.minWidth = "0";
 
     let input;
     if(field.type === "select"){
@@ -356,8 +469,13 @@ function buildOrgInfoFieldRow(field, org, inputs){
         });
     } else if(field.type === "textarea"){
         input = document.createElement("textarea");
-        input.rows = 4;
+        input.rows = 3;
         input.className = "org-info-input-textarea";
+        // Grows with content instead of always reserving a tall fixed box -
+        // a one-line Vision and a five-paragraph Description shouldn't take
+        // up the same amount of space. Re-measured on every keystroke and
+        // once right after the value is first applied below.
+        input.addEventListener("input", function(){ autosizeOrgInfoTextarea(input); });
     } else if(field.key === "member_count"){
         input = document.createElement("input");
         input.type = "number";
@@ -372,12 +490,18 @@ function buildOrgInfoFieldRow(field, org, inputs){
         input.type = "text";
     }
 
+    input.id = inputId;
     input.classList.add("org-info-input");
     input.placeholder = input.placeholder || "—";
     if(field.required) input.required = true;
+    input.style.width = "100%";
+    input.style.minWidth = "0";
+    input.style.maxWidth = "100%";
+    applyOrgInfoInputBaseStyle(input, field);
+    applyOrgInfoInputEditableStyle(input, false);
     applyOrgInfoFieldValue(field, input, org);
 
-    controlRow.appendChild(input);
+    valueWrap.appendChild(input);
 
     // Facebook gets a small "open in a new tab" button next to the input -
     // still a single-line field like every other row, but the link the
@@ -393,11 +517,21 @@ function buildOrgInfoFieldRow(field, org, inputs){
         openLink.innerHTML = "<i class=\"fa-solid fa-arrow-up-right-from-square\"></i>";
         openLink.href = org.facebook_url || "#";
         openLink.hidden = !org.facebook_url;
-        controlRow.appendChild(openLink);
+        openLink.style.flexShrink = "0";
+        openLink.style.width = "40px";
+        openLink.style.height = "40px";
+        openLink.style.borderRadius = "10px";
+        openLink.style.background = "#FFF8EE";
+        openLink.style.color = "#E73F1E";
+        openLink.style.alignItems = "center";
+        openLink.style.justifyContent = "center";
+        openLink.style.display = org.facebook_url ? "flex" : "none";
+        valueWrap.appendChild(openLink);
         inputs.facebook_url_openLink = openLink;
     }
 
-    wrap.appendChild(controlRow);
+    row.appendChild(valueWrap);
+    wrap.appendChild(row);
 
     const errorEl = document.createElement("small");
     errorEl.className = "field-error";
@@ -413,6 +547,21 @@ function buildOrgInfoFieldRow(field, org, inputs){
 // it's blocked from interaction via pointer-events/tabindex instead of
 // .disabled (which would also gray it out, looking "broken" rather than
 // just non-editable).
+// Inline (not just class-toggled) so the visible border/glow difference
+// between view and edit mode is guaranteed regardless of stylesheet state -
+// same reasoning as buildOrgInfoFieldRow's inline layout styles above.
+function applyOrgInfoInputEditableStyle(input, editable){
+    if(editable){
+        input.style.borderColor = "#FB6C00";
+        input.style.boxShadow = "0 0 0 3px rgba(251,108,0,.12)";
+        input.style.cursor = input.tagName === "SELECT" ? "pointer" : "text";
+    } else {
+        input.style.borderColor = "#F0E0C8";
+        input.style.boxShadow = "none";
+        input.style.cursor = "default";
+    }
+}
+
 function setOrgInfoEditable(inputs, editable){
     ORG_INFO_FIELDS.forEach(function(field){
         const input = inputs[field.key];
@@ -423,7 +572,17 @@ function setOrgInfoEditable(inputs, editable){
             input.readOnly = !editable;
         }
         input.classList.toggle("org-info-input-editing", editable);
+        applyOrgInfoInputEditableStyle(input, editable);
     });
+
+    // Card-level cue (accent border - see .org-info-card-editing in
+    // style.css) so edit mode reads as a clearly different state at a
+    // glance, not just individually-outlined inputs.
+    if(orgInfoCard){
+        orgInfoCard.classList.toggle("org-info-card-editing", editable);
+        orgInfoCard.style.boxShadow = editable ? "inset 0 0 0 2px #FB6C00" : "none";
+        orgInfoCard.style.borderRadius = editable ? "12px" : "";
+    }
 }
 
 function renderOrgInfoActions(org, inputs, editing){
@@ -575,6 +734,7 @@ async function saveOrgInfo(org, inputs, saveBtn){
         if(inputs.facebook_url_openLink){
             inputs.facebook_url_openLink.href = org.facebook_url || "#";
             inputs.facebook_url_openLink.hidden = !org.facebook_url;
+            inputs.facebook_url_openLink.style.display = org.facebook_url ? "flex" : "none";
         }
         setOrgInfoEditable(inputs, false);
         renderOrgInfoActions(org, inputs, false);
@@ -584,16 +744,84 @@ async function saveOrgInfo(org, inputs, saveBtn){
     }
 }
 
+// Card/grid/section scaffolding, inline as a guaranteed fallback (same
+// reasoning as buildOrgInfoFieldRow above) - style.css carries the same
+// rules for anyone whose stylesheet load is fine, but this makes the
+// container itself (max-width, padding, section spacing) not depend on it.
+// orgInfoCard no longer renders as its own standalone page card - it only
+// ever appears relocated into the shared modal body (see
+// openOrgDetailsModal's "Edit Organization Information" button below),
+// which already supplies its own white background/padding/radius/shadow.
+function applyOrgInfoScaffoldStyles(){
+    if(orgInfoCard){
+        orgInfoCard.style.width = "100%";
+        orgInfoCard.style.boxSizing = "border-box";
+    }
+    if(orgInfoGrid){
+        orgInfoGrid.style.display = "flex";
+        orgInfoGrid.style.flexDirection = "column";
+        orgInfoGrid.style.gap = "28px";
+        orgInfoGrid.style.width = "100%";
+    }
+}
+
 function buildOrgInfoFields(org){
     orgInfoGrid.innerHTML = "";
+    applyOrgInfoScaffoldStyles();
 
     const inputs = {};
-    ORG_INFO_FIELDS.forEach(function(field){
-        orgInfoGrid.appendChild(buildOrgInfoFieldRow(field, org, inputs));
+
+    // Grouped into labeled sections (Organization Details / Description /
+    // Direction / Social Media) rather than one long flat list.
+    ORG_INFO_SECTIONS.forEach(function(section){
+        const fields = ORG_INFO_FIELDS.filter(function(f){ return f.section === section.key; });
+        if(fields.length === 0) return;
+
+        const sectionEl = document.createElement("div");
+        sectionEl.className = "org-info-section";
+
+        const title = document.createElement("h3");
+        title.className = "org-info-section-title";
+        title.textContent = section.title;
+        title.style.color = "var(--color-primary)";
+        title.style.fontSize = "13px";
+        title.style.fontWeight = "700";
+        title.style.textTransform = "uppercase";
+        title.style.letterSpacing = ".04em";
+        title.style.marginBottom = "12px";
+        sectionEl.appendChild(title);
+
+        const fieldsWrap = document.createElement("div");
+        fieldsWrap.className = "org-info-fields-wrap";
+        fieldsWrap.style.display = "flex";
+        fieldsWrap.style.flexDirection = "column";
+        fieldsWrap.style.gap = "16px";
+        fieldsWrap.style.width = "100%";
+        fields.forEach(function(field){
+            fieldsWrap.appendChild(buildOrgInfoFieldRow(field, org, inputs));
+        });
+        sectionEl.appendChild(fieldsWrap);
+
+        orgInfoGrid.appendChild(sectionEl);
+    });
+
+    // applyOrgInfoFieldValue's own autosize call (above, inside
+    // buildOrgInfoFieldRow) runs while each textarea is still detached from
+    // the document - scrollHeight on a detached node reports ~0 regardless
+    // of actual content, which is what was collapsing Description/Vision/
+    // Mission/Goals down to their bare min-height with an internal
+    // scrollbar. Re-measuring now, after every section is actually in the
+    // live DOM, sizes each one to its real content.
+    orgInfoGrid.querySelectorAll("textarea.org-info-input").forEach(function(textarea){
+        autosizeOrgInfoTextarea(textarea);
     });
 
     const footer = document.createElement("div");
     footer.className = "org-info-footer-actions";
+    footer.style.display = "flex";
+    footer.style.flexWrap = "wrap";
+    footer.style.gap = "12px";
+    footer.style.marginTop = "4px";
     orgInfoGrid.appendChild(footer);
 
     orgInfoInputs = inputs;
@@ -609,6 +837,315 @@ function buildOrgInfoFields(org){
 function renderOrgInfo(org){
     if(orgInfoEditingOrgId === org.id) return;
     buildOrgInfoFields(org);
+}
+
+/* ================= ORGANIZATION DETAILS MODAL =================
+   Same "grouped sections, skip anything empty" layout as the public
+   Browse Organizations page's openOrgDetailModal (organizations/script.js's
+   buildOrgDetailRow/buildOrgDetailSection/openOrgDetailModal) - ported
+   here rather than shared, since that page deliberately doesn't load
+   js/common.js and builds its own bespoke modal chrome, while this page
+   already has the shared lingkodOpenModal available and this org
+   directory already fetches every field this modal needs (see the
+   allOrganizations query above). The ".modal-org-detail"/".org-detail-*"
+   CSS is copied into this page's own style.css so the two look identical. */
+
+// One consistent field style for every row in this modal - label above a
+// bordered, read-only content box (never a form input, since this is a
+// view-only card) - used for both the short Organization Details fields
+// (Acronym/Category/President/Adviser/Members) and the long-form
+// Description/Vision/Mission/Goals, so the whole modal reads as one
+// design instead of two different field treatments.
+function buildOrgDetailTextBlock(label, value){
+    const row = document.createElement("div");
+    row.className = "org-detail-row org-detail-text-block";
+    row.style.display = "flex";
+    row.style.flexDirection = "column";
+    row.style.gap = "6px";
+    row.style.width = "100%";
+    row.style.minWidth = "0";
+    row.style.boxSizing = "border-box";
+
+    const dt = document.createElement("span");
+    dt.className = "org-detail-label";
+    dt.textContent = label;
+    dt.style.fontSize = "12px";
+    dt.style.fontWeight = "700";
+    dt.style.color = "#8B7A6C";
+    dt.style.textTransform = "uppercase";
+    dt.style.letterSpacing = ".03em";
+    row.appendChild(dt);
+
+    const box = document.createElement("p");
+    box.className = "org-detail-text-box";
+    box.textContent = value;
+    box.style.margin = "0";
+    box.style.width = "100%";
+    box.style.boxSizing = "border-box";
+    box.style.background = "#FFF8EE";
+    box.style.border = "1px solid #F0E0C8";
+    box.style.borderRadius = "10px";
+    box.style.padding = "12px 14px";
+    box.style.fontSize = "14px";
+    box.style.color = "#2B1B12";
+    box.style.lineHeight = "1.6";
+    box.style.whiteSpace = "pre-wrap";
+    box.style.wordBreak = "break-word";
+    box.style.overflowWrap = "break-word";
+    row.appendChild(box);
+
+    return row;
+}
+
+// Groups related rows into one titled section - returns null when every
+// row in the group was skipped for missing data, so callers can filter
+// empty sections out rather than showing a heading over blank space.
+function buildOrgDetailSection(titleText, rows){
+    const populated = rows.filter(Boolean);
+    if(populated.length === 0) return null;
+
+    const section = document.createElement("div");
+    section.className = "org-detail-section";
+    section.style.display = "flex";
+    section.style.flexDirection = "column";
+    section.style.gap = "16px";
+    section.style.width = "100%";
+    section.style.boxSizing = "border-box";
+
+    const title = document.createElement("h4");
+    title.className = "org-detail-section-title";
+    title.textContent = titleText;
+    title.style.margin = "0";
+    title.style.color = "#E73F1E";
+    title.style.fontSize = "13px";
+    title.style.fontWeight = "700";
+    title.style.textTransform = "uppercase";
+    title.style.letterSpacing = ".04em";
+    section.appendChild(title);
+
+    populated.forEach(function(row){ section.appendChild(row); });
+    return section;
+}
+
+function openOrgDetailsModal(org){
+    const wrap = document.createElement("div");
+    wrap.style.width = "100%";
+    wrap.style.maxWidth = "100%";
+    wrap.style.overflowX = "hidden";
+    wrap.style.boxSizing = "border-box";
+
+    const header = document.createElement("div");
+    header.className = "org-detail-header";
+    header.style.display = "flex";
+    header.style.alignItems = "center";
+    header.style.gap = "14px";
+    header.style.padding = "20px 56px 18px 24px";
+    header.style.borderBottom = "1px solid #F0E0C8";
+    header.style.width = "100%";
+    header.style.boxSizing = "border-box";
+    header.style.background = "#fff";
+    header.style.position = "sticky";
+    header.style.top = "0";
+    header.style.zIndex = "5";
+
+    // Small logo beside the name only - never a large banner image,
+    // regardless of the source photo's own dimensions.
+    const logoEl = lingkodBuildOrgLogoElement(org, "org-detail-logo");
+    logoEl.style.width = "56px";
+    logoEl.style.height = "56px";
+    logoEl.style.minWidth = "56px";
+    logoEl.style.borderRadius = "50%";
+    logoEl.style.overflow = "hidden";
+    logoEl.style.display = "flex";
+    logoEl.style.alignItems = "center";
+    logoEl.style.justifyContent = "center";
+    logoEl.style.flexShrink = "0";
+    logoEl.style.background = "linear-gradient(135deg,#E73F1E,#B82E12)";
+    logoEl.style.color = "#fff";
+    logoEl.style.fontSize = "20px";
+    logoEl.style.border = "2px solid #fff";
+    logoEl.style.boxShadow = "0 4px 10px rgba(184,46,18,.2)";
+    const logoImg = logoEl.querySelector("img");
+    if(logoImg){
+        logoImg.style.width = "100%";
+        logoImg.style.height = "100%";
+        logoImg.style.objectFit = "cover";
+        logoImg.style.display = "block";
+    }
+    header.appendChild(logoEl);
+
+    const titleWrap = document.createElement("div");
+    titleWrap.className = "org-detail-title";
+    titleWrap.style.display = "flex";
+    titleWrap.style.flexWrap = "wrap";
+    titleWrap.style.alignItems = "center";
+    titleWrap.style.gap = "8px";
+    titleWrap.style.minWidth = "0";
+
+    const name = document.createElement("h3");
+    name.textContent = org.name;
+    name.style.width = "100%";
+    name.style.margin = "0";
+    name.style.color = "#E73F1E";
+    name.style.fontSize = "17px";
+    name.style.fontWeight = "700";
+    name.style.wordBreak = "break-word";
+    titleWrap.appendChild(name);
+
+    if(org.acronym){
+        const acronym = document.createElement("span");
+        acronym.className = "org-detail-acronym";
+        acronym.textContent = org.acronym;
+        acronym.style.fontSize = "13px";
+        acronym.style.fontWeight = "600";
+        acronym.style.color = "#8B7A6C";
+        titleWrap.appendChild(acronym);
+    }
+    if(org.category){
+        const badge = document.createElement("span");
+        badge.className = "org-browse-category-badge";
+        badge.textContent = org.category;
+        badge.style.display = "inline-block";
+        badge.style.padding = "3px 12px";
+        badge.style.borderRadius = "20px";
+        badge.style.background = "#FFF8EE";
+        badge.style.color = "#E73F1E";
+        badge.style.fontSize = "11px";
+        badge.style.fontWeight = "700";
+        badge.style.textTransform = "uppercase";
+        badge.style.letterSpacing = ".03em";
+        titleWrap.appendChild(badge);
+    }
+    header.appendChild(titleWrap);
+    wrap.appendChild(header);
+
+    const sections = document.createElement("div");
+    sections.className = "org-detail-sections";
+    sections.style.display = "flex";
+    sections.style.flexDirection = "column";
+    sections.style.gap = "24px";
+    sections.style.width = "100%";
+    sections.style.boxSizing = "border-box";
+    sections.style.padding = "22px 24px 26px";
+
+    const fbRow = org.facebook_url ? (function(){
+        const row = document.createElement("div");
+        row.className = "org-detail-row";
+        row.style.display = "flex";
+        row.style.flexDirection = "column";
+        row.style.gap = "6px";
+        row.style.width = "100%";
+        row.style.minWidth = "0";
+
+        const label = document.createElement("span");
+        label.className = "org-detail-label";
+        label.textContent = "Facebook Page";
+        label.style.fontSize = "12px";
+        label.style.fontWeight = "700";
+        label.style.color = "#8B7A6C";
+        label.style.textTransform = "uppercase";
+        label.style.letterSpacing = ".03em";
+        row.appendChild(label);
+
+        const link = document.createElement("a");
+        link.href = org.facebook_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "org-detail-social-link";
+        link.innerHTML = "<i class=\"fa-brands fa-facebook\"></i> " + org.facebook_url;
+        link.style.display = "inline-flex";
+        link.style.alignItems = "center";
+        link.style.gap = "7px";
+        link.style.maxWidth = "100%";
+        link.style.overflowWrap = "break-word";
+        link.style.wordBreak = "break-word";
+        link.style.padding = "8px 14px";
+        link.style.borderRadius = "30px";
+        link.style.background = "#fff";
+        link.style.border = "1px solid #F0E0C8";
+        link.style.color = "#E73F1E";
+        link.style.fontSize = "13px";
+        link.style.fontWeight = "600";
+        link.style.textDecoration = "none";
+        row.appendChild(link);
+        return row;
+    })() : null;
+
+    [
+        buildOrgDetailSection("Organization Details", [
+            org.acronym && buildOrgDetailTextBlock("Organization Acronym", org.acronym),
+            org.category && buildOrgDetailTextBlock("Organization Category", org.category),
+            org.president_name && buildOrgDetailTextBlock("Organization President", org.president_name),
+            org.adviser && buildOrgDetailTextBlock("Adviser", org.adviser),
+            org.member_count != null && buildOrgDetailTextBlock("Number of Members", String(org.member_count))
+        ]),
+        buildOrgDetailSection("Organization Description", [
+            org.description && buildOrgDetailTextBlock("Organization Description", org.description)
+        ]),
+        buildOrgDetailSection("Organization Direction", [
+            org.vision && buildOrgDetailTextBlock("Vision", org.vision),
+            org.mission && buildOrgDetailTextBlock("Mission", org.mission),
+            org.goals && buildOrgDetailTextBlock("Goals", org.goals)
+        ]),
+        buildOrgDetailSection("Social Media", [ fbRow ])
+    ].filter(Boolean).forEach(function(section){ sections.appendChild(section); });
+
+    if(sections.children.length === 0){
+        const empty = document.createElement("p");
+        empty.className = "org-detail-empty";
+        empty.textContent = "This organization hasn't added any details yet.";
+        sections.appendChild(empty);
+    }
+
+    wrap.appendChild(sections);
+
+    // Only osoa_eb, or this org's own president, gets an Edit path here -
+    // same canManageOrgLogo(org) check the rest of this page's write
+    // actions (logo upload, the info form's own Save button) already use.
+    // Reuses the existing #orgInfoCard/buildOrgInfoFields form as-is
+    // (already kept populated for whichever org is on screen - see
+    // refreshOrgMembers's renderOrgInfo(org) call) rather than a second,
+    // duplicate edit implementation - it's simply relocated from its
+    // (hidden) spot on the page into this same shared modal.
+    if(canManageOrgLogo(org)){
+        const editActions = document.createElement("div");
+        editActions.className = "org-detail-edit-actions";
+        editActions.style.display = "flex";
+        editActions.style.justifyContent = "center";
+        editActions.style.width = "100%";
+        editActions.style.boxSizing = "border-box";
+        editActions.style.padding = "20px 24px 24px";
+        editActions.style.marginTop = "4px";
+        editActions.style.borderTop = "1px solid #F0E0C8";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "org-detail-edit-btn";
+        editBtn.innerHTML = "<i class=\"fa-solid fa-pen\"></i> Edit Organization Information";
+        editBtn.style.display = "inline-flex";
+        editBtn.style.alignItems = "center";
+        editBtn.style.gap = "8px";
+        editBtn.style.width = "auto";
+        editBtn.style.padding = "12px 26px";
+        editBtn.style.borderRadius = "30px";
+        editBtn.style.fontSize = "14px";
+        editBtn.style.fontWeight = "600";
+        editBtn.addEventListener("click", function(){
+            // Rebuilt fresh for this specific org rather than relying on
+            // whatever renderOrgInfo() last populated - this modal can be
+            // reached straight from the organization directory grid's own
+            // "View Details" (buildOrgCard), before the member-view's
+            // refreshOrgMembers()/renderOrgInfo(org) has ever run for it.
+            buildOrgInfoFields(org);
+            orgInfoCard.classList.remove("hidden");
+            lingkodOpenModal("Edit Organization Information", orgInfoCard, "modal-wide");
+        });
+        editActions.appendChild(editBtn);
+
+        wrap.appendChild(editActions);
+    }
+
+    lingkodOpenModal(org.name, wrap, "modal-org-detail");
 }
 
 /* ================= ORGANIZATION DIRECTORY ================= */
@@ -640,11 +1177,26 @@ function buildOrgCard(org, members){
         + "<div><strong>" + (members.length - active) + "</strong>Inactive</div>";
     card.appendChild(stats);
 
+    const actions = document.createElement("div");
+    actions.className = "org-card-actions";
+
+    const detailsBtn = document.createElement("button");
+    detailsBtn.type = "button";
+    detailsBtn.className = "org-card-btn org-card-btn-secondary";
+    detailsBtn.textContent = "View Details";
+    detailsBtn.addEventListener("click", function(e){
+        e.stopPropagation();
+        openOrgDetailsModal(org);
+    });
+    actions.appendChild(detailsBtn);
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "org-card-btn";
     btn.textContent = "View Members";
-    card.appendChild(btn);
+    actions.appendChild(btn);
+
+    card.appendChild(actions);
 
     card.addEventListener("click", function(){ selectOrganization(org.name); });
 
@@ -738,6 +1290,17 @@ function selectOrganization(orgName){
 }
 
 backToOrgsBtn.addEventListener("click", showOrgDirectory);
+
+// Same read-only detail modal the org directory's own "View Details"
+// button opens (openOrgDetailsModal) - reads whichever org is currently
+// selected at click time, same lookup pattern renderSelectedOrgHeaderLogo/
+// refreshOrgMembers already use.
+if(orgInfoModalBtn){
+    orgInfoModalBtn.addEventListener("click", function(){
+        const org = allOrganizations.find(function(o){ return o.name === selectedOrg; });
+        if(org) openOrgDetailsModal(org);
+    });
+}
 
 /* ================= FILTER OPTIONS (derived from the selected
    organization's own members only). ================= */
@@ -1205,3 +1768,15 @@ supabaseClient
         loadData();
     })
     .subscribe();
+
+// Re-applies the Organization Information form's label/input grid columns
+// on resize (see applyOrgInfoRowColumns) - inline styles don't respond to
+// @media on their own, so crossing the 768px breakpoint without a reload
+// (e.g. rotating a tablet, or resizing a desktop window) would otherwise
+// leave the 2-column layout stuck on past the point it should collapse to
+// stacked.
+window.addEventListener("resize", function(){
+    document.querySelectorAll(".org-info-row").forEach(function(row){
+        applyOrgInfoRowColumns(row, row.dataset.stacked === "1");
+    });
+});

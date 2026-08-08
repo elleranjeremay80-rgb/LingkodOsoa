@@ -147,23 +147,67 @@ function orgBrowseOpenModal(titleText, contentNode){
     document.body.style.overflow = "hidden";
 }
 
-/* ================= ORGANIZATION DETAILS ================= */
+/* ================= ORGANIZATION DETAILS =================
+   Same field/section design as the List of Organizations page's own
+   organization-details modal (list-of-members/script.js's
+   buildOrgDetailTextBlock/buildOrgDetailSection/openOrgDetailsModal) -
+   ported here rather than shared, since this page deliberately stays
+   self-contained (no js/common.js, no auth - see the file header comment).
+   Both pages query the same public.organizations table/columns
+   (ORG_BROWSE_COLUMNS above matches list-of-members/script.js's own
+   organizations select), so this is the same data rendered the same way,
+   just via this page's own modal implementation. Inline styles are a
+   guaranteed fallback alongside the CSS classes - the List of
+   Organizations page's identical modal needed this same hardening for its
+   label/value rows to reliably render with proper spacing instead of
+   running together. */
 
-function buildOrgDetailRow(label, value){
+// One consistent field style for every row - label above a bordered,
+// read-only content box (never a form input - this page has no edit
+// capability, no auth). Used for both the short Organization Details
+// fields and the long-form Description/Vision/Mission/Goals.
+function buildOrgDetailTextBlock(label, value){
     const row = document.createElement("div");
-    row.className = "org-detail-row";
+    row.className = "org-detail-row org-detail-text-block";
+    row.style.display = "flex";
+    row.style.flexDirection = "column";
+    row.style.gap = "6px";
+    row.style.width = "100%";
+    row.style.minWidth = "0";
+    row.style.boxSizing = "border-box";
+
     const dt = document.createElement("span");
     dt.className = "org-detail-label";
     dt.textContent = label;
-    const dd = document.createElement("span");
-    dd.className = "org-detail-value";
-    dd.textContent = value;
+    dt.style.fontSize = "12px";
+    dt.style.fontWeight = "700";
+    dt.style.color = "#8B7A6C";
+    dt.style.textTransform = "uppercase";
+    dt.style.letterSpacing = ".03em";
     row.appendChild(dt);
-    row.appendChild(dd);
+
+    const box = document.createElement("p");
+    box.className = "org-detail-text-box";
+    box.textContent = value;
+    box.style.margin = "0";
+    box.style.width = "100%";
+    box.style.boxSizing = "border-box";
+    box.style.background = "#FFF8EE";
+    box.style.border = "1px solid #F0E0C8";
+    box.style.borderRadius = "10px";
+    box.style.padding = "12px 14px";
+    box.style.fontSize = "14px";
+    box.style.color = "#2B1B12";
+    box.style.lineHeight = "1.6";
+    box.style.whiteSpace = "pre-wrap";
+    box.style.wordBreak = "break-word";
+    box.style.overflowWrap = "break-word";
+    row.appendChild(box);
+
     return row;
 }
 
-// Groups related rows into one titled card - returns null (nothing to
+// Groups related rows into one titled section - returns null (nothing to
 // append) when every row in the group was skipped for missing data, so
 // callers can filter empty sections out rather than showing a heading
 // over blank space.
@@ -173,10 +217,21 @@ function buildOrgDetailSection(titleText, rows){
 
     const section = document.createElement("div");
     section.className = "org-detail-section";
+    section.style.display = "flex";
+    section.style.flexDirection = "column";
+    section.style.gap = "16px";
+    section.style.width = "100%";
+    section.style.boxSizing = "border-box";
 
     const title = document.createElement("h4");
     title.className = "org-detail-section-title";
     title.textContent = titleText;
+    title.style.margin = "0";
+    title.style.color = "#E73F1E";
+    title.style.fontSize = "13px";
+    title.style.fontWeight = "700";
+    title.style.textTransform = "uppercase";
+    title.style.letterSpacing = ".04em";
     section.appendChild(title);
 
     populated.forEach(function(row){ section.appendChild(row); });
@@ -185,26 +240,91 @@ function buildOrgDetailSection(titleText, rows){
 
 function openOrgDetailModal(org){
     const wrap = document.createElement("div");
+    wrap.style.width = "100%";
+    wrap.style.maxWidth = "100%";
+    wrap.style.overflowX = "hidden";
+    wrap.style.boxSizing = "border-box";
 
     const header = document.createElement("div");
     header.className = "org-detail-header";
-    header.appendChild(buildOrgLogo(org, "org-detail-logo"));
+    header.style.display = "flex";
+    header.style.alignItems = "center";
+    header.style.gap = "14px";
+    header.style.padding = "20px 56px 18px 24px";
+    header.style.borderBottom = "1px solid #F0E0C8";
+    header.style.width = "100%";
+    header.style.boxSizing = "border-box";
+    header.style.background = "#fff";
+    header.style.position = "sticky";
+    header.style.top = "0";
+    header.style.zIndex = "5";
+
+    // Small logo beside the name only - never a large banner image,
+    // regardless of the source photo's own dimensions.
+    const logoEl = buildOrgLogo(org, "org-detail-logo");
+    logoEl.style.width = "56px";
+    logoEl.style.height = "56px";
+    logoEl.style.minWidth = "56px";
+    logoEl.style.borderRadius = "50%";
+    logoEl.style.overflow = "hidden";
+    logoEl.style.display = "flex";
+    logoEl.style.alignItems = "center";
+    logoEl.style.justifyContent = "center";
+    logoEl.style.flexShrink = "0";
+    logoEl.style.background = "linear-gradient(135deg,#E73F1E,#B82E12)";
+    logoEl.style.color = "#fff";
+    logoEl.style.fontSize = "20px";
+    logoEl.style.border = "2px solid #fff";
+    logoEl.style.boxShadow = "0 4px 10px rgba(184,46,18,.2)";
+    const logoImg = logoEl.querySelector("img");
+    if(logoImg){
+        logoImg.style.width = "100%";
+        logoImg.style.height = "100%";
+        logoImg.style.objectFit = "cover";
+        logoImg.style.display = "block";
+    }
+    header.appendChild(logoEl);
 
     const titleWrap = document.createElement("div");
     titleWrap.className = "org-detail-title";
+    titleWrap.style.display = "flex";
+    titleWrap.style.flexWrap = "wrap";
+    titleWrap.style.alignItems = "center";
+    titleWrap.style.gap = "8px";
+    titleWrap.style.minWidth = "0";
+
     const name = document.createElement("h3");
     name.textContent = org.name;
+    name.style.width = "100%";
+    name.style.margin = "0";
+    name.style.color = "#E73F1E";
+    name.style.fontSize = "17px";
+    name.style.fontWeight = "700";
+    name.style.wordBreak = "break-word";
     titleWrap.appendChild(name);
+
     if(org.acronym){
         const acronym = document.createElement("span");
         acronym.className = "org-detail-acronym";
         acronym.textContent = org.acronym;
+        acronym.style.fontSize = "13px";
+        acronym.style.fontWeight = "600";
+        acronym.style.color = "#8B7A6C";
         titleWrap.appendChild(acronym);
     }
     if(org.category){
         const badge = document.createElement("span");
         badge.className = "org-browse-category-badge";
         badge.textContent = org.category;
+        badge.style.display = "inline-block";
+        badge.style.padding = "3px 12px";
+        badge.style.borderRadius = "20px";
+        badge.style.background = "#FFF8EE";
+        badge.style.color = "#E73F1E";
+        badge.style.fontSize = "11px";
+        badge.style.fontWeight = "700";
+        badge.style.textTransform = "uppercase";
+        badge.style.letterSpacing = ".03em";
         titleWrap.appendChild(badge);
     }
     header.appendChild(titleWrap);
@@ -212,13 +332,30 @@ function openOrgDetailModal(org){
 
     const sections = document.createElement("div");
     sections.className = "org-detail-sections";
+    sections.style.display = "flex";
+    sections.style.flexDirection = "column";
+    sections.style.gap = "24px";
+    sections.style.width = "100%";
+    sections.style.boxSizing = "border-box";
+    sections.style.padding = "22px 24px 26px";
 
     const fbRow = org.facebook_url ? (function(){
         const row = document.createElement("div");
         row.className = "org-detail-row";
+        row.style.display = "flex";
+        row.style.flexDirection = "column";
+        row.style.gap = "6px";
+        row.style.width = "100%";
+        row.style.minWidth = "0";
+
         const label = document.createElement("span");
         label.className = "org-detail-label";
         label.textContent = "Facebook Page";
+        label.style.fontSize = "12px";
+        label.style.fontWeight = "700";
+        label.style.color = "#8B7A6C";
+        label.style.textTransform = "uppercase";
+        label.style.letterSpacing = ".03em";
         row.appendChild(label);
 
         const link = document.createElement("a");
@@ -227,27 +364,41 @@ function openOrgDetailModal(org){
         link.rel = "noopener noreferrer";
         link.className = "org-detail-social-link";
         link.innerHTML = "<i class=\"fa-brands fa-facebook\"></i> " + org.facebook_url;
+        link.style.display = "inline-flex";
+        link.style.alignItems = "center";
+        link.style.gap = "7px";
+        link.style.maxWidth = "100%";
+        link.style.overflowWrap = "break-word";
+        link.style.wordBreak = "break-word";
+        link.style.padding = "8px 14px";
+        link.style.borderRadius = "30px";
+        link.style.background = "#fff";
+        link.style.border = "1px solid #F0E0C8";
+        link.style.color = "#E73F1E";
+        link.style.fontSize = "13px";
+        link.style.fontWeight = "600";
+        link.style.textDecoration = "none";
         row.appendChild(link);
         return row;
     })() : null;
 
     [
-        buildOrgDetailSection("Organization Information", [
-            org.description && buildOrgDetailRow("Description", org.description)
+        buildOrgDetailSection("Organization Details", [
+            org.acronym && buildOrgDetailTextBlock("Organization Acronym", org.acronym),
+            org.category && buildOrgDetailTextBlock("Organization Category", org.category),
+            org.president_name && buildOrgDetailTextBlock("Organization President", org.president_name),
+            org.adviser && buildOrgDetailTextBlock("Adviser", org.adviser),
+            org.member_count != null && buildOrgDetailTextBlock("Number of Members", String(org.member_count))
         ]),
-        buildOrgDetailSection("Mission & Vision", [
-            org.mission && buildOrgDetailRow("Mission", org.mission),
-            org.vision && buildOrgDetailRow("Vision", org.vision),
-            org.goals && buildOrgDetailRow("Goals", org.goals)
+        buildOrgDetailSection("Organization Description", [
+            org.description && buildOrgDetailTextBlock("Organization Description", org.description)
         ]),
-        buildOrgDetailSection("Leadership", [
-            org.president_name && buildOrgDetailRow("Organization President", org.president_name),
-            org.adviser && buildOrgDetailRow("Adviser", org.adviser)
+        buildOrgDetailSection("Organization Direction", [
+            org.vision && buildOrgDetailTextBlock("Vision", org.vision),
+            org.mission && buildOrgDetailTextBlock("Mission", org.mission),
+            org.goals && buildOrgDetailTextBlock("Goals", org.goals)
         ]),
-        buildOrgDetailSection("Membership", [
-            org.member_count != null && buildOrgDetailRow("Number of Members", String(org.member_count))
-        ]),
-        buildOrgDetailSection("Connect", [ fbRow ])
+        buildOrgDetailSection("Social Media", [ fbRow ])
     ].filter(Boolean).forEach(function(section){ sections.appendChild(section); });
 
     if(sections.children.length === 0){

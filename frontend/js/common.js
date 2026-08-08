@@ -78,6 +78,28 @@ async function lingkodRehydrateFromSupabase(){
 // in common.css) instead of each page hand-coding its own copy. Purely
 // visual (aria-hidden, pointer-events:none via CSS) - idempotent via its
 // own id so it's safe to call more than once.
+// Injects the sidebar's decorative wave/dot-grid as the last child of the
+// sidebar's menu content (right after <ul class="menu">), instead of the
+// old .sidebar::before/::after pinned to the sidebar's own fixed-height
+// box (see the ".sidebar-bg-decor" rules in common.css for why). Living
+// in normal flow after the menu means it always renders at the true end
+// of the content - directly below the last item, or below the Services
+// submenu when it's expanded - and scrolls into view with it instead of
+// staying anchored partway up a taller-than-100vh sidebar. Idempotent via
+// its own id, same convention as lingkodBuildAppBackgroundDecor below.
+function lingkodBuildSidebarDecor(){
+    if(document.getElementById("lingkodSidebarDecor")) return;
+
+    const sidebar = document.querySelector(".sidebar");
+    if(!sidebar) return;
+
+    const decor = document.createElement("div");
+    decor.id = "lingkodSidebarDecor";
+    decor.className = "sidebar-bg-decor";
+    decor.setAttribute("aria-hidden", "true");
+    sidebar.appendChild(decor);
+}
+
 function lingkodBuildAppBackgroundDecor(){
     if(document.getElementById("lingkodBgDecor")) return;
 
@@ -185,6 +207,7 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     lingkodBuildAppBackgroundDecor();
     lingkodBuildAppTopbar(session);
+    lingkodBuildSidebarDecor();
 
     // The cached session object (lingkodGetSession) only ever carries
     // {studentNumber, role, name, title} - no real profile id - so the
@@ -1686,6 +1709,18 @@ function lingkodBuildAvatarCropperUI(img, sourceUrl, onConfirm){
 // page that already has this exact URL cached (browsers, and any other
 // open tab), since getPublicUrl() always returns the same URL for the
 // same path regardless of how many times the underlying bytes change.
+// Same reasoning/shape as lingkodClearOrgLogoFiles below for organization
+// logos - the fixed-path upload above only self-cleans on a *replacement*
+// upload (upsert:true overwrites the same path); a removal with no
+// replacement (Registered Users' removeUser(), which nulls profiles.
+// avatar_url without ever uploading a new photo) needs this called
+// explicitly or the file is simply left behind in the (public)
+// profile-images bucket. 404 from a user who never had a photo is
+// expected and ignored.
+async function lingkodClearAvatarFile(userId){
+    await supabaseClient.storage.from("profile-images").remove([userId + "/avatar.jpg"]).catch(function(){});
+}
+
 async function lingkodUploadAvatarImage(userId, blob){
     const path = userId + "/avatar.jpg";
 

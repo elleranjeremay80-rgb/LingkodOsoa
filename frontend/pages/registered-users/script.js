@@ -501,6 +501,15 @@ async function removeUser(user){
         throw error;
     }
 
+    // Storage cleanup only after the row update succeeds, best-effort - the
+    // profile-images upload path is fixed per user ("<id>/avatar.jpg", see
+    // lingkodUploadAvatarImage) and only self-cleans on a *replacement*
+    // upload; nulling avatar_url above with no replacement would otherwise
+    // leave the actual file behind in that public bucket indefinitely.
+    lingkodClearAvatarFile(user.id).catch(function(err){
+        console.error("[registered-users] avatar cleanup failed:", err);
+    });
+
     lingkodToast("User removed successfully.", "success");
     await loadUsers();
 }

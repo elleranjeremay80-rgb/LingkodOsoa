@@ -426,10 +426,10 @@ body{
 
 .modal-org-detail{
     position:relative;
-    width:92vw;
-    max-width:900px;
-    max-height:88vh;
+    width:min(90vw, 800px);
+    max-height:85vh;
     border-radius:24px;
+    overflow-x:hidden;
 }
 
 /* The rich header built below (logo/name/acronym/badge) replaces the
@@ -468,6 +468,9 @@ body{
 
 .modal-org-detail .modal-body{
     padding:0;
+    overflow-x:hidden;
+    max-width:100%;
+    box-sizing:border-box;
     scrollbar-width:thin;
     scrollbar-color:var(--color-cream) transparent;
 }
@@ -549,10 +552,10 @@ body{
 /* ================= SECTION CARDS ================= */
 
 .org-detail-sections{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-    padding:24px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    padding:22px 24px 26px;
 }
 
 .org-detail-section{
@@ -573,7 +576,6 @@ body{
 }
 
 .org-detail-empty{
-    grid-column:1 / -1;
     text-align:center;
     color:var(--color-text-muted);
     font-size:14px;
@@ -594,14 +596,6 @@ body{
     text-transform:uppercase;
     letter-spacing:.03em;
     margin-bottom:5px;
-}
-
-.org-detail-value{
-    font-size:14px;
-    color:var(--color-text);
-    line-height:1.55;
-    white-space:pre-wrap;
-    word-break:break-word;
 }
 
 .org-detail-social-link{
@@ -649,14 +643,6 @@ body{
 }
 
 /* ================= ORG DETAIL MODAL RESPONSIVE ================= */
-
-@media(max-width:820px){
-
-.org-detail-sections{
-    grid-template-columns:1fr;
-}
-
-}
 
 @media(max-width:600px){
 

@@ -202,6 +202,31 @@
     color:#fff;
 }
 
+/* "View Details" (opens the org-detail-* modal below) sits next to the
+   existing "View Members" button - kept visually secondary (outline,
+   muted) so View Members still reads as the card's primary action. */
+.org-card-actions{
+    display:flex;
+    gap:8px;
+}
+
+.org-card-actions .org-card-btn{
+    width:auto;
+    flex:1;
+}
+
+.org-card-btn-secondary{
+    background:transparent;
+    border:1px solid var(--color-border);
+    color:var(--color-text-muted);
+}
+
+.org-card:hover .org-card-btn-secondary{
+    background:var(--color-bg);
+    color:var(--color-heading);
+    border-color:var(--color-primary);
+}
+
 .org-empty{
     grid-column:1/-1;
     text-align:center;
@@ -279,6 +304,35 @@
 
 .org-members-heading h1{
     margin:0;
+}
+
+/* Opens the read-only org-detail-* modal (openOrgDetailsModal) - a
+   secondary action next to the org name, not a page title, so it stays a
+   soft on-brand outline rather than the bold gradient .menu li.active/
+   primary-button treatment. margin-left:auto pushes it to the end of the
+   row on desktop; wraps to its own full-width row on mobile (see the
+   max-width:767px rule below). */
+.org-info-modal-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    width:auto;
+    margin-left:auto;
+    padding:10px 18px;
+    border-radius:30px;
+    background:var(--color-bg);
+    color:var(--color-primary);
+    border:1.5px solid var(--color-border);
+    font-size:13.5px;
+    font-weight:600;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+.org-info-modal-btn:hover{
+    background:var(--color-primary);
+    color:#fff;
+    border-color:var(--color-primary);
 }
 
 /* .org-card-logo-wrap's centering margin (0 auto 16px) is for the
@@ -721,115 +775,183 @@
 }
 
 /* ================= ORGANIZATION INFORMATION CARD =================
-   Redesigned to match the Upload Organization Document card's language
-   (submission/style.css's .upload-box: white surface, soft shadow,
-   generous padding) but with its own explicit typography/spacing scale,
-   per this card's own design spec rather than the app-wide 25px/15px
-   card convention used elsewhere.
+   Uses this app's shared --color-* tokens throughout (see common.css's
+   :root) - --color-primary/--color-accent/--color-highlight/--color-cream
+   /--color-neutral are LINGKOD's official #E73F1E/#FB6C00/#F9B637/#FFDD9C/
+   #FFFFFF brand colors; --color-bg/--color-border/--color-text/--color-
+   text-muted are this same app's already-established neutral derivatives
+   of that palette (used by every other card on this page and across
+   Dashboard/Directory/Submission & Tracking/etc.), not a separate palette.
 
-   Single column, one field per row, ALWAYS a real input/select/textarea -
-   never plain text, in view mode or edit mode alike (see
-   list-of-members/script.js's buildOrgInfoFields/setOrgInfoEditable).
-   Only their readonly/disabled state changes; the layout never does. */
+   Fields are grouped into labeled section cards (Organization Details /
+   Description / Direction / Social Media - see list-of-members/script.js's
+   ORG_INFO_SECTIONS/buildOrgInfoFields) rather than one long flat list.
+   ALWAYS a real input/select/textarea, in view mode or edit mode alike
+   (see buildOrgInfoFields/setOrgInfoEditable) - only their readonly state
+   and border/shadow change; the layout never does. */
 
+/* No longer a standalone page card - it only ever appears relocated into
+   the shared modal body now (openOrgDetailsModal's "Edit Organization
+   Information" button, list-of-members/script.js), which already
+   provides its own white background/padding/radius/shadow. Kept as a
+   plain full-width block rather than a nested card-in-a-card. */
 .org-info-card{
-    background:#fff;
-    max-width:1050px;
     width:100%;
-    margin:32px auto;
-    padding:30px;
-    border-radius:16px;
-    box-shadow:0 10px 30px rgba(47,40,90,.1);
+}
+
+/* Card-level cue for edit mode (see setOrgInfoEditable) - an accent border
+   so "this card is now live" reads at a glance instead of only being
+   visible field-by-field. */
+.org-info-card-editing{
+    box-shadow:inset 0 0 0 2px var(--color-accent);
+    border-radius:12px;
 }
 
 .org-info-card-header{
-    margin-bottom:24px;
-    padding-bottom:20px;
+    margin-bottom:20px;
+    padding-bottom:16px;
     border-bottom:1px solid var(--color-border);
 }
 
 .org-info-card-header h2{
-    color:#2F285A;
-    font-size:30px;
+    color:var(--color-heading);
+    font-size:20px;
     font-weight:700;
 }
 
 .org-info-card-subtitle{
     color:var(--color-text-muted);
-    font-size:14px;
+    font-size:13.5px;
+    line-height:1.5;
     margin-top:6px;
 }
 
-/* ================= FIELD ROWS ================= */
+/* ================= SECTIONS ================= */
 
 #orgInfoGrid{
     display:flex;
     flex-direction:column;
-    gap:32px;
+    gap:28px;
 }
+
+.org-info-section-title{
+    color:var(--color-primary);
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:12px;
+}
+
+.org-info-fields-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+/* ================= FIELD ROWS =================
+   Two-column form row - a fixed label column on the left, the input
+   filling the rest of the row on the right, so every row's label lines up
+   at the same horizontal position and the input's width comes entirely
+   from the grid track (never from squeezing against the label). Textarea
+   fields (.org-info-row-stacked) switch to one column instead - label
+   above, full-width textarea below - since a paragraph field needs the
+   whole row's width, not a narrow value column.
+
+   These rules are mirrored as inline styles in list-of-members/script.js's
+   buildOrgInfoFieldRow/applyOrgInfoInputBaseStyle - kept in sync here for
+   dark-mode theming (var(--color-*)) and as the non-inline fallback. */
 
 .org-info-field{
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:4px;
+    min-width:0;
+    width:100%;
+}
+
+.org-info-row{
+    display:grid;
+    grid-template-columns:200px minmax(0, 1fr);
+    align-items:center;
+    gap:10px 20px;
+    width:100%;
+    box-sizing:border-box;
+}
+
+.org-info-row-stacked{
+    grid-template-columns:1fr;
+    align-items:stretch;
+    gap:8px;
 }
 
 .org-info-label{
-    display:block;
-    font-size:14px;
+    font-size:13px;
     font-weight:600;
-    color:#374151;
+    color:var(--color-text-muted);
 }
 
-.org-info-control-row{
+.org-info-value-wrap{
     display:flex;
-    align-items:stretch;
+    align-items:center;
     gap:8px;
+    width:100%;
     min-width:0;
 }
 
-/* Always-on "input" look, readonly by default - a light gray fill (not
-   the browser's grayed-out :disabled look, which reads as "broken"
-   rather than "not editable right now") with normal, fully readable
-   text. */
+/* Bordered field, matching the rest of the app's input styling - always
+   visible, readonly by default (see setOrgInfoEditable) rather than the
+   browser's grayed-out :disabled look. */
 
 .org-info-input{
-    flex:1;
-    min-width:0;
     width:100%;
-    height:47px;
-    padding:0 15px;
+    min-width:0;
+    max-width:100%;
+    height:44px;
+    padding:0 14px;
+    border:1.5px solid var(--color-border);
     border-radius:10px;
-    border:1px solid #D1D5DB;
-    background:#F9FAFB;
-    color:#222;
-    font-size:16px;
+    background:var(--color-surface);
+    color:var(--color-text);
+    font-size:14px;
     font-family:inherit;
-    line-height:1.6;
+    box-sizing:border-box;
+    transition:border-color .2s ease, box-shadow .2s ease;
 }
 
 textarea.org-info-input,
 .org-info-input-textarea{
     height:auto;
-    min-height:120px;
-    padding:16px;
+    min-height:96px;
+    max-height:600px;
+    padding:12px 14px;
     resize:vertical;
+    overflow-x:hidden;
+    overflow-y:auto;
     white-space:pre-wrap;
+    word-wrap:break-word;
+    line-height:1.5;
+    vertical-align:top;
 }
 
 select.org-info-input{
-    cursor:default;
+    cursor:pointer;
 }
 
 .org-info-input::placeholder{
     color:var(--color-text-muted);
 }
 
-/* Editing: a white background is the only visual cue that this field is
-   now live - same border/radius/padding, so nothing shifts. */
+.org-info-input:focus{
+    outline:none;
+}
+
+/* Editing: an accent border + soft glow is the visual cue that this field
+   is now live. */
 
 .org-info-input-editing{
-    background:#fff;
+    border-color:var(--color-accent);
+    box-shadow:0 0 0 3px rgba(251,108,0,.12);
     cursor:text;
 }
 
@@ -849,11 +971,12 @@ select.org-info-input.org-info-input-editing{
     align-items:center;
     justify-content:center;
     flex-shrink:0;
-    width:44px;
+    width:40px;
+    height:40px;
     border-radius:10px;
     background:var(--color-bg);
     color:var(--color-primary);
-    font-size:14px;
+    font-size:13px;
     transition:background .2s ease, color .2s ease;
 }
 
@@ -868,35 +991,55 @@ select.org-info-input.org-info-input-editing{
     box-shadow:none;
 }
 
-/* ================= FOOTER ACTIONS =================
-   After the last field, not the header - small buttons, width fits the
-   label, left-aligned. #orgInfoGrid's own 24px flex gap (same gap every
-   field uses) already reads as "24px top margin above the button" here -
-   it's just this container's turn in that gap, not an extra one stacked
-   on top of it. */
+/* ================= FOOTER ACTIONS ================= */
 
 .org-info-footer-actions{
     display:flex;
     justify-content:flex-start;
     flex-wrap:wrap;
     gap:12px;
+    margin-top:6px;
 }
 
 .org-info-edit-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
+    gap:8px;
     width:auto;
-    padding:9px 18px;
-    border-radius:8px;
-    font-size:13.5px;
+    padding:12px 22px;
+    border-radius:10px;
+    font-size:14px;
     font-weight:600;
+    min-height:44px;
 }
 
-@media(max-width:700px){
-    .org-info-card{ padding:24px 16px; }
-    .org-info-card-header h2{ font-size:24px; }
+/* Primary "Edit Organization Information" / "Save Changes" only - the
+   Cancel button (.btn-secondary, common.css) keeps its own neutral look,
+   so this hover-toward-red rule deliberately excludes it. */
+.org-info-edit-btn:not(.btn-secondary):hover{
+    background:var(--color-primary);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:768px){
+    .org-info-card{ padding:20px 16px; }
+    .org-info-card-header h2{ font-size:19px; }
+    /* Label-left/input-right collapses to label-above/input-below - the
+       200px label column has no room to spare once the card itself is
+       down to a phone/tablet width. */
+    .org-info-row{
+        grid-template-columns:1fr;
+        gap:6px;
+    }
+}
+
+@media(max-width:480px){
+    .org-info-card{ margin:18px auto; padding:16px 14px; border-radius:16px; }
+    .org-info-input{ font-size:16px; }
+    .org-info-footer-actions{ flex-direction:column; align-items:stretch; }
+    .org-info-footer-actions .org-info-edit-btn{ width:100%; }
 }
 
 /* ================= FIELD VALIDATION =================
@@ -924,30 +1067,17 @@ textarea.invalid{
     display:block;
 }
 
-/* ================= DARK MODE =================
-   The Organization Information card uses its own explicit design-spec
-   colors (#2F285A/#374151/#222/#D1D5DB/#F9FAFB) rather than this app's
-   shared --color-* variables, so none of those follow the theme
-   automatically - redirected here instead of going back and rewriting
-   the rules above (keeps the light-mode values exactly as specified). */
-
-[data-theme="dark"] .org-info-card-header h2{
-    color:var(--color-heading);
-}
-
-[data-theme="dark"] .org-info-label{
-    color:var(--color-text-muted);
-}
-
-[data-theme="dark"] .org-info-input{
-    background:var(--color-input-bg);
-    border-color:var(--color-border);
-    color:var(--color-text);
-}
-
-[data-theme="dark"] .org-info-input-editing{
-    background:var(--color-surface);
-}
+/* The Organization Information card now reads entirely from this app's
+   shared --color-* variables (see .org-info-card/.org-info-label/
+   .org-info-input above), which already flip automatically under
+   [data-theme="dark"] (see common.css's :root[data-theme="dark"] block) -
+   no page-local dark-mode overrides needed here anymore. Previously this
+   card used its own hardcoded design-spec colors (#2F285A/#374151/#222/
+   #D1D5DB/#F9FAFB) that didn't match the rest of LINGKOD's warm orange/
+   cream palette (every other card on this page - .org-card, .stat-card -
+   already used the shared tokens) and needed a parallel set of dark-mode
+   redirects just to stay readable; switching to the tokens directly fixes
+   both at once. */
 
 /* ================= MOBILE ================= */
 
@@ -976,5 +1106,317 @@ textarea.invalid{
     flex-wrap:wrap;
 }
 
+.org-info-modal-btn{
+    width:100%;
+    justify-content:center;
+    margin-left:0;
+}
+
+}
+
+/* ================= ORGANIZATION DETAILS MODAL =================
+   Opened via js/script.js's openOrgDetailsModal(org), through the shared
+   lingkodOpenModal(title, node, "modal-org-detail") - js/common.js. Ported
+   verbatim from the public Browse Organizations page's own copy
+   (organizations/style.css) so "View Details" here looks identical to
+   that page's org detail view; that page can't share this stylesheet
+   since it deliberately doesn't load js/common.js at all (guest-facing,
+   pre-login). The modal chrome (.modal-header/.modal-close/.modal-body)
+   comes from the shared lingkodOpenModal DOM structure - only sizing is
+   overridden here, same as .modal-wide/.modal-confirm in common.css. */
+
+.modal-org-detail{
+    position:relative;
+    width:min(90vw, 800px);
+    max-height:85vh;
+    border-radius:24px;
+    overflow-x:hidden;
+}
+
+/* The shared modal's own title bar is kept for accessible labelling but
+   visually hidden - the org name already appears in .org-detail-title
+   below, and the close button is repositioned to float over the sticky
+   header instead. */
+.modal-org-detail .modal-header{
+    position:absolute;
+    top:14px;
+    right:14px;
+    z-index:6;
+    padding:0;
+    border-bottom:none;
+}
+
+.modal-org-detail .modal-header h3{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+}
+
+.modal-org-detail .modal-close{
+    width:38px;
+    height:38px;
+    background:#fff;
+    box-shadow:0 6px 16px rgba(184,46,18,.18);
+}
+
+.modal-org-detail .modal-close:hover{
+    background:var(--color-primary);
+}
+
+.modal-org-detail .modal-body{
+    padding:0;
+    overflow-x:hidden;
+    max-width:100%;
+    box-sizing:border-box;
+    scrollbar-width:thin;
+    scrollbar-color:var(--color-cream) transparent;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar{
+    width:8px;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-thumb{
+    background:var(--color-cream);
+    border-radius:10px;
+    border:2px solid #fff;
+}
+
+.modal-org-detail .modal-body::-webkit-scrollbar-thumb:hover{
+    background:var(--color-highlight);
+}
+
+.org-detail-header{
+    position:sticky;
+    top:0;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:26px 60px 22px 28px;
+    background:#fff;
+    border-bottom:1px solid var(--color-border);
+}
+
+.org-detail-logo{
+    width:88px;
+    height:88px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--color-primary),var(--color-primary-dark));
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    overflow:hidden;
+    flex-shrink:0;
+    box-shadow:0 8px 18px rgba(184,46,18,.22);
+    border:3px solid #fff;
+}
+
+.org-detail-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.org-detail-title{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.org-detail-title h3{
+    width:100%;
+    color:var(--color-heading);
+    font-size:19px;
+    font-weight:700;
+}
+
+.org-detail-acronym{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.org-browse-category-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:20px;
+    background:var(--color-bg);
+    color:var(--color-primary);
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+}
+
+.org-detail-sections{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    padding:24px 28px 28px;
+}
+
+.org-detail-section{
+    background:#FFF8EE;
+    border-radius:18px;
+    padding:18px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.org-detail-section-title{
+    color:var(--color-primary);
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+}
+
+.org-detail-empty{
+    grid-column:1 / -1;
+    text-align:center;
+    color:var(--color-text-muted);
+    font-size:14px;
+    padding:20px 0;
+}
+
+/* Opens the existing #orgInfoCard edit form inside this same modal (see
+   openOrgDetailsModal, list-of-members/script.js) - only shown to a
+   viewer canManageOrgLogo(org) already allows to edit this organization. */
+.org-detail-edit-actions{
+    display:flex;
+    justify-content:center;
+    padding:0 28px 28px;
+}
+
+.org-detail-edit-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    width:auto;
+    padding:12px 26px;
+    border-radius:30px;
+    font-size:14px;
+    font-weight:600;
+}
+
+.org-detail-row{
+    padding:0;
+    background:none;
+    border-radius:0;
+}
+
+.org-detail-label{
+    display:block;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--color-text-muted);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:5px;
+}
+
+.org-detail-social-link{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:8px 14px;
+    border-radius:30px;
+    background:#fff;
+    border:1px solid var(--color-border);
+    color:var(--color-primary);
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    transition:background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.org-detail-social-link:hover{
+    background:var(--color-primary);
+    color:#fff;
+    border-color:var(--color-primary);
+    transform:none;
+    box-shadow:none;
+}
+
+@media(max-width:820px){
+
+.org-detail-sections{
+    grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:600px){
+
+.modal-org-detail{
+    width:95vw;
+    max-height:92vh;
+    border-radius:20px;
+}
+
+.org-detail-header{
+    padding:22px 52px 18px 20px;
+    gap:14px;
+}
+
+.org-detail-logo{
+    width:68px;
+    height:68px;
+    font-size:24px;
+}
+
+.org-detail-title h3{
+    font-size:16px;
+}
+
+.org-detail-sections{
+    padding:18px 20px 22px;
+    gap:12px;
+}
+
+.org-detail-edit-actions{
+    padding:0 20px 22px;
+}
+
+.org-detail-edit-btn{
+    width:100%;
+    justify-content:center;
+}
+
+}
+
+/* This page's own hardcoded #fff panels inside the org-detail modal aren't
+   covered by common.css's shared [data-theme="dark"] rules (those only
+   target common class names like .card/.modal) - left as light-mode #fff
+   otherwise, white text on white would be unreadable. */
+
+[data-theme="dark"] .org-detail-section{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .org-detail-header{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .modal-org-detail .modal-close{
+    background:var(--color-surface);
+}
+
+[data-theme="dark"] .org-detail-social-link{
+    background:var(--color-surface);
 }
 
