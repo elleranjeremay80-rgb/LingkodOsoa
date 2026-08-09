@@ -24,7 +24,6 @@ const RECIPIENT_TYPE_LABELS = {
     osoa_eb: "OSOA EB",
     org_presidents: "Organization Presidents",
     specific_organization: "Specific Organization",
-    specific_organization_members: "Specific Organization Members",
     multiple_organizations: "Multiple Organizations"
 };
 
@@ -45,7 +44,7 @@ const repoRecipientOrgsCheckboxes = document.getElementById("repoRecipientOrgsCh
 
 function updateRecipientFieldVisibility(select, orgWrap, orgsWrap){
     const value = select.value;
-    orgWrap.classList.toggle("visible", value === "specific_organization" || value === "specific_organization_members");
+    orgWrap.classList.toggle("visible", value === "specific_organization");
     orgsWrap.classList.toggle("visible", value === "multiple_organizations");
 }
 
@@ -167,7 +166,7 @@ if(repoUploadForm){
             lingkodToast("Please select who this document is for.", "error");
             return;
         }
-        if((recipientType === "specific_organization" || recipientType === "specific_organization_members") && !repoRecipientOrgSelect.value){
+        if(recipientType === "specific_organization" && !repoRecipientOrgSelect.value){
             lingkodToast("Please select an organization.", "error");
             return;
         }
@@ -215,7 +214,7 @@ if(repoUploadForm){
                     organization: profile.organization,
                     is_public: true,
                     recipient_type: recipientType,
-                    recipient_organization_id: (recipientType === "specific_organization" || recipientType === "specific_organization_members") ? repoRecipientOrgSelect.value : null,
+                    recipient_organization_id: recipientType === "specific_organization" ? repoRecipientOrgSelect.value : null,
                     recipient_organization_ids: recipientType === "multiple_organizations" ? selectedOrgIds : null,
                     file_name: file.name,
                     file_path: storagePath,
@@ -331,7 +330,7 @@ async function openEditRepositoryModal(row){
         }
 
         const recipientType = recipientSelect.value;
-        if((recipientType === "specific_organization" || recipientType === "specific_organization_members") && !orgSelect.value){
+        if(recipientType === "specific_organization" && !orgSelect.value){
             lingkodToast("Please select an organization.", "error");
             return;
         }
@@ -349,7 +348,7 @@ async function openEditRepositoryModal(row){
             title: newTitle,
             category: categorySelect.value,
             recipient_type: recipientType,
-            recipient_organization_id: (recipientType === "specific_organization" || recipientType === "specific_organization_members") ? orgSelect.value : null,
+            recipient_organization_id: recipientType === "specific_organization" ? orgSelect.value : null,
             recipient_organization_ids: recipientType === "multiple_organizations" ? selectedOrgIds : null
         };
 

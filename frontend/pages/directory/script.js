@@ -685,15 +685,28 @@ function getOfficerSortOrder(orgId, position){
     return orgMap[key];
 }
 
-// OSOA always first, everyone else alphabetical - shared ordering rule
-// for every section that lists organizations.
+// The two osoa_eb-granting offices each get their own dedicated Directory
+// panel (see buildDirectorySpecialOrgTier below), always ahead of every
+// student organization's panel, in this exact order - OSDS first, then
+// OSOA. Every other organization sorts alphabetically after both. Kept as
+// an ordered list (not a single hardcoded slug) so a future third
+// "special" office is a one-line addition here rather than another
+// hardcoded branch scattered across this file.
+const DIRECTORY_SPECIAL_ORGS = [
+    { slug: "osds-meneses", icon: "fa-user-shield", title: "OSDS Officers", emptyText: "No OSDS officers have been added yet." },
+    { slug: "osoa-meneses", icon: "fa-user-shield", title: "OSOA EB Officers", emptyText: "No OSOA Executive Board members have been added yet." }
+];
+const DIRECTORY_SPECIAL_ORG_SLUGS = DIRECTORY_SPECIAL_ORGS.map(function(s){ return s.slug; });
+
 function getOrderedOrganizations(){
-    const osoa = osoaOrganizations.find(function(o){ return o.slug === "osoa-meneses"; });
+    const special = DIRECTORY_SPECIAL_ORGS
+        .map(function(spec){ return osoaOrganizations.find(function(o){ return o.slug === spec.slug; }); })
+        .filter(Boolean);
     const others = osoaOrganizations
-        .filter(function(o){ return o.slug !== "osoa-meneses"; })
+        .filter(function(o){ return DIRECTORY_SPECIAL_ORG_SLUGS.indexOf(o.slug) === -1; })
         .slice()
         .sort(function(a, b){ return a.name.localeCompare(b.name); });
-    return osoa ? [osoa].concat(others) : others;
+    return special.concat(others);
 }
 
 // Every organization_officers row AND registered profile for one
@@ -842,23 +855,23 @@ const DIRECTORY_TIERS = [
 const DIRECTORY_TIER_CARD_LIMIT = 10;
 const DIRECTORY_TIER_GROUP_LIMIT = 3;
 
-// OSOA EB Officers is just the OSOA organization's own panel - reuses
-// buildManagedOrgSection exactly as the old org-first render already did
-// for it (unchanged), wrapped in the same .directory-section title/View
-// All shell every other tier gets. No cap/View All here: an executive
-// board is inherently small, unlike an organization's full member roster.
-function buildDirectoryOsoaTier(filters, isFiltering){
-    const osoaOrg = getOrderedOrganizations().find(function(o){ return o.slug === "osoa-meneses"; });
-    if(!osoaOrg) return null;
+// Each entry in DIRECTORY_SPECIAL_ORGS (OSDS, OSOA) gets its own panel
+// this same way - reuses buildManagedOrgSection exactly as the old
+// org-first render always did for OSOA specifically, generalized to any
+// office in that list. No cap/View All here: an executive board/office is
+// inherently small, unlike an organization's full member roster.
+function buildDirectorySpecialOrgTier(spec, filters, isFiltering){
+    const org = getOrderedOrganizations().find(function(o){ return o.slug === spec.slug; });
+    if(!org) return null;
 
-    const roster = getAllForOrg(osoaOrg).filter(function(o){ return officerMatchesFilters(o, osoaOrg, filters); });
-    const canManage = canManageOrg(osoaOrg.id);
+    const roster = getAllForOrg(org).filter(function(o){ return officerMatchesFilters(o, org, filters); });
+    const canManage = canManageOrg(org.id);
 
     if(roster.length === 0 && (isFiltering || !canManage)) return null;
 
     const addActions = canManage ? [
-        { label: "Add Officer", onClick: function(){ openAddOfficerModal(osoaOrg, { includePosition: true }); } },
-        { label: "Add Member", onClick: function(){ openAddOfficerModal(osoaOrg, { includePosition: false }); } }
+        { label: "Add Officer", onClick: function(){ openAddOfficerModal(org, { includePosition: true }); } },
+        { label: "Add Member", onClick: function(){ openAddOfficerModal(org, { includePosition: false }); } }
     ] : [];
 
     const section = document.createElement("div");
@@ -867,15 +880,15 @@ function buildDirectoryOsoaTier(filters, isFiltering){
     const header = document.createElement("div");
     header.className = "directory-section-header";
     const h2 = document.createElement("h2");
-    h2.innerHTML = "<i class=\"fa-solid fa-user-shield\"></i> OSOA EB Officers";
+    h2.innerHTML = "<i class=\"fa-solid " + spec.icon + "\"></i> " + spec.title;
     header.appendChild(h2);
     section.appendChild(header);
 
-    section.appendChild(buildManagedOrgSection(osoaOrg, roster, {
+    section.appendChild(buildManagedOrgSection(org, roster, {
         showOrgCrud: !!(viewerProfile && viewerProfile.role === "osoa_eb"),
         addActions: addActions,
         canManage: canManage,
-        emptyText: "No OSOA Executive Board members have been added yet."
+        emptyText: spec.emptyText
     }));
 
     return { section: section, count: roster.length };
@@ -888,7 +901,7 @@ function collectFlatTierEntries(tierKey, filters){
     const entries = [];
 
     getOrderedOrganizations().forEach(function(org){
-        if(org.slug === "osoa-meneses") return;
+        if(DIRECTORY_SPECIAL_ORG_SLUGS.indexOf(org.slug) !== -1) return;
 
         getAllForOrg(org).forEach(function(officer){
             if(!officerMatchesFilters(officer, org, filters)) return;
@@ -908,7 +921,7 @@ function collectGroupedTierEntries(tierKey, filters, isFiltering){
     const groups = [];
 
     getOrderedOrganizations().forEach(function(org){
-        if(org.slug === "osoa-meneses") return;
+        if(DIRECTORY_SPECIAL_ORG_SLUGS.indexOf(org.slug) !== -1) return;
 
         const roster = getAllForOrg(org).filter(function(officer){
             if(!officerMatchesFilters(officer, org, filters)) return false;
@@ -1046,11 +1059,13 @@ function renderDirectorySections(){
     directoryOrgPanelsEl.innerHTML = "";
 
     if(!filters.section || filters.section === "osoa_eb"){
-        const osoaTier = buildDirectoryOsoaTier(filters, isFiltering);
-        if(osoaTier){
-            totalCards += osoaTier.count;
-            directoryOrgPanelsEl.appendChild(osoaTier.section);
-        }
+        DIRECTORY_SPECIAL_ORGS.forEach(function(spec){
+            const tier = buildDirectorySpecialOrgTier(spec, filters, isFiltering);
+            if(tier){
+                totalCards += tier.count;
+                directoryOrgPanelsEl.appendChild(tier.section);
+            }
+        });
     }
 
     DIRECTORY_TIERS.forEach(function(tier){

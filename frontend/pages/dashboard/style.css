@@ -679,6 +679,92 @@ table{
     color:var(--color-text-muted);
 }
 
+/* ================= PROJECT/ACTIVITY DETAIL MODAL =================
+   .view-modal-preview/.modal-wide/.view-modal-actions are shared
+   (css/common.css) since they're generic to any modal on any page - the
+   info-panel layout below is page-specific, same as every dedicated
+   page's own copy (ongoing-projects/style.css etc. each duplicate this
+   too, since it isn't shared there either) - this page never had its own
+   copy at all until now, which is why buildDashboardDetailModal's fields
+   rendered as plain unstyled label+value text with no separation. Built
+   with a bordered "card" per field (rounded corners, subtle border,
+   light background) rather than the older plain-text style the per-page
+   copies use, since a single click here can reach every category. */
+
+.view-modal-layout{
+    display:grid;
+    grid-template-columns:1fr 1.4fr;
+    gap:24px;
+}
+
+.view-modal-info .status{
+    display:inline-block;
+    margin-bottom:14px;
+}
+
+.view-modal-info h4{
+    color:var(--color-heading);
+    font-size:20px;
+    margin-bottom:18px;
+}
+
+.view-modal-field{
+    background:var(--color-bg);
+    border:1px solid var(--color-border);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color:var(--color-text-muted);
+    margin-bottom:6px;
+}
+
+.view-modal-field span,
+.view-modal-field p{
+    display:block;
+    font-size:14px;
+    color:var(--color-text);
+    line-height:1.6;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.view-modal-preview-img-clickable{
+    cursor:pointer;
+    transition:opacity .2s ease;
+}
+
+.view-modal-preview-img-clickable:hover{
+    opacity:.88;
+}
+
+.view-modal-image-caption{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:10px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--color-secondary);
+    text-align:center;
+}
+
+@media(max-width:700px){
+
+.view-modal-layout{
+    grid-template-columns:1fr;
+}
+
+}
+
 /* Preview panels */
 
 .preview-panel{

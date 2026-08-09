@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>LINGKOD | Messages</title>
+<title>LINGKOD | Moderation</title>
 
 <link rel="icon" href="../../pictures/BULSU.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -12,12 +12,11 @@
 <link rel="stylesheet" href="style.css">
 
 </head>
-
 <body>
 
 <div class="container">
 
-<!-- SIDEBAR -->
+<!-- Sidebar -->
 
 <div class="sidebar">
 
@@ -201,33 +200,41 @@ Logout
 
 </div>
 
-<!-- MAIN -->
+<!-- Main -->
 
-<div class="content main">
+<div class="content">
 
-<!-- CONTACT LIST -->
+<div class="header">
 
-<div class="contacts" id="contactsPanel">
+<h1>Moderation</h1>
 
-<div class="contacts-header">
-<h2>Messages</h2>
-<button type="button" class="archived-toggle-btn" id="archivedToggleBtn" aria-label="View archived chats" title="Archived chats">
-<i class="fa-solid fa-box-archive"></i>
-</button>
-</div>
-
-<div class="search">
-<i class="fa-solid fa-magnifying-glass"></i>
-<input type="text" id="conversationSearch" placeholder="Search registered accounts...">
-</div>
-
-<div class="contact-list" id="contactList"></div>
+<p>
+User reports submitted from the Messages module - each entry links back to the reported user's profile and the conversation it happened in.
+</p>
 
 </div>
 
-<!-- CHAT -->
+<div class="table-box">
 
-<div class="chat" id="chatPanel"></div>
+<table>
+
+<tr>
+<th>Reporter</th>
+<th>Reported User</th>
+<th>Reason</th>
+<th>Details</th>
+<th>Submitted</th>
+<th>Action</th>
+</tr>
+
+<tbody id="reportsTableBody">
+</tbody>
+
+</table>
+
+<div class="pagination" id="reportsPagination"></div>
+
+</div>
 
 </div>
 
@@ -237,7 +244,6 @@ Logout
 <script src="../../js/supabase.js"></script>
 <script src="../../js/auth.js"></script>
 <script src="../../js/common.js?v=2"></script>
-<script src="../../js/emoji-data.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

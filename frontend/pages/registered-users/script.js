@@ -510,6 +510,26 @@ async function removeUser(user){
         console.error("[registered-users] avatar cleanup failed:", err);
     });
 
+    // The update above only anonymizes public.profiles - it has no
+    // privilege to touch the person's actual Supabase Auth account, which
+    // still holds their real email. Without this, that email stays
+    // permanently locked to the now-inactive auth user and they can never
+    // register again with it (auth.signUp() checks auth.users.email
+    // uniqueness, not profiles.email). Best-effort/non-blocking: the user
+    // is already fully removed from the app's perspective at this point,
+    // so a transient failure here shouldn't reopen the confirmation modal
+    // or make this action look like it failed - it just means the email
+    // isn't freed up yet and Remove User can safely be run again later to
+    // retry this specific step.
+    const { data: releaseData, error: releaseError } = await supabaseClient.functions.invoke("release-account-email", {
+        body: { userId: user.id }
+    });
+    if(releaseError || (releaseData && releaseData.error)){
+        const releaseMessage = (releaseData && releaseData.error) || releaseError.message;
+        console.error("[registered-users] release-account-email failed:", releaseMessage);
+        lingkodToast("User removed, but freeing up their email for reuse failed: " + releaseMessage, "error");
+    }
+
     lingkodToast("User removed successfully.", "success");
     await loadUsers();
 }

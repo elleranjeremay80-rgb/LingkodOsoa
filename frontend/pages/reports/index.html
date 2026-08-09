@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="style.css">
 
 </head>
+
 <body>
 
 <div class="container">
@@ -48,10 +49,17 @@ Submission & Tracking
 </a>
 </li>
 
-<li data-roles="admin">
+<li data-roles="admin staff student">
 <a href="../reports/index.html">
-<i class="fa-solid fa-flag"></i>
+<i class="fa-solid fa-file-lines"></i>
 Reports
+</a>
+</li>
+
+<li data-roles="admin">
+<a href="../moderation/index.html">
+<i class="fa-solid fa-flag"></i>
+Moderation
 </a>
 </li>
 
@@ -202,21 +210,93 @@ Logout
 <h1>Reports</h1>
 
 <p>
-User reports submitted from the Messages module - each entry links back to the reported user's profile and the conversation it happened in.
+Submit a report to your Organization President or a specific OSOA Executive Board position, attach supporting documents, and track its status until it's resolved.
 </p>
+
+</div>
+
+<div class="request-box">
+
+<h2>Submit a Report</h2>
+
+<form id="reportForm">
+
+<div class="readonly-field">
+<label>Full Name</label>
+<input type="text" id="reportFullNameDisplay" readonly>
+</div>
+
+<div class="input-group">
+<label for="reportTitleInput">Report Title</label>
+<input type="text" name="reportTitle" id="reportTitleInput" placeholder="Enter a short title for your report" required>
+</div>
+
+<select name="reportType" id="reportTypeSelect" required>
+<option value="">Select Report Type</option>
+<option value="Incident Report">Incident Report</option>
+<option value="Activity Report">Activity Report</option>
+<option value="Progress Report">Progress Report</option>
+<option value="Concern / Complaint">Concern / Complaint</option>
+<option value="Financial Report">Financial Report</option>
+<option value="Others">Others</option>
+</select>
+
+<div class="specify-field" id="reportSpecifyFieldWrap">
+<label for="reportSpecifiedTypeInput">Please Specify</label>
+<input type="text" name="specifiedType" id="reportSpecifiedTypeInput" placeholder="Please specify your report type...">
+<small class="field-error" id="reportSpecifiedTypeError"></small>
+</div>
+
+<select name="recipient" id="reportRecipientSelect" required>
+<option value="">Select Recipient</option>
+</select>
+<small class="field-hint" id="reportRecipientOrgHint">You must belong to an organization to address a report to your Organization President.</small>
+
+<textarea name="reportDetails" id="reportDetailsInput" placeholder="Describe your report..."></textarea>
+
+<div class="input-group">
+<label>Report File / Attachment</label>
+<div class="file-picker" id="reportFilePicker">
+<input type="file" id="reportFileInput" name="file" accept=".pdf,.doc,.docx" hidden>
+<button type="button" class="btn-secondary" id="reportFileChooseBtn">
+<i class="fa-solid fa-paperclip"></i> Upload Report File
+</button>
+<div class="file-preview" id="reportFilePreview" hidden>
+<div class="file-preview-text">
+<span class="file-preview-name" id="reportFilePreviewName"></span>
+<span class="file-preview-meta" id="reportFilePreviewMeta"></span>
+</div>
+<button type="button" class="file-remove-btn" id="reportFileRemoveBtn" aria-label="Remove file">
+<i class="fa-solid fa-xmark"></i>
+</button>
+</div>
+</div>
+<small class="field-hint">Accepted formats: PDF, DOC, DOCX. Maximum size 20MB.</small>
+</div>
+
+<button type="submit">
+<i class="fa-solid fa-paper-plane"></i>
+Submit Report
+</button>
+
+</form>
 
 </div>
 
 <div class="table-box">
 
+<h2>My Reports</h2>
+
 <table>
 
 <tr>
-<th>Reporter</th>
-<th>Reported User</th>
-<th>Reason</th>
-<th>Details</th>
-<th>Submitted</th>
+<th>Report ID</th>
+<th>Title</th>
+<th>Recipient</th>
+<th>Type</th>
+<th>Date &amp; Time Submitted</th>
+<th>Status</th>
+<th>Attachment</th>
 <th>Action</th>
 </tr>
 
@@ -225,7 +305,65 @@ User reports submitted from the Messages module - each entry links back to the r
 
 </table>
 
-<div class="pagination" id="reportsPagination"></div>
+</div>
+
+<div class="table-box" id="reportManagementBox" style="display:none;">
+
+<h2>Reports Assigned to Me</h2>
+
+<div class="filter-bar">
+
+<input type="text" id="reportManageSearch" placeholder="Search Report ID or reporter name...">
+
+<select id="reportManageTypeFilter">
+<option value="all">All Types</option>
+<option value="Incident Report">Incident Report</option>
+<option value="Activity Report">Activity Report</option>
+<option value="Progress Report">Progress Report</option>
+<option value="Concern / Complaint">Concern / Complaint</option>
+<option value="Financial Report">Financial Report</option>
+<option value="Others">Others</option>
+</select>
+
+<select id="reportManageStatusFilter">
+<option value="all">All Statuses</option>
+<option value="submitted">Submitted</option>
+<option value="received">Received</option>
+<option value="under_review">Under Review</option>
+<option value="in_progress">In Progress</option>
+<option value="resolved">Resolved</option>
+<option value="rejected">Rejected</option>
+<option value="closed">Closed</option>
+</select>
+
+<select id="reportManageDateFilter">
+<option value="all">All Time</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+
+</div>
+
+<table>
+
+<tr>
+<th>Report ID</th>
+<th>Reporter</th>
+<th>Organization</th>
+<th>Type</th>
+<th>Date &amp; Time Submitted</th>
+<th>Status</th>
+<th>Attachment</th>
+<th>Action</th>
+</tr>
+
+<tbody id="reportManageTableBody">
+</tbody>
+
+</table>
+
+<div class="pagination" id="reportManagePagination"></div>
 
 </div>
 

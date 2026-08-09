@@ -1,0 +1,25 @@
+-- LINGKOD Meneses - The actual remaining blocker on deleting a user via
+-- Authentication -> Users -> Delete (auth.admin.deleteUser): Postgres
+-- logs confirmed the real error was never a missing ON DELETE SET NULL
+-- action (submissions.submitted_by already had one, added all the way
+-- back in 20260716000000_submissions_visibility_and_workflow.sql) - it
+-- was a plain NOT NULL constraint on that same column rejecting the
+-- SET NULL the FK action was trying to perform:
+--
+--   ERROR: null value in column "submitted_by" of relation "submissions"
+--   violates not-null constraint (SQLSTATE 23502)
+--
+-- submissions is one of the "created directly against the live project"
+-- base tables (see 20260716000000's own header comment) - its
+-- `add column if not exists submitted_by uuid references auth.users(id)
+-- on delete set null` was a no-op on this column's NOT NULL-ness the
+-- moment it ran, since the column (and whatever constraint it already
+-- carried) already existed on the live table by then.
+-- 20260808030000_owner_columns_set_null_on_erase.sql already fixed this
+-- identical gap for four sibling owner columns (documents.uploaded_by,
+-- message_reports.reporter_id/reported_user_id, requests.user_id,
+-- messages.sender_id) but missed this one - this migration is the
+-- missing fifth `drop not null`, nothing else. Safe to run more than
+-- once (a no-op on an already-nullable column, not an error).
+
+alter table public.submissions alter column submitted_by drop not null;

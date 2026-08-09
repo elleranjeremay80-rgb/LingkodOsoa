@@ -40,6 +40,12 @@ function lingkodBuildAccountFromProfile(profile){
         studentNumber: profile.student_number,
         role: uiRole,
         name: profile.full_name,
+        // The real, specific title (e.g. "Chairman", "Coordinator") - falls
+        // back to the generic role label only when the account has no
+        // specific position on file. Prefer this over `title` wherever the
+        // account's title is displayed (e.g. the topbar) - `title` below is
+        // kept only for any old cached session that predates this field.
+        position: profile.position || null,
         title: LINGKOD_ROLE_LABELS[uiRole] || uiRole
     };
 }
@@ -78,6 +84,7 @@ function lingkodSetSession(account){
         studentNumber: account.studentNumber,
         role: account.role,
         name: account.name,
+        position: account.position || null,
         title: account.title
     }));
 }

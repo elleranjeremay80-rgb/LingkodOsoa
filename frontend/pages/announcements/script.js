@@ -165,6 +165,93 @@ function exitEditMode(){
     if(cancelBtn) cancelBtn.remove();
 }
 
+// Mirrors lingkodConfirmAction's own shell (js/common.js) - same classes,
+// same Cancel/Confirm wiring, same "stay open + re-arm buttons on a
+// thrown error" behavior - but with structured Title/Description preview
+// rows instead of one flat message string, since the requested confirm
+// step needs to show the actual entered content back to the user before
+// it goes live. Not built as a bespoke modal from scratch: reuses
+// .confirm-modal/.confirm-modal-actions (common.css) and .view-modal-field
+// (this page's own style.css) so it looks identical to every other
+// confirm modal in the app.
+function openAnnouncementConfirmModal(payload, isEditing, onConfirmed){
+    const wrap = document.createElement("div");
+    wrap.className = "confirm-modal";
+
+    const icon = document.createElement("div");
+    icon.className = "confirm-modal-icon confirm-modal-icon-neutral";
+    icon.innerHTML = "<i class=\"fa-solid fa-bullhorn\"></i>";
+    wrap.appendChild(icon);
+
+    const message = document.createElement("p");
+    message.className = "confirm-modal-message";
+    message.textContent = "Are you sure you want to " + (isEditing ? "update" : "post") + " this announcement?";
+    wrap.appendChild(message);
+
+    const fields = document.createElement("div");
+    fields.className = "announcement-confirm-fields";
+
+    const titleField = document.createElement("div");
+    titleField.className = "view-modal-field";
+    const titleLabel = document.createElement("label");
+    titleLabel.textContent = "Title";
+    const titleValue = document.createElement("span");
+    titleValue.textContent = payload.title;
+    titleField.appendChild(titleLabel);
+    titleField.appendChild(titleValue);
+    fields.appendChild(titleField);
+
+    const descField = document.createElement("div");
+    descField.className = "view-modal-field";
+    const descLabel = document.createElement("label");
+    descLabel.textContent = "Description";
+    const descValue = document.createElement("p");
+    descValue.className = "announcement-confirm-description";
+    descValue.textContent = payload.content;
+    descField.appendChild(descLabel);
+    descField.appendChild(descValue);
+    fields.appendChild(descField);
+
+    wrap.appendChild(fields);
+
+    const visibilityNote = document.createElement("p");
+    visibilityNote.className = "confirm-modal-message";
+    visibilityNote.textContent = "This announcement will be visible to "
+        + (payload.visibility === "public" ? "everyone" : "the users who have access to it") + ".";
+    wrap.appendChild(visibilityNote);
+
+    const actions = document.createElement("div");
+    actions.className = "confirm-modal-actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn-secondary";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", lingkodCloseModal);
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.type = "button";
+    confirmBtn.className = "btn-primary-action";
+    confirmBtn.textContent = isEditing ? "Confirm & Update" : "Confirm & Post";
+    confirmBtn.addEventListener("click", async function(){
+        lingkodSetButtonLoading(confirmBtn, true, isEditing ? "Updating..." : "Posting...");
+        cancelBtn.disabled = true;
+        try {
+            await onConfirmed();
+            lingkodCloseModal();
+        } catch(err){
+            lingkodSetButtonLoading(confirmBtn, false);
+            cancelBtn.disabled = false;
+        }
+    });
+
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
+    wrap.appendChild(actions);
+
+    lingkodOpenModal(isEditing ? "Confirm Update" : "Confirm Announcement", wrap, "modal-confirm");
+}
+
 if(announcementForm){
     announcementForm.addEventListener("submit", async function(e){
         e.preventDefault();
@@ -187,9 +274,7 @@ if(announcementForm){
             return;
         }
 
-        const submitBtn = announcementForm.querySelector("button[type=submit]");
         const isEditing = !!editingAnnouncementId;
-        lingkodSetButtonLoading(submitBtn, true, isEditing ? "Updating..." : "Posting...");
 
         const payload = {
             title: what,
@@ -201,21 +286,25 @@ if(announcementForm){
             organization: visibility === "public" ? null : profile.organization
         };
 
-        const { error } = isEditing
-            ? await supabaseClient.from("announcements").update(payload).eq("id", editingAnnouncementId)
-            : await supabaseClient.from("announcements").insert(Object.assign({ created_by: profile.id }, payload));
+        // The form's own values already live in `payload` by this point -
+        // Cancel just closes the modal (lingkodCloseModal, wired above)
+        // and leaves the form exactly as the user left it; nothing is
+        // saved/published until Confirm actually runs this callback.
+        openAnnouncementConfirmModal(payload, isEditing, async function(){
+            const { error } = isEditing
+                ? await supabaseClient.from("announcements").update(payload).eq("id", editingAnnouncementId)
+                : await supabaseClient.from("announcements").insert(Object.assign({ created_by: profile.id }, payload));
 
-        lingkodSetButtonLoading(submitBtn, false);
+            if(error){
+                console.error("[announcements] save failed:", error);
+                lingkodToast("Failed to save announcement: " + error.message, "error");
+                throw error;
+            }
 
-        if(error){
-            console.error("[announcements] save failed:", error);
-            lingkodToast("Failed to save announcement: " + error.message, "error");
-            return;
-        }
-
-        lingkodToast(isEditing ? "Announcement Updated Successfully" : "Announcement Posted Successfully", "success");
-        exitEditMode();
-        await loadAnnouncements();
+            lingkodToast(isEditing ? "Announcement Updated Successfully" : "Announcement Posted Successfully", "success");
+            exitEditMode();
+            await loadAnnouncements();
+        });
     });
 }
 

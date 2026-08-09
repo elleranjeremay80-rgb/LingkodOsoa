@@ -63,6 +63,7 @@ already applied to the live project are unaffected either way.
 
 See `backend/README.md`. Short version: Supabase itself is the backend
 (Postgres + RLS + Storage + Realtime) - there is no custom server, except
-for one real Edge Function under `backend/functions/` that does the one
-thing the browser's anon key genuinely can't: permanently deleting a
-user's login (`permanently-erase-account`).
+for two real Edge Functions under `backend/functions/` for the things the
+browser's anon key genuinely can't do: permanently deleting a user's
+login (`permanently-erase-account`), and freeing up a removed user's
+email for reuse (`release-account-email`).

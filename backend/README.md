@@ -40,6 +40,19 @@ holds real Supabase Edge Functions (Deno runtime) for exactly those cases.
   osoa_eb account, and only after the target account is already
   deactivated).
 
+- **`release-account-email/`** - calls `auth.admin.updateUserById()` with
+  the service-role key to rename a deactivated user's *auth* email to the
+  same `deleted-user-<id>@deleted.lingkod` placeholder "Remove User"
+  already writes to `profiles.email`. Without this, "Remove User" only
+  ever anonymized the profile row - the real Supabase Auth account (and
+  its real email) stayed behind untouched, so `auth.signUp()` kept
+  rejecting that email as "already registered" forever, even though the
+  account was gone from every visible part of the app. Called
+  automatically as part of Registered Users' "Remove User" action
+  (`removeUser()` in `registered-users/script.js`), right after the
+  profile anonymization succeeds; only callable by osoa_eb, never on
+  yourself, and only once the target account is already deactivated.
+
 Deploy with `supabase functions deploy <name>`, run from a `--workdir`
 pointed at this project's `database/` folder (see the root README's
 "Note on the Supabase CLI").

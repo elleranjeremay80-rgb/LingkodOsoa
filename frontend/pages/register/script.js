@@ -41,6 +41,15 @@ function isNameValid(value){
     return trimmed.length > 0 && NAME_RULE.test(trimmed);
 }
 
+// Middle Name is the one name field that's genuinely optional - empty is
+// valid, but if the user does type something it still has to pass the
+// same character rule as Last/First Name (see registerUser()'s DB-side
+// mirror of this same "empty string or valid characters" rule).
+function isMiddleNameValid(value){
+    const trimmed = value.trim();
+    return trimmed.length === 0 || NAME_RULE.test(trimmed);
+}
+
 function isStudentNumberValid(value){
     return /^\d{10}$/.test(value.trim());
 }
@@ -62,7 +71,7 @@ function isConfirmPasswordValid(){
 }
 
 function isFormValid(){
-    return isNameValid(lastNameInput.value) && isNameValid(firstNameInput.value) && isNameValid(middleNameInput.value)
+    return isNameValid(lastNameInput.value) && isNameValid(firstNameInput.value) && isMiddleNameValid(middleNameInput.value)
         && isStudentNumberValid(studentNumberInput.value)
         && isSelectValid(departmentSelect) && isSelectValid(organizationSelect) && isSelectValid(positionSelect)
         && isEmailValid(emailInput.value) && isPasswordValid() && isConfirmPasswordValid();
@@ -113,7 +122,7 @@ function wireField(input, errorEl, checkFn, message, filterFn){
 
 wireField(lastNameInput, document.getElementById("lastNameError"), function(){ return isNameValid(lastNameInput.value); }, "Last Name " + NAME_MESSAGE, filterNameInput);
 wireField(firstNameInput, document.getElementById("firstNameError"), function(){ return isNameValid(firstNameInput.value); }, "First Name " + NAME_MESSAGE, filterNameInput);
-wireField(middleNameInput, document.getElementById("middleNameError"), function(){ return isNameValid(middleNameInput.value); }, "Middle Name " + NAME_MESSAGE, filterNameInput);
+wireField(middleNameInput, document.getElementById("middleNameError"), function(){ return isMiddleNameValid(middleNameInput.value); }, "Middle Name " + NAME_MESSAGE, filterNameInput);
 wireField(studentNumberInput, document.getElementById("studentNumberError"), function(){ return isStudentNumberValid(studentNumberInput.value); }, STUDENT_NUMBER_MESSAGE, filterStudentNumberInput);
 wireField(departmentSelect, document.getElementById("departmentError"), function(){ return isSelectValid(departmentSelect); }, "Please select a Department.");
 wireField(organizationSelect, document.getElementById("organizationError"), function(){ return isSelectValid(organizationSelect); }, "Please select a Student Organization.");
@@ -535,6 +544,21 @@ registerForm.addEventListener("submit", async function(e){
 
     try {
         await registerUser(fields);
+
+        // signUp() inside registerUser() creates a real, persisted
+        // session (required so the profile upsert can pass its RLS
+        // check) - but the required flow is "register, then manually log
+        // in," not "register and land in the dashboard already signed
+        // in." Without this, that session would survive the redirect
+        // below, and login/script.js's own redirectIfAlreadyLoggedIn()
+        // would silently detect it and skip the login form entirely.
+        // Best-effort: a signOut hiccup shouldn't turn an already-
+        // successful registration into a reported failure.
+        try {
+            await supabaseClient.auth.signOut();
+        } catch(signOutErr){
+            console.error("[register] post-registration signOut failed:", signOutErr);
+        }
 
         // By the time registerUser() resolves without throwing, the
         // profiles row is confirmed written — safe to promise immediate

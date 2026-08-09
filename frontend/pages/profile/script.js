@@ -345,6 +345,17 @@ async function saveProfileEdits(fields, saveBtn){
         lingkodCloseModal();
         lingkodToast("Profile updated successfully.", "success");
         await loadProfileInfo();
+
+        // The cached session (js/auth.js's lingkodSetSession) is what the
+        // topbar in every page's upper-right corner reads its name/
+        // position from - without this, it silently kept showing whatever
+        // was true at last login until the user logged out and back in,
+        // even though this page's own fields updated immediately via
+        // loadProfileInfo() above. currentProfile is that same fresh row.
+        if(currentProfile){
+            lingkodSetSession(lingkodBuildAccountFromProfile(currentProfile));
+            lingkodRefreshAppTopbar(lingkodGetSession());
+        }
     } catch(err){
         console.error("[profile] avatar upload failed:", err);
         lingkodToast("Couldn't upload your photo: " + err.message, "error");

@@ -588,7 +588,16 @@ function buildDashboardDetailModal(row, opts){
         const img = document.createElement("img");
         img.src = row.image_url;
         img.alt = row.title + " cover image";
+        img.className = "view-modal-preview-img-clickable";
+        img.addEventListener("click", function(){
+            lingkodOpenImageViewer(row.image_url, row.title + " cover image");
+        });
         imagePanel.appendChild(img);
+
+        const caption = document.createElement("p");
+        caption.className = "view-modal-image-caption";
+        caption.innerHTML = "<i class=\"fa-solid fa-expand\"></i> Click to view full image";
+        imagePanel.appendChild(caption);
     } else {
         lingkodShowPreviewMessage(imagePanel, "fa-solid fa-image", "No image available.");
     }

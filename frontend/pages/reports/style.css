@@ -1,3 +1,152 @@
+.request-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+
+.request-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.request-box form{
+    display:grid;
+    gap:15px;
+}
+
+.request-box textarea{
+    height:120px;
+}
+
+.request-box .input-group label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+/* ================= READ-ONLY FIELDS (auto-filled) ================= */
+
+.readonly-field label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.readonly-field input{
+    background:var(--color-bg);
+    color:var(--color-text);
+    cursor:not-allowed;
+}
+
+/* ================= "PLEASE SPECIFY" (shown only for Others) ================= */
+
+.specify-field{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    transition:max-height .28s ease, opacity .28s ease, margin .28s ease;
+}
+
+.specify-field.visible{
+    max-height:110px;
+    opacity:1;
+}
+
+.specify-field label{
+    display:block;
+    margin-bottom:6px;
+    margin-top:4px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.field-error{
+    display:none;
+    margin-top:6px;
+    color:var(--color-highlight);
+    font-size:12px;
+    font-weight:600;
+}
+
+.field-error.visible{
+    display:block;
+}
+
+.field-hint{
+    font-size:12px;
+    color:var(--color-text-muted);
+    margin-top:-6px;
+}
+
+/* ================= FILE PICKER =================
+   No existing precedent to copy - the Submission & Tracking page's own
+   file input is a bare <input type="file"> with no preview - built fresh
+   here, styled with this page's existing button/hint conventions rather
+   than a new visual language. */
+
+.file-picker{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.file-preview{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:10px 14px;
+}
+
+.file-preview-text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+}
+
+.file-preview-name{
+    font-size:14px;
+    font-weight:600;
+    color:var(--color-text);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.file-preview-meta{
+    font-size:12px;
+    color:var(--color-text-muted);
+}
+
+.file-remove-btn{
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:var(--color-text-muted);
+    cursor:pointer;
+}
+
+.file-remove-btn:hover{
+    background:rgba(0,0,0,.06);
+    color:var(--color-highlight);
+}
+
 .table-box{
     background:#fff;
     padding:25px;
@@ -5,8 +154,194 @@
     box-shadow:0 5px 15px rgba(0,0,0,.08);
 }
 
-.table-box .btn-secondary{
+.table-box + .table-box{
+    margin-top:25px;
+}
+
+.table-box h2{
+    color:var(--color-heading);
+    margin-bottom:20px;
+}
+
+.request-datetime{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    font-size:13px;
+}
+
+.request-datetime .time{
+    color:var(--color-text-muted);
+    font-size:12px;
+}
+
+/* ================= STATUS BADGES =================
+   Submitted/Orange, Received/Blue, Under Review/Orange-variant, In
+   Progress/Pink, Resolved/Green, Rejected/Red, Closed/Neutral - reuses
+   the exact color values already established across the app's other
+   status workflows (requests/feedback/submissions), just mapped onto
+   this feature's own 7 status values directly. */
+
+.status.submitted{
+    background:#FFF4E0;
+    color:#B8790B;
+}
+
+.status.received{
+    background:#E5F0FF;
+    color:#1D5FBF;
+}
+
+.status.under_review{
+    background:#FFE8D6;
+    color:#C2600B;
+}
+
+.status.in_progress{
+    background:#FFE0E6;
+    color:#C2185B;
+}
+
+.status.resolved{
+    background:#E6F7EC;
+    color:#1E8A4C;
+}
+
+.status.rejected{
+    background:#FDEAEC;
+    color:#C23B4B;
+}
+
+.status.closed{
+    background:#EEEEF0;
+    color:#5B5B66;
+}
+
+.view-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
     width:auto;
     padding:8px 14px;
     font-size:13px;
+    border-radius:8px;
+    background:var(--color-secondary);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+}
+
+.view-btn:hover{
+    background:var(--color-secondary-dark);
+}
+
+#reportsTableBody tr:nth-child(odd),
+#reportManageTableBody tr:nth-child(odd){
+    background:var(--color-bg-stripe);
+}
+
+/* ================= FILE INFO CELL (table + view modal) =================
+   Shared shape with Submission & Tracking's identical cell (js/common.js
+   lingkodBuildFileInfoCell) - only the layout classes are duplicated here
+   since that stylesheet isn't shared across pages. */
+
+.file-info-cell{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.file-info-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text);
+}
+
+.file-info-meta{
+    font-size:12px;
+    color:var(--color-text-muted);
+}
+
+.file-info-actions{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+}
+
+.file-action-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    font-size:12px;
+    border-radius:6px;
+    border:1px solid var(--color-border);
+    background:#fff;
+    color:var(--color-text);
+    cursor:pointer;
+}
+
+.file-action-btn:hover{
+    background:var(--color-bg);
+}
+
+.view-modal-file-table{
+    width:100%;
+}
+
+/* ================= VIEW REPORT MODAL ================= */
+/* Duplicated from requests/feedback's identical copies (that stylesheet
+   isn't shared) so every module's view modal stays visually consistent. */
+
+.review-form{
+    display:grid;
+    gap:10px;
+}
+
+.view-modal-field{
+    margin-bottom:14px;
+}
+
+.view-modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-text-muted);
+    margin-bottom:3px;
+}
+
+.view-modal-field span{
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.request-view-description{
+    white-space:pre-wrap;
+    line-height:1.6;
+    background:var(--color-bg);
+    border-radius:10px;
+    padding:14px;
+    font-size:14px;
+    color:var(--color-text);
+}
+
+.request-manage-form{
+    display:grid;
+    gap:10px;
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid var(--color-border);
+}
+
+.request-manage-form label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--color-text-muted);
+}
+
+.request-manage-form textarea{
+    height:80px;
 }

@@ -32,7 +32,7 @@ async function redirectIfAlreadyLoggedIn(){
 
     const { data: profile, error } = await supabaseClient
         .from("profiles")
-        .select("role, full_name, student_number")
+        .select("role, full_name, student_number, position")
         .eq("id", data.session.user.id)
         .single();
 
@@ -150,7 +150,7 @@ async function loginWithSupabase(studentNumber, password, authClient){
 
     const { data: profile, error: profileError } = await authClient
         .from("profiles")
-        .select("role, full_name, student_number")
+        .select("role, full_name, student_number, position")
         .eq("id", data.user.id)
         .single();
 

@@ -61,7 +61,7 @@ async function lingkodRehydrateFromSupabase(){
 
     const { data: profile, error } = await supabaseClient
         .from("profiles")
-        .select("role, full_name, student_number")
+        .select("role, full_name, student_number, position")
         .eq("id", data.session.user.id)
         .single();
 
@@ -175,7 +175,7 @@ function lingkodBuildAppTopbar(session){
     nameEl.textContent = session.name;
     const roleEl = document.createElement("span");
     roleEl.className = "app-topbar-user-role";
-    roleEl.textContent = LINGKOD_ROLE_LABELS[session.role] || session.role;
+    roleEl.textContent = session.position || LINGKOD_ROLE_LABELS[session.role] || session.role;
     info.appendChild(nameEl);
     info.appendChild(roleEl);
     userLink.appendChild(info);
@@ -188,6 +188,20 @@ function lingkodBuildAppTopbar(session){
     topbar.appendChild(actions);
 
     content.insertBefore(topbar, content.firstChild);
+}
+
+// lingkodBuildAppTopbar() only ever runs once per page load (it early-
+// returns if the topbar already exists) - this is the counterpart for
+// after a profile edit, so the name/position update immediately instead
+// of only on the next full login. Avatar refresh already has its own
+// live path (see the DOMContentLoaded handler below); name/position
+// didn't until now, since they were only ever read from the session
+// cache, which nothing used to keep in sync after Save Changes.
+function lingkodRefreshAppTopbar(session){
+    const nameEl = document.querySelector(".app-topbar-user-name");
+    if(nameEl) nameEl.textContent = session.name;
+    const roleEl = document.querySelector(".app-topbar-user-role");
+    if(roleEl) roleEl.textContent = session.position || LINGKOD_ROLE_LABELS[session.role] || session.role;
 }
 
 document.addEventListener("DOMContentLoaded", async function(){
@@ -639,6 +653,73 @@ function lingkodOpenModal(titleText, contentNode, extraModalClass){
         else document.getElementById("lingkodModal").querySelector(".modal-close").focus();
     });
 }
+
+/* ================= FULL IMAGE VIEWER =================
+   A second, independent overlay (not lingkodOpenModal's singleton, which
+   swaps its own content on every call rather than stacking) so clicking
+   an image inside an already-open detail modal shows the image full-size
+   on top of it, instead of replacing the detail modal outright. The
+   underlying modal's own scroll-lock/backdrop stay exactly as they were -
+   this only adds a layer above them and never touches document.body's
+   overflow itself. Reusable by any page: pass a real image URL (a Storage
+   public URL or an already-resolved signed URL - this does not fetch or
+   sign anything itself) and an alt/caption string. */
+
+function lingkodOpenImageViewer(imageUrl, altText){
+    let viewer = document.getElementById("lingkodImageViewerOverlay");
+
+    if(!viewer){
+        viewer = document.createElement("div");
+        viewer.id = "lingkodImageViewerOverlay";
+        viewer.className = "image-viewer-overlay";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.type = "button";
+        closeBtn.className = "image-viewer-close";
+        closeBtn.setAttribute("aria-label", "Close image viewer");
+        closeBtn.innerHTML = "<i class=\"fa-solid fa-xmark\"></i>";
+        closeBtn.addEventListener("click", lingkodCloseImageViewer);
+        viewer.appendChild(closeBtn);
+
+        const img = document.createElement("img");
+        img.className = "image-viewer-img";
+        img.id = "lingkodImageViewerImg";
+        viewer.appendChild(img);
+
+        // Only closes on a genuine backdrop click (the click target is the
+        // overlay itself, not the image) - same guard lingkodOpenModal's
+        // own backdrop handler uses.
+        viewer.addEventListener("click", function(e){
+            if(e.target === viewer) lingkodCloseImageViewer();
+        });
+
+        document.body.appendChild(viewer);
+    }
+
+    document.getElementById("lingkodImageViewerImg").src = imageUrl;
+    document.getElementById("lingkodImageViewerImg").alt = altText || "Full image";
+    requestAnimationFrame(function(){ viewer.classList.add("open"); });
+}
+
+function lingkodCloseImageViewer(){
+    const viewer = document.getElementById("lingkodImageViewerOverlay");
+    if(viewer) viewer.classList.remove("open");
+}
+
+// Capture phase (the `true` third argument), not bubble - this has to run
+// and stopPropagation() BEFORE lingkodOpenModal's own bubble-phase Escape
+// handler (registered separately, inside lingkodOpenModal itself) gets a
+// chance to fire, or Escape while the image viewer is open would close
+// BOTH the viewer and the detail modal underneath it in one press instead
+// of just backing out of the image.
+document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    const viewer = document.getElementById("lingkodImageViewerOverlay");
+    if(viewer && viewer.classList.contains("open")){
+        e.stopPropagation();
+        lingkodCloseImageViewer();
+    }
+}, true);
 
 /* ================= CARD OPTIONS MENU (three-dot) ================= */
 // Shared by every activity/project grid card (Ongoing Projects, Upcoming

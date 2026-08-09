@@ -1,0 +1,12 @@
+.table-box{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.table-box .btn-secondary{
+    width:auto;
+    padding:8px 14px;
+    font-size:13px;
+}
