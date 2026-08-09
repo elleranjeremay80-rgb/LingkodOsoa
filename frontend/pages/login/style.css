@@ -530,9 +530,14 @@ button:disabled{
 
 @media(max-width:768px){
 
+/* justify-content:flex-start (not center) - .page keeps min-height:100vh
+   (untouched, so the background decor's own sizing is unaffected), but
+   this short 2-field form no longer gets vertically centered inside that
+   full-height box, which is what produced the large equal blank bands
+   above/below the card on mobile. */
 .page{
     flex-direction:column;
-    justify-content:center;
+    justify-content:flex-start;
 }
 
 .login-brand{

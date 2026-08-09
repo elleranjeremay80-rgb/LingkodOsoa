@@ -1159,6 +1159,16 @@
         height:38px;
         font-size:15px;
     }
+
+    /* Fixed width:320px + left:20px (base rule above) exceeds a 320-375px
+       phone's own viewport width, clipping/overflowing the picker off the
+       right edge - width:auto with left/right insets lets the browser
+       compute a width that always fits instead. */
+    .emoji-picker{
+        left:10px;
+        right:10px;
+        width:auto;
+    }
 }
 
 /* ================= MESSAGE ROW / HOVER ACTIONS =================

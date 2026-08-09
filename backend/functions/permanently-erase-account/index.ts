@@ -9,19 +9,27 @@
 // SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY into every function
 // automatically), never committed to source control.
 //
-// Distinct from "Remove User" (frontend/pages/registered-users/script.js's
-// removeUser()), which anonymizes the profile row but deliberately keeps
-// it alive so a user's old messages/announcements/submissions still show
-// a poster as "Deleted User". profiles.id has `on delete cascade` back to
-// auth.users(id) (see database/migrations/20260713000000_profiles_and_
-// login.sql) - actually deleting the auth account, as this function does,
-// cascades and removes the profile row too, so historical content that
-// referenced this user loses that attribution entirely. That's why this
-// is a separate, rarer action from Remove User, not a replacement for it
-// - see registered-users/script.js's permanentlyEraseUser() for the
-// (very explicit) confirmation copy shown before anyone can reach here,
-// and why this function itself also refuses to run against a still-
-// active account (must be deactivated via Remove User first).
+// As of this revision, this is the function BOTH admin delete entry
+// points call: "Remove User" (frontend/pages/registered-users/script.js's
+// removeUser()) now calls it directly against a still-active account -
+// deliberately, per an explicit product decision to make Remove User a
+// true, immediate, irreversible delete rather than the soft-delete/
+// anonymize-and-keep-the-row behavior this app used before. The one
+// remaining separate entry point, permanentlyEraseUser() (the "Permanently
+// Erase Account" icon, still only ever shown for already-inactive rows -
+// see buildUserRow()), exists purely to clean up any leftover row that
+// predates this change and never got a chance to go through the new
+// direct-delete Remove User path.
+//
+// profiles.id has `on delete cascade` back to auth.users(id) (see
+// database/migrations/20260713000000_profiles_and_login.sql) - deleting
+// the auth account, as this function does, cascades and removes the
+// profile row too, so historical content that referenced this user
+// (messages, announcements, submissions, ...) loses that attribution
+// entirely (their name simply no longer appears there) rather than
+// showing "Deleted User" - see registered-users/script.js's
+// openRemoveUserModal()/openPermanentlyEraseModal() for the confirmation
+// copy shown before anyone can reach here.
 //
 // Deploy with the Supabase CLI from a --workdir pointed at this
 // project's database/ folder (or a supabase/ symlink to it - see the
@@ -113,17 +121,13 @@ Deno.serve(async function(req){
         return jsonResponse({ error: "That user no longer exists." }, 404);
     }
 
-    // Requires the account to already be deactivated (via Remove User)
-    // before it can be erased - a deliberate two-step safety rail so a
-    // single click on this far more severe, irreversible action can
-    // never be the first thing that happens to a still-active account.
-    // Enforced here, not just hidden in the UI, since this is a
-    // privileged action a determined caller could otherwise invoke
-    // directly, bypassing whatever the frontend shows.
-    if(targetProfile.status !== "inactive"){
-        return jsonResponse({ error: "Only an already-removed (deactivated) account can be permanently erased. Use Remove User first." }, 400);
-    }
-
+    // No status===inactive gate here anymore - Remove User now calls this
+    // function directly against a still-active account by design (see the
+    // header comment). The self-delete and last-active-osoa_eb checks
+    // right below are the real safety rails, and they're unconditional -
+    // they apply exactly the same whether the target is active or was
+    // already deactivated by the older flow.
+    //
     // Mirrors registered-users/script.js's explainWhyUserCantBeDeactivated()
     // - "at least one OSOA EB account must remain active" - re-checked
     // here for the same reason as the status check above.
@@ -151,6 +155,24 @@ Deno.serve(async function(req){
     if(deleteError){
         console.error("[permanently-erase-account] deleteUser failed:", deleteError);
         return jsonResponse({ error: "Failed to erase this account: " + deleteError.message }, 500);
+    }
+
+    // Storage objects are never FK-cascaded from auth.users - deleting the
+    // auth account (and the profiles row it cascades to) does nothing to
+    // this person's uploaded avatar, which would otherwise sit orphaned in
+    // the (public) profile-images bucket forever. Best-effort and after
+    // the account is already confirmed gone: a failure here shouldn't
+    // report the overall erase as failed when the part that actually
+    // matters (the login/account) already succeeded. Uses the admin
+    // client (service-role), so unlike the client-side avatar cleanup
+    // Remove User used to attempt, this isn't subject to Storage RLS at
+    // all - it will actually run regardless of what policies exist on
+    // this bucket for a caller who isn't the file's own owner.
+    const { error: avatarError } = await adminClient.storage
+        .from("profile-images")
+        .remove([targetUserId + "/avatar.jpg"]);
+    if(avatarError){
+        console.error("[permanently-erase-account] avatar cleanup failed:", avatarError);
     }
 
     return jsonResponse({ success: true });

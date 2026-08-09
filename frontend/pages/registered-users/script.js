@@ -12,13 +12,11 @@
    non-osoa_eb visitor who reaches this page directly (or calls the API
    by hand) gets a real RLS/trigger rejection, not just a hidden button.
 
-   "Delete" is a deactivate + anonymize, not a real account deletion -
-   see that same migration's header comment for why (no service-role key
-   is ever shipped to this static site, so the Supabase Admin API that
-   actually removes an auth.users row isn't reachable from here). The
-   login flow (login/script.js) already rejects any non-'active' account,
-   so this is a genuinely working access revocation, just not a literal
-   erasure of the underlying login row.
+   "Delete" is a real, immediate, irreversible account deletion - it
+   calls backend/functions/permanently-erase-account (see that file's own
+   header comment), the one Edge Function in this app privileged enough
+   to reach the Supabase Admin API (no service-role key is ever shipped
+   to this static site, so that API isn't otherwise reachable from here).
    =================================================== */
 
 const USERS_PAGE_SIZE = 10;
@@ -165,16 +163,17 @@ function buildUserRow(user){
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.className = "icon-btn icon-btn-danger";
-    removeBtn.setAttribute("aria-label", "Remove User");
-    removeBtn.title = "Remove User";
+    removeBtn.setAttribute("aria-label", "Delete User");
+    removeBtn.title = "Delete User";
     removeBtn.innerHTML = "<i class=\"fa-solid fa-trash\"></i>";
     removeBtn.addEventListener("click", function(){ openRemoveUserModal(user); });
     actions.appendChild(removeBtn);
 
-    // Only ever shown for an already-removed (inactive) account - a
-    // separate, rarer, and genuinely irreversible action from Remove
-    // User above (see openPermanentlyEraseModal()'s own comment for why
-    // these two are kept apart rather than merged into one button).
+    // Only ever shown for an already-inactive account - exclusively a
+    // cleanup path for rows soft-deleted by the old Remove User behavior
+    // (see openPermanentlyEraseModal()'s own comment). New deletions never
+    // pass through an inactive intermediate state anymore, so this button
+    // never appears for anyone deleted via the button above.
     if(user.status === "inactive"){
         const eraseBtn = document.createElement("button");
         eraseBtn.type = "button";
@@ -436,7 +435,7 @@ function openEditUserModal(user){
     lingkodOpenModal("Edit User — " + (user.full_name || "Deleted User"), form);
 }
 
-/* ================= REMOVE USER (deactivate + anonymize) ================= */
+/* ================= REMOVE USER (real deletion) ================= */
 
 function hasAnotherActiveOsoaEb(excludingId){
     return allUsers.some(function(u){
@@ -444,15 +443,16 @@ function hasAnotherActiveOsoaEb(excludingId){
     });
 }
 
-// Shared by both entry points into deactivation - Edit User's Account
-// Status dropdown and the dedicated Remove User action enforce the same
-// two restrictions, since they're really the same underlying operation
-// (see removeUser()/the profiles.status='inactive' write both paths
-// eventually make). Returns null when deactivation is allowed, or the
-// user-facing reason it isn't - the trigger in
-// 20260728030000_registered_users_admin_management.sql enforces both
-// server-side too, so this is the friendly client-side echo of that,
-// not the real security boundary.
+// Shared by two different entry points that both ultimately need the
+// same two restrictions enforced: Edit User's Account Status dropdown
+// (still a plain profiles.status update, unchanged by today's Remove
+// User change) and the Remove User/Permanently Erase actions below
+// (now a real delete via the Edge Function). Returns null when the
+// action is allowed, or the user-facing reason it isn't - both the
+// profiles trigger (20260728030000_registered_users_admin_management.sql,
+// for the Edit User path) and the Edge Function itself (for the delete
+// path) enforce the same rules server-side too, so this is only the
+// friendly client-side echo of that, not the real security boundary.
 function explainWhyUserCantBeDeactivated(user){
     if(user.id === viewerProfile.id){
         return "You cannot delete your own administrator account.";
@@ -463,74 +463,32 @@ function explainWhyUserCantBeDeactivated(user){
     return null;
 }
 
+// Remove User now performs a true, immediate, irreversible delete - it
+// calls the same privileged Edge Function permanentlyEraseUser() below
+// does, directly against a still-active account (that function's own
+// status==='inactive' gate was removed specifically for this). This
+// replaced an older soft-delete design (anonymize the profiles row,
+// leave the Supabase Auth account alive) by explicit product decision -
+// see backend/functions/permanently-erase-account/index.ts's header
+// comment for the full reasoning, including why this is safe (self-
+// delete and last-active-osoa_eb are still enforced server-side,
+// unconditionally) and what's lost (historical messages/announcements/
+// submissions no longer show a "Deleted User" placeholder - the
+// attribution is just gone, since the profile row itself no longer
+// exists once the auth account it cascades from is deleted).
 async function removeUser(user){
-    // Several profiles columns are required by CHECK/NOT NULL constraints
-    // added in 20260717000000_registration_name_split_and_validation.sql
-    // (profiles_organization_required, profiles_department_required,
-    // profiles_position_required) plus email's own NOT NULL - nulling any
-    // of them here throws a constraint violation instead of anonymizing
-    // the row. organization_id/department_id (the FK columns) are left
-    // untouched entirely rather than nulled - only their free-text mirror
-    // columns (organization/department) are cleared, which have no such
-    // constraint. email/position get deterministic, obviously-not-real
-    // placeholders instead of null, satisfying "not null and non-empty"
-    // while still reading as anonymized rather than the person's real
-    // data. email's placeholder embeds the row's own id so it stays
-    // unique per user even if email also carries a unique constraint.
-    const { error } = await supabaseClient
-        .from("profiles")
-        .update({
-            status: "inactive",
-            last_name: "",
-            first_name: "Deleted User",
-            middle_name: "",
-            email: "deleted-user-" + user.id + "@deleted.lingkod",
-            student_number: null,
-            organization: null,
-            position: "N/A",
-            department: null,
-            bio: null,
-            contact_number: null,
-            avatar_url: null
-        })
-        .eq("id", user.id);
-
-    if(error){
-        console.error("[registered-users] remove failed:", error);
-        lingkodToast("Couldn't remove this user: " + error.message, "error");
-        throw error;
-    }
-
-    // Storage cleanup only after the row update succeeds, best-effort - the
-    // profile-images upload path is fixed per user ("<id>/avatar.jpg", see
-    // lingkodUploadAvatarImage) and only self-cleans on a *replacement*
-    // upload; nulling avatar_url above with no replacement would otherwise
-    // leave the actual file behind in that public bucket indefinitely.
-    lingkodClearAvatarFile(user.id).catch(function(err){
-        console.error("[registered-users] avatar cleanup failed:", err);
-    });
-
-    // The update above only anonymizes public.profiles - it has no
-    // privilege to touch the person's actual Supabase Auth account, which
-    // still holds their real email. Without this, that email stays
-    // permanently locked to the now-inactive auth user and they can never
-    // register again with it (auth.signUp() checks auth.users.email
-    // uniqueness, not profiles.email). Best-effort/non-blocking: the user
-    // is already fully removed from the app's perspective at this point,
-    // so a transient failure here shouldn't reopen the confirmation modal
-    // or make this action look like it failed - it just means the email
-    // isn't freed up yet and Remove User can safely be run again later to
-    // retry this specific step.
-    const { data: releaseData, error: releaseError } = await supabaseClient.functions.invoke("release-account-email", {
+    const { data, error } = await supabaseClient.functions.invoke("permanently-erase-account", {
         body: { userId: user.id }
     });
-    if(releaseError || (releaseData && releaseData.error)){
-        const releaseMessage = (releaseData && releaseData.error) || releaseError.message;
-        console.error("[registered-users] release-account-email failed:", releaseMessage);
-        lingkodToast("User removed, but freeing up their email for reuse failed: " + releaseMessage, "error");
+
+    if(error || (data && data.error)){
+        const message = (data && data.error) || error.message;
+        console.error("[registered-users] remove failed:", message);
+        lingkodToast("Couldn't delete this user: " + message, "error");
+        throw error || new Error(message);
     }
 
-    lingkodToast("User removed successfully.", "success");
+    lingkodToast("User deleted successfully.", "success");
     await loadUsers();
 }
 
@@ -543,28 +501,25 @@ function openRemoveUserModal(user){
 
     lingkodConfirmDelete({
         title: "Delete Registered User?",
-        message: "This will deactivate " + (user.full_name || "this user") + "'s account (they can no longer log in) and remove their personal information (name, email, student number, organization, etc.) from the platform - their message, document, and activity history is preserved for records and will display as \"Deleted User\". This action cannot be undone.",
+        message: "This will PERMANENTLY delete " + (user.full_name || "this user") + "'s account and login, and free up their email/student number for future registration - this cannot be undone, and their name will disappear entirely from their past messages, announcements, and submissions instead of showing as \"Deleted User\".",
         confirmLabel: "Delete Permanently",
-        loadingLabel: "Removing...",
+        loadingLabel: "Deleting...",
         onConfirm: function(){ return removeUser(user); }
     });
 }
 
-/* ================= PERMANENTLY ERASE ACCOUNT (real deletion) =================
-   A separate, rarer action from Remove User above, not a replacement for
-   it. Remove User anonymizes the profile but deliberately keeps the row
-   alive so this person's old messages/announcements/submissions still
-   show a poster as "Deleted User". profiles.id has `on delete cascade`
-   back to auth.users(id), so genuinely deleting the auth account - which
-   is the whole point of this action, e.g. to free up their email for
-   reuse - cascades and removes the profile row too, meaning that
-   historical content permanently loses this person's attribution
-   entirely. That privileged deletion (auth.admin.deleteUser) needs the
-   service-role key, which this static frontend never has - it's done by
-   the backend/functions/permanently-erase-account Edge Function instead,
-   which independently re-checks every rule below itself rather than
-   trusting this client. Only ever offered for an already-removed
-   (inactive) account - see buildUserRow() above. */
+/* ================= PERMANENTLY ERASE ACCOUNT (legacy cleanup) =================
+   Remove User above now calls this exact same Edge Function directly
+   against a still-active account (see removeUser()'s own comment) - this
+   second entry point exists only to clean up any row that was soft-
+   deleted (anonymized, status set to 'inactive', auth account left alive)
+   by the OLDER Remove User behavior before this change, and never got a
+   chance to go through the new direct-delete path. Only ever offered for
+   an already-inactive account - see buildUserRow() above. That privileged
+   deletion (auth.admin.deleteUser) needs the service-role key, which this
+   static frontend never has - it's done by the backend/functions/
+   permanently-erase-account Edge Function instead, which independently
+   re-checks every rule below itself rather than trusting this client. */
 
 async function permanentlyEraseUser(user){
     const { data, error } = await supabaseClient.functions.invoke("permanently-erase-account", {
@@ -591,7 +546,7 @@ function openPermanentlyEraseModal(user){
 
     lingkodConfirmDelete({
         title: "Permanently Erase This Account?",
-        message: "This will completely delete " + (user.full_name || "this account") + "'s login and free up their email for reuse - unlike Remove User, this cannot be undone and their name will disappear entirely from their past messages, announcements, and submissions instead of showing as \"Deleted User\". Only do this if you specifically need the account gone with zero trace.",
+        message: "This will completely delete " + (user.full_name || "this account") + "'s login and free up their email for reuse. Their name will disappear entirely from their past messages, announcements, and submissions instead of showing as \"Deleted User\". This account was already removed by the old Remove User behavior and never got fully deleted - use this to finish cleaning it up.",
         confirmLabel: "Erase Permanently",
         loadingLabel: "Erasing...",
         onConfirm: function(){ return permanentlyEraseUser(user); }

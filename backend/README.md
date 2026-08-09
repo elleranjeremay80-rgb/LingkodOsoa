@@ -31,27 +31,33 @@ holds real Supabase Edge Functions (Deno runtime) for exactly those cases.
 - **`permanently-erase-account/`** - calls `auth.admin.deleteUser()` with
   the service-role key (only ever present in the Edge Function's own
   environment, never shipped to the frontend) to truly delete a user's
-  login. Distinct from Registered Users' "Remove User" action, which only
-  anonymizes the profile and deliberately keeps the row alive so a
-  removed user's old posts still show "Deleted User" - see the function's
-  own header comment and `registered-users/script.js`'s
-  `permanentlyEraseUser()` for the full reasoning and the safety rails
-  (only callable by osoa_eb, never on yourself, never on the last active
-  osoa_eb account, and only after the target account is already
-  deactivated).
+  login, cascading to remove their `profiles` row too. Registered Users'
+  "Remove User" action calls this directly, immediately, against a
+  still-active account - a deliberate product decision to make Remove
+  User a true, irreversible delete rather than the soft-delete/anonymize
+  design this app used before. `permanentlyEraseUser()` in
+  `registered-users/script.js` (the separate "Permanently Erase Account"
+  icon, only ever shown for already-inactive rows) calls the exact same
+  function - it's now purely a cleanup path for any row soft-deleted by
+  the old Remove User behavior before this change. Safety rails (only
+  callable by osoa_eb, never on yourself, never on the last active
+  osoa_eb account) are enforced unconditionally inside the function
+  itself, regardless of which entry point called it. Also cleans up the
+  target's `profile-images` avatar file (best-effort, via the admin
+  client so it isn't subject to Storage RLS) - Storage objects are never
+  FK-cascaded from `auth.users`, so this doesn't happen automatically.
 
 - **`release-account-email/`** - calls `auth.admin.updateUserById()` with
-  the service-role key to rename a deactivated user's *auth* email to the
-  same `deleted-user-<id>@deleted.lingkod` placeholder "Remove User"
-  already writes to `profiles.email`. Without this, "Remove User" only
-  ever anonymized the profile row - the real Supabase Auth account (and
-  its real email) stayed behind untouched, so `auth.signUp()` kept
-  rejecting that email as "already registered" forever, even though the
-  account was gone from every visible part of the app. Called
-  automatically as part of Registered Users' "Remove User" action
-  (`removeUser()` in `registered-users/script.js`), right after the
-  profile anonymization succeeds; only callable by osoa_eb, never on
-  yourself, and only once the target account is already deactivated.
+  the service-role key to rename a deactivated user's *auth* email to a
+  `deleted-user-<id>@deleted.lingkod` placeholder, freeing the real email
+  for reuse without fully deleting the account. Built for the old
+  soft-delete design; **not currently called by any part of the app** now
+  that Remove User does a true delete instead (which frees the email as a
+  side effect of deleting the whole auth account, via
+  `permanently-erase-account` above). Left in place rather than deleted,
+  since removing an already-deployed Edge Function is an infrastructure
+  action, not a code change - safe to actually undeploy if it's confirmed
+  to have no remaining use.
 
 Deploy with `supabase functions deploy <name>`, run from a `--workdir`
 pointed at this project's `database/` folder (see the root README's

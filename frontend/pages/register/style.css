@@ -537,9 +537,14 @@ button[type="submit"]::after{
 }
 
 
+/* justify-content:flex-start (not center) - same fix as login/style.css's
+   identical .page pattern: min-height:100vh stays untouched (background
+   decor sizing unaffected), only where the stacked content sits within
+   that box changes, from centered (large blank bands top/bottom on a
+   short viewport) to top-aligned. */
 .page{
     flex-direction:column;
-    justify-content:center;
+    justify-content:flex-start;
     padding-bottom:40px;
 }
 

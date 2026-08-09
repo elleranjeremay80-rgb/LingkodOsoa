@@ -105,23 +105,6 @@ input:checked + .slider:before{
     pointer-events:none;
 }
 
-/* ================= 2FA ENROLLMENT MODAL ================= */
-
-.mfa-qr{
-    display:flex;
-    justify-content:center;
-    margin:16px 0;
-}
-
-.mfa-qr svg{
-    width:180px;
-    height:180px;
-    border-radius:10px;
-    border:1px solid var(--color-border);
-    padding:10px;
-    background:#fff;
-}
-
 @media(max-width:767px){
 
 .setting{
