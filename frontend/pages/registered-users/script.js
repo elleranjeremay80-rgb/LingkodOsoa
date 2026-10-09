@@ -463,33 +463,80 @@ function explainWhyUserCantBeDeactivated(user){
     return null;
 }
 
-// Remove User now performs a true, immediate, irreversible delete - it
-// calls the same privileged Edge Function permanentlyEraseUser() below
-// does, directly against a still-active account (that function's own
-// status==='inactive' gate was removed specifically for this). This
-// replaced an older soft-delete design (anonymize the profiles row,
-// leave the Supabase Auth account alive) by explicit product decision -
-// see backend/functions/permanently-erase-account/index.ts's header
-// comment for the full reasoning, including why this is safe (self-
-// delete and last-active-osoa_eb are still enforced server-side,
-// unconditionally) and what's lost (historical messages/announcements/
-// submissions no longer show a "Deleted User" placeholder - the
-// attribution is just gone, since the profile row itself no longer
-// exists once the auth account it cascades from is deleted).
-async function removeUser(user){
-    const { data, error } = await supabaseClient.functions.invoke("permanently-erase-account", {
+// Both delete entry points below (Delete on an active account, and the
+// legacy Permanently Erase on a row the old soft-delete left inactive)
+// perform the same true, irreversible delete through the
+// permanently-erase-account Edge Function - see that file's header
+// comment for exactly what is removed (login, profile, avatar) and what is
+// kept (shared/historical records, now with no owner). That function
+// re-checks every rule here server-side (caller is an active osoa_eb, not
+// self, not the last active osoa_eb) - nothing below is trusted by it.
+const DELETE_USER_FUNCTION = "permanently-erase-account";
+
+// supabase-js reports three different failure shapes from invoke():
+// FunctionsHttpError (the function answered non-2xx - its JSON body has
+// the real reason), FunctionsFetchError (the request never got a response:
+// function not deployed, CORS preflight rejected, or offline), and
+// FunctionsRelayError (Supabase couldn't reach the function). Turn each
+// into something an administrator can act on instead of the SDK's
+// generic "Failed to send a request to the Edge Function".
+async function describeDeleteFunctionError(error){
+    if(error && error.name === "FunctionsHttpError" && error.context){
+        try {
+            const body = await error.context.json();
+            if(body && (body.error || body.message)) return body.error || body.message;
+        } catch(parseErr){ /* fall through to the status-based message */ }
+        if(error.context.status === 401) return "Your session has expired. Please log in again and retry.";
+        if(error.context.status === 403) return "You don't have permission to delete registered users.";
+        if(error.context.status === 404) return "The account deletion service isn't deployed on Supabase yet. Please contact the system administrator.";
+        return "The account deletion service returned an error (" + error.context.status + "). Please try again.";
+    }
+    if(error && error.name === "FunctionsFetchError"){
+        return navigator.onLine === false
+            ? "You appear to be offline. Check your connection and try again."
+            : "Couldn't reach the account deletion service. It may not be deployed on Supabase yet - please contact the system administrator.";
+    }
+    if(error && error.name === "FunctionsRelayError"){
+        return "Supabase couldn't run the account deletion service right now. Please try again in a moment.";
+    }
+    return (error && error.message) || "Something went wrong. Please try again.";
+}
+
+// Throws on any failure so lingkodConfirmAction keeps the modal open
+// (button re-enabled) for a retry; only returns once the server has
+// confirmed the account is gone.
+async function deleteUserAccount(user, successMessage){
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    if(!sessionData.session){
+        const message = "Your session has expired. Please log in again and retry.";
+        lingkodToast(message, "error");
+        throw new Error(message);
+    }
+
+    const { data, error } = await supabaseClient.functions.invoke(DELETE_USER_FUNCTION, {
         body: { userId: user.id }
     });
 
-    if(error || (data && data.error)){
-        const message = (data && data.error) || error.message;
-        console.error("[registered-users] remove failed:", message);
+    if(error || !data || !data.success){
+        const message = error ? await describeDeleteFunctionError(error) : ((data && data.error) || "The account could not be deleted. Please try again.");
+        console.error("[registered-users] delete failed:", message);
         lingkodToast("Couldn't delete this user: " + message, "error");
-        throw error || new Error(message);
+        throw new Error(message);
     }
 
-    lingkodToast("User deleted successfully.", "success");
-    await loadUsers();
+    const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+    lingkodToast(successMessage + (warnings.length ? " (Couldn't finish: " + warnings.join(", ") + ".)" : ""), "success");
+
+    // The deletion already succeeded - a failed list refresh must not
+    // make the modal report it as a failure.
+    allUsers = allUsers.filter(function(u){ return u.id !== user.id; });
+    renderUsersPage();
+    loadUsers().catch(function(err){ console.error("[registered-users] refresh after delete failed:", err); });
+}
+
+function describeUserForConfirm(user){
+    const details = [user.student_number, roleLabel(user.role), user.organization].filter(Boolean).join(" · ");
+    return (user.full_name || "this user") + (details ? " (" + details + ")" : "");
 }
 
 function openRemoveUserModal(user){
@@ -501,41 +548,18 @@ function openRemoveUserModal(user){
 
     lingkodConfirmDelete({
         title: "Delete Registered User?",
-        message: "This will PERMANENTLY delete " + (user.full_name || "this user") + "'s account and login, and free up their email/student number for future registration - this cannot be undone, and their name will disappear entirely from their past messages, announcements, and submissions instead of showing as \"Deleted User\".",
+        message: "This will PERMANENTLY delete " + describeUserForConfirm(user) + "'s account and login, and free up their email and student number so they can register again. Their past messages, announcements, and submissions are kept but will no longer show their name. This cannot be undone.",
         confirmLabel: "Delete Permanently",
         loadingLabel: "Deleting...",
-        onConfirm: function(){ return removeUser(user); }
+        onConfirm: function(){ return deleteUserAccount(user, "User deleted successfully."); }
     });
 }
 
 /* ================= PERMANENTLY ERASE ACCOUNT (legacy cleanup) =================
-   Remove User above now calls this exact same Edge Function directly
-   against a still-active account (see removeUser()'s own comment) - this
-   second entry point exists only to clean up any row that was soft-
-   deleted (anonymized, status set to 'inactive', auth account left alive)
-   by the OLDER Remove User behavior before this change, and never got a
-   chance to go through the new direct-delete path. Only ever offered for
-   an already-inactive account - see buildUserRow() above. That privileged
-   deletion (auth.admin.deleteUser) needs the service-role key, which this
-   static frontend never has - it's done by the backend/functions/
-   permanently-erase-account Edge Function instead, which independently
-   re-checks every rule below itself rather than trusting this client. */
-
-async function permanentlyEraseUser(user){
-    const { data, error } = await supabaseClient.functions.invoke("permanently-erase-account", {
-        body: { userId: user.id }
-    });
-
-    if(error || (data && data.error)){
-        const message = (data && data.error) || error.message;
-        console.error("[registered-users] permanent erase failed:", message);
-        lingkodToast("Couldn't permanently erase this account: " + message, "error");
-        throw error || new Error(message);
-    }
-
-    lingkodToast("Account permanently erased.", "success");
-    await loadUsers();
-}
+   Only offered for an already-inactive row (see buildUserRow() above) -
+   accounts the OLDER Remove User soft-deleted (anonymized profile,
+   status 'inactive', login left alive, so the real email stays taken in
+   Supabase Auth). Same Edge Function, same server-side checks. */
 
 function openPermanentlyEraseModal(user){
     const blockReason = explainWhyUserCantBeDeactivated(user);
@@ -546,10 +570,10 @@ function openPermanentlyEraseModal(user){
 
     lingkodConfirmDelete({
         title: "Permanently Erase This Account?",
-        message: "This will completely delete " + (user.full_name || "this account") + "'s login and free up their email for reuse. Their name will disappear entirely from their past messages, announcements, and submissions instead of showing as \"Deleted User\". This account was already removed by the old Remove User behavior and never got fully deleted - use this to finish cleaning it up.",
+        message: "This will completely delete " + describeUserForConfirm(user) + "'s login and free up their email for reuse. This account was already removed by the old Remove User behavior but its login was never deleted - use this to finish cleaning it up. This cannot be undone.",
         confirmLabel: "Erase Permanently",
         loadingLabel: "Erasing...",
-        onConfirm: function(){ return permanentlyEraseUser(user); }
+        onConfirm: function(){ return deleteUserAccount(user, "Account permanently erased."); }
     });
 }
 

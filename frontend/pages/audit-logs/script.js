@@ -15,6 +15,7 @@ const AUDIT_ACTION_LABELS = {
     "user.reactivate": "Reactivated User",
     "user.role_change": "Changed User Role",
     "user.update": "Updated User",
+    "user.delete": "Deleted User",
     "organization.update": "Updated Organization",
     "organization.delete": "Deleted Organization",
     "officer.add": "Added Officer/Member",
@@ -22,7 +23,7 @@ const AUDIT_ACTION_LABELS = {
     "officer.remove": "Removed Officer/Member"
 };
 
-const AUDIT_DESTRUCTIVE_ACTIONS = ["user.deactivate", "organization.delete", "officer.remove"];
+const AUDIT_DESTRUCTIVE_ACTIONS = ["user.deactivate", "user.delete", "organization.delete", "officer.remove"];
 
 const auditSearch = document.getElementById("auditSearch");
 const auditActionFilter = document.getElementById("auditActionFilter");

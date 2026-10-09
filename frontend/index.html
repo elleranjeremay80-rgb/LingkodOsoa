@@ -2,7 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=pages/login/index.html">
+<script>
+// Keep any Supabase auth callback (#access_token=...&type=recovery, etc.)
+// attached when forwarding - recovery links go straight to the reset page.
+(function(){
+    var target = /(^|[#?&])type=recovery(&|$)/.test(location.hash + "&" + location.search)
+        ? "pages/reset-password/index.html"
+        : "pages/login/index.html";
+    location.replace(target + location.search + location.hash);
+})();
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=pages/login/index.html"></noscript>
 <title>LINGKOD Meneses</title>
 <link rel="icon" href="pictures/BULSU.png">
 </head>

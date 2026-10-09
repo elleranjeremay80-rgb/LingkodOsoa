@@ -366,13 +366,30 @@ async function registerUser(fields){
         }
     }
 
+    // Same idea for the student number: check it *before* signUp(). A
+    // taken number used to be caught only after Supabase Auth had already
+    // created the login, leaving that email stuck on an account with no
+    // profile (can't log in, can't register again). A number freed by a
+    // Registered Users delete no longer exists in profiles, so it passes
+    // here. The unique index + handle_new_user() remain the real
+    // enforcement (see 20261009000000_handle_new_user_reject_duplicates.sql).
+    const { data: existingAccount, error: studentNumberCheckError } = await supabaseClient
+        .rpc("get_login_info_by_student_number", { p_student_number: fields.studentNumber });
+
+    if(studentNumberCheckError){
+        console.error("[register] student number availability check failed:", studentNumberCheckError);
+    } else if(existingAccount && existingAccount.length){
+        throw new Error("duplicate key: student_number already registered");
+    }
+
     // Without this, Supabase falls back to whatever "Site URL" is set to
     // in your dashboard (Authentication -> URL Configuration) after email
     // confirmation — which is almost certainly why the confirmation link
-    // led to "This site can't be reached." Using window.location.origin
-    // instead of hardcoding a port means this keeps working if you ever
-    // run the app from a different port or a real domain later.
-    const emailRedirectTo = window.location.origin + "/login/index.html";
+    // led to "This site can't be reached." Resolving relative to this page
+    // (rather than hardcoding a port, or origin + "/login/index.html",
+    // which doesn't exist - the page lives under pages/) keeps this
+    // pointing at the real login page wherever the site is served from.
+    const emailRedirectTo = new URL("../login/index.html", window.location.href).href;
 
     const { data, error } = await supabaseClient.auth.signUp({
         email: fields.email,
@@ -478,6 +495,15 @@ function friendlyRegisterError(err){
             return "This position is already filled for the selected organization. Contact your OSOA EB administrator if this needs to change.";
         }
         return "An account with this email already exists. Please log in instead.";
+    }
+
+    // handle_new_user() now rejects the whole signup on a unique-index
+    // conflict (student number or a single-holder position) instead of
+    // leaving a login with no profile; Supabase Auth only reports that as
+    // this generic message. The pre-checks in registerUser() normally
+    // catch both first - this covers a race between two registrations.
+    if(/database error saving new user/i.test(message)){
+        return "Your account couldn't be created because this Student Number is already registered or the selected position was just filled. Please check your details, or log in instead.";
     }
 
     if(/profiles_student_number_format/i.test(message)){

@@ -64,7 +64,11 @@
 </div>
 
 <h2>Reset Link Invalid or Expired</h2>
-<p>This password reset link is no longer valid. Please request a new one from the login page.</p>
+<p id="invalidLinkMessage">This password reset link is no longer valid. Please request a new one from the login page.</p>
+
+<div class="register">
+<a href="../login/index.html#forgot">Request a New Link</a>
+</div>
 
 <div class="register">
 <a href="../login/index.html">Back to Log In</a>
@@ -74,8 +78,16 @@
 
 </div>
 
+<script>
+// Snapshot the recovery callback (#access_token=...&type=recovery,
+// #error_code=otp_expired, or ?token_hash=...&type=recovery) BEFORE the
+// Supabase SDK loads - the SDK parses and then wipes the URL fragment on
+// its own, so script.js can't reliably read it afterwards.
+window.LINGKOD_AUTH_CALLBACK = { hash: window.location.hash, search: window.location.search };
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../js/supabase.js"></script>
+<script src="../../js/auth.js"></script>
 <script src="../../js/validators.js"></script>
 <script src="../../js/auth-forms.js"></script>
 <script src="script.js"></script>

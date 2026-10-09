@@ -47,11 +47,17 @@ async function redirectIfAlreadyLoggedIn(){
     const redirected = await redirectIfAlreadyLoggedIn();
     if(redirected) return;
 
+    // "Request a New Link" on the reset-password page links back here as
+    // #forgot, so open straight onto the recovery form.
+    const openForgotOnLoad = window.location.hash === "#forgot";
+    if(openForgotOnLoad) window.history.replaceState(null, "", window.location.pathname);
+
     const splashDelay = reduceMotion ? 0 : 1400;
 
     setTimeout(function(){
         splash.classList.add("hide");
-        loginCard.classList.add("visible");
+        if(openForgotOnLoad) showForgotCard();
+        else loginCard.classList.add("visible");
     }, splashDelay);
 
     splash.addEventListener("transitionend", function(){
@@ -60,7 +66,7 @@ async function redirectIfAlreadyLoggedIn(){
 
     if(reduceMotion){
         splash.remove();
-        loginCard.classList.add("visible");
+        if(!openForgotOnLoad) loginCard.classList.add("visible");
     }
 })();
 
@@ -350,6 +356,7 @@ function showLoginCard(){
     forgotCard.classList.remove("visible");
     forgotCard.style.display = "none";
     loginCard.style.display = "block";
+    loginCard.classList.add("visible");
 }
 
 forgotPasswordLink.addEventListener("click", function(e){
@@ -362,35 +369,71 @@ backToLoginLink.addEventListener("click", function(e){
     showLoginCard();
 });
 
+// Resolved relative to *this* page rather than window.location.origin, so
+// it points at the real file wherever the site is served from - e.g.
+// /frontend/pages/reset-password/index.html under a local static server
+// rooted at the repo, or /pages/reset-password/index.html on Vercel with
+// frontend/ as the root. (The old origin + "/reset-password/index.html"
+// pointed at a path that doesn't exist - the "Cannot GET" error.) This
+// exact URL must also be in Supabase's Redirect URLs allow-list, or
+// Supabase silently falls back to the Site URL instead.
+const RESET_PASSWORD_URL = new URL("../reset-password/index.html", window.location.href).href;
+
+function describeForgotError(error){
+    const message = (error.message || "").toLowerCase();
+    if(error.status === 429 || error.code === "over_email_send_rate_limit" || message.includes("rate limit")){
+        return "Too many reset requests. Please wait a few minutes before trying again.";
+    }
+    if(message.includes("sending") || message.includes("smtp") || error.status >= 500){
+        return "We couldn't send the reset email right now - email delivery may not be configured. Please try again later or contact the OSOA office.";
+    }
+    if(error.code === "email_address_invalid" || (message.includes("invalid") && message.includes("email"))){
+        return LINGKOD_EMAIL_MESSAGE;
+    }
+    return "Couldn't send the reset email. Please try again.";
+}
+
+let isSendingReset = false;
+
 forgotForm.addEventListener("submit", async function(e){
     e.preventDefault();
+    if(isSendingReset) return;
 
     const email = forgotEmailInput.value.trim();
     clearStatus(forgotStatus);
+
+    if(!lingkodIsEmailValid(email)){
+        showStatus(forgotStatus, LINGKOD_EMAIL_MESSAGE, "error");
+        forgotEmailInput.focus();
+        return;
+    }
+
+    isSendingReset = true;
     setButtonLoading(forgotButton, true, "Sending...");
 
     try {
         // resetPasswordForEmail() intentionally does not reveal whether
         // the email exists (Supabase's own anti-enumeration behavior) -
-        // it "succeeds" either way. The reset-password page itself is
-        // where an actually-invalid/expired link gets a real error, once
-        // the user tries to use it.
+        // it "succeeds" either way, and so does the message below. The
+        // reset-password page itself is where an actually-invalid/expired
+        // link gets a real error, once the user tries to use it.
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + "/reset-password/index.html"
+            redirectTo: RESET_PASSWORD_URL
         });
 
         if(error){
-            console.error("[login] resetPasswordForEmail failed:", error);
-            showStatus(forgotStatus, error.message || "Couldn't send the reset email. Please try again.", "error");
+            console.error("[login] resetPasswordForEmail failed:", error.status, error.code, error.message);
+            showStatus(forgotStatus, describeForgotError(error), "error");
             return;
         }
 
-        showStatus(forgotStatus, "If that email is registered, a password reset link has been sent. Please check your inbox.", "success");
+        showStatus(forgotStatus, "If an account is registered with that email, a password reset link has been sent. Please check your inbox (and spam folder).", "success");
         forgotForm.reset();
     } catch(err){
-        console.error("[login] unexpected error sending reset email:", err);
+        console.error("[login] unexpected error sending reset email:", err && err.message);
         showStatus(forgotStatus, "Something went wrong while sending the reset email. Please check your connection and try again.", "error");
     } finally {
+        isSendingReset = false;
         setButtonLoading(forgotButton, false);
     }
 });

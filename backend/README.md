@@ -59,8 +59,34 @@ holds real Supabase Edge Functions (Deno runtime) for exactly those cases.
   action, not a code change - safe to actually undeploy if it's confirmed
   to have no remaining use.
 
-Deploy with `supabase functions deploy <name>`, run from a `--workdir`
-pointed at this project's `database/` folder (see the root README's
-"Note on the Supabase CLI").
+### Deploying `permanently-erase-account`
+
+**It must actually be deployed** - if it isn't, Supabase answers 404 to
+the browser's CORS preflight and Registered Users' Delete fails with
+"Failed to send a request to the Edge Function" (the 2026-10-09 bug).
+
+Deploy with JWT verification **off** (`--no-verify-jwt`, or "Enforce JWT
+verification" unchecked in the dashboard). The gateway's legacy JWT check
+doesn't work with this project's newer publishable/secret keys; the
+function verifies the caller's token itself and rejects anyone who isn't
+an active `osoa_eb`.
+
+Dashboard (no CLI needed): Edge Functions -> Deploy a new function -> Via
+Editor -> name it exactly `permanently-erase-account`, paste
+`functions/permanently-erase-account/index.ts`, Deploy -> then in its
+Details/Settings turn off "Enforce JWT verification".
+
+CLI (the CLI expects a `supabase/functions/<name>/` layout, so stage a copy):
+
+```powershell
+npx supabase login
+$tmp = Join-Path $env:TEMP "lingkod-fn-deploy"
+New-Item -ItemType Directory -Force "$tmp\supabase\functions\permanently-erase-account" | Out-Null
+Copy-Item backend\functions\permanently-erase-account\index.ts "$tmp\supabase\functions\permanently-erase-account\"
+npx supabase functions deploy permanently-erase-account --project-ref ydfmxqiqozapsyxfisog --no-verify-jwt --use-api --workdir $tmp
+```
+
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected by Supabase
+automatically - no secrets need to be set by hand.
 
 Database schema and migrations live in `../database/`, not here.

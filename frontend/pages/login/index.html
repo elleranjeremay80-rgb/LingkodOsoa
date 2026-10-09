@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lingkod Meneses - Login</title>
 
+<script>
+// Safety net: if Supabase sends a password-recovery link back to this page
+// (it falls back to the Site URL when the reset page's URL isn't in the
+// Redirect URLs allow-list), forward it - token intact - to the reset page
+// instead of letting the login page treat it as a normal sign-in.
+(function(){
+    if(/(^|[#?&])type=recovery(&|$)/.test(window.location.hash + "&" + window.location.search)){
+        window.location.replace("../reset-password/index.html" + window.location.search + window.location.hash);
+    }
+})();
+</script>
+
 <link rel="icon" href="../../pictures/BULSU.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
