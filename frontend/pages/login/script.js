@@ -384,6 +384,13 @@ function describeForgotError(error){
     if(error.status === 429 || error.code === "over_email_send_rate_limit" || message.includes("rate limit")){
         return "Too many reset requests. Please wait a few minutes before trying again.";
     }
+    // Supabase's built-in email service only delivers to the project's own
+    // team members; any other address is refused until custom SMTP is set
+    // up (Authentication -> Emails -> SMTP Settings). A configuration
+    // problem, not something the user typed wrong.
+    if(error.code === "email_address_not_authorized" || message.includes("not authorized")){
+        return "Password reset emails can't be sent to this address yet - the system's email service isn't fully set up. Please contact the OSOA office.";
+    }
     if(message.includes("sending") || message.includes("smtp") || error.status >= 500){
         return "We couldn't send the reset email right now - email delivery may not be configured. Please try again later or contact the OSOA office.";
     }
