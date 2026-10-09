@@ -13,10 +13,11 @@
    by hand) gets a real RLS/trigger rejection, not just a hidden button.
 
    "Delete" is a real, immediate, irreversible account deletion - it
-   calls backend/functions/permanently-erase-account (see that file's own
-   header comment), the one Edge Function in this app privileged enough
-   to reach the Supabase Admin API (no service-role key is ever shipped
-   to this static site, so that API isn't otherwise reachable from here).
+   calls the admin_delete_user() database function (see
+   database/migrations/20261009010000_admin_delete_user.sql), which
+   re-checks the caller's role itself and deletes the login + profile in
+   one transaction. No service-role key is ever shipped to this static
+   site.
    =================================================== */
 
 const USERS_PAGE_SIZE = 10;
@@ -466,44 +467,41 @@ function explainWhyUserCantBeDeactivated(user){
 // Both delete entry points below (Delete on an active account, and the
 // legacy Permanently Erase on a row the old soft-delete left inactive)
 // perform the same true, irreversible delete through the
-// permanently-erase-account Edge Function - see that file's header
-// comment for exactly what is removed (login, profile, avatar) and what is
-// kept (shared/historical records, now with no owner). That function
-// re-checks every rule here server-side (caller is an active osoa_eb, not
-// self, not the last active osoa_eb) - nothing below is trusted by it.
-const DELETE_USER_FUNCTION = "permanently-erase-account";
+// admin_delete_user() database function - see
+// database/migrations/20261009010000_admin_delete_user.sql for exactly
+// what is removed (login, profile) and what is kept (shared/historical
+// records, now with no owner). It re-checks every rule here server-side
+// (caller is an active osoa_eb, not self, not the last active osoa_eb) and
+// runs as one transaction - nothing below is trusted by it.
+const DELETE_USER_RPC = "admin_delete_user";
 
-// supabase-js reports three different failure shapes from invoke():
-// FunctionsHttpError (the function answered non-2xx - its JSON body has
-// the real reason), FunctionsFetchError (the request never got a response:
-// function not deployed, CORS preflight rejected, or offline), and
-// FunctionsRelayError (Supabase couldn't reach the function). Turn each
-// into something an administrator can act on instead of the SDK's
-// generic "Failed to send a request to the Edge Function".
-async function describeDeleteFunctionError(error){
-    if(error && error.name === "FunctionsHttpError" && error.context){
-        try {
-            const body = await error.context.json();
-            if(body && (body.error || body.message)) return body.error || body.message;
-        } catch(parseErr){ /* fall through to the status-based message */ }
-        if(error.context.status === 401) return "Your session has expired. Please log in again and retry.";
-        if(error.context.status === 403) return "You don't have permission to delete registered users.";
-        if(error.context.status === 404) return "The account deletion service isn't deployed on Supabase yet. Please contact the system administrator.";
-        return "The account deletion service returned an error (" + error.context.status + "). Please try again.";
+// The function raises its own user-facing message with a HINT naming the
+// case; anything else is a transport/configuration problem.
+const DELETE_USER_KNOWN_HINTS = ["not_authenticated", "forbidden", "invalid_target", "self_delete", "not_found", "last_admin", "db_error"];
+
+function describeDeleteUserError(error){
+    if(DELETE_USER_KNOWN_HINTS.includes(error.hint)) return error.message;
+
+    const message = error.message || "";
+    if(error.code === "PGRST202" || /could not find the function/i.test(message)){
+        return "The account deletion feature hasn't been set up in the database yet. Please contact the system administrator.";
     }
-    if(error && error.name === "FunctionsFetchError"){
+    if(error.code === "42501" || /permission denied/i.test(message)){
+        return "You don't have permission to delete registered users.";
+    }
+    if(/jwt|PGRST30[0-9]/i.test(message + " " + error.code)){
+        return "Your session has expired. Please log in again and retry.";
+    }
+    if(/fetch|network|load failed/i.test(message)){
         return navigator.onLine === false
             ? "You appear to be offline. Check your connection and try again."
-            : "Couldn't reach the account deletion service. It may not be deployed on Supabase yet - please contact the system administrator.";
+            : "Couldn't reach the server. Check your connection and try again.";
     }
-    if(error && error.name === "FunctionsRelayError"){
-        return "Supabase couldn't run the account deletion service right now. Please try again in a moment.";
-    }
-    return (error && error.message) || "Something went wrong. Please try again.";
+    return "The account couldn't be deleted. No changes were made. Please try again.";
 }
 
 // Throws on any failure so lingkodConfirmAction keeps the modal open
-// (button re-enabled) for a retry; only returns once the server has
+// (button re-enabled) for a retry; only returns once the database has
 // confirmed the account is gone.
 async function deleteUserAccount(user, successMessage){
     const { data: sessionData } = await supabaseClient.auth.getSession();
@@ -513,19 +511,21 @@ async function deleteUserAccount(user, successMessage){
         throw new Error(message);
     }
 
-    const { data, error } = await supabaseClient.functions.invoke(DELETE_USER_FUNCTION, {
-        body: { userId: user.id }
-    });
+    const { data, error } = await supabaseClient.rpc(DELETE_USER_RPC, { p_user_id: user.id });
 
     if(error || !data || !data.success){
-        const message = error ? await describeDeleteFunctionError(error) : ((data && data.error) || "The account could not be deleted. Please try again.");
-        console.error("[registered-users] delete failed:", message);
+        const message = error ? describeDeleteUserError(error) : "The account couldn't be deleted. No changes were made. Please try again.";
+        console.error("[registered-users] delete failed:", error ? (error.code + " " + error.message) : data);
         lingkodToast("Couldn't delete this user: " + message, "error");
+        if(error && error.hint === "not_found") loadUsers();
         throw new Error(message);
     }
 
-    const warnings = Array.isArray(data.warnings) ? data.warnings : [];
-    lingkodToast(successMessage + (warnings.length ? " (Couldn't finish: " + warnings.join(", ") + ".)" : ""), "success");
+    lingkodToast(successMessage, "success");
+
+    // Storage files aren't removed by the database delete; best-effort
+    // (an active osoa_eb may delete in profile-images - see the migration).
+    lingkodClearAvatarFile(user.id);
 
     // The deletion already succeeded - a failed list refresh must not
     // make the modal report it as a failure.
@@ -548,7 +548,7 @@ function openRemoveUserModal(user){
 
     lingkodConfirmDelete({
         title: "Delete Registered User?",
-        message: "This will PERMANENTLY delete " + describeUserForConfirm(user) + "'s account and login, and free up their email and student number so they can register again. Their past messages, announcements, and submissions are kept but will no longer show their name. This cannot be undone.",
+        message: "This will PERMANENTLY delete " + describeUserForConfirm(user) + "'s account and login, and free up their email and student number so they can register again. Their past messages, announcements, submissions, requests, and reports are kept for the record, but their name is removed or shown as \"Deleted User\". This cannot be undone.",
         confirmLabel: "Delete Permanently",
         loadingLabel: "Deleting...",
         onConfirm: function(){ return deleteUserAccount(user, "User deleted successfully."); }

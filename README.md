@@ -62,9 +62,7 @@ already applied to the live project are unaffected either way.
 ## Backend
 
 See `backend/README.md`. Short version: Supabase itself is the backend
-(Postgres + RLS + Storage + Realtime) - there is no custom server, except
-for two real Edge Functions under `backend/functions/` for the one thing
-the browser's anon key genuinely can't do: permanently deleting a user's
-login (`permanently-erase-account`, called directly by Registered Users'
-"Remove User" action). `release-account-email` also exists but is
-currently unused - see `backend/README.md` for why.
+(Postgres + RLS + Storage + Realtime) - there is no custom server.
+Privileged account deletion (Registered Users' Delete) is the
+`admin_delete_user()` database function, not an Edge Function - see
+`backend/README.md`.

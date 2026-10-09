@@ -22,71 +22,30 @@ code has been invented to fill them.
 - `validators/` - request validation
 - `utils/` - shared helpers
 
-## `functions/` - Supabase Edge Functions (real, not a placeholder)
+## `functions/` - Supabase Edge Functions
 
-The one exception: the handful of things the anon key genuinely cannot do
-from the browser need a privileged, server-side caller. `functions/`
-holds real Supabase Edge Functions (Deno runtime) for exactly those cases.
+Edge Functions (Deno) are for privileged operations a browser can't
+safely do. **None are currently deployed** to the Supabase project.
 
-- **`permanently-erase-account/`** - calls `auth.admin.deleteUser()` with
-  the service-role key (only ever present in the Edge Function's own
-  environment, never shipped to the frontend) to truly delete a user's
-  login, cascading to remove their `profiles` row too. Registered Users'
-  "Remove User" action calls this directly, immediately, against a
-  still-active account - a deliberate product decision to make Remove
-  User a true, irreversible delete rather than the soft-delete/anonymize
-  design this app used before. `permanentlyEraseUser()` in
-  `registered-users/script.js` (the separate "Permanently Erase Account"
-  icon, only ever shown for already-inactive rows) calls the exact same
-  function - it's now purely a cleanup path for any row soft-deleted by
-  the old Remove User behavior before this change. Safety rails (only
-  callable by osoa_eb, never on yourself, never on the last active
-  osoa_eb account) are enforced unconditionally inside the function
-  itself, regardless of which entry point called it. Also cleans up the
-  target's `profile-images` avatar file (best-effort, via the admin
-  client so it isn't subject to Storage RLS) - Storage objects are never
-  FK-cascaded from `auth.users`, so this doesn't happen automatically.
+- **Deleting a registered user is not an Edge Function.** It used to be
+  (`permanently-erase-account`), but that function was never deployed, so
+  Registered Users' Delete always failed with "Couldn't reach the account
+  deletion service". It was replaced on 2026-10-09 by the
+  `public.admin_delete_user(uuid)` database function
+  (`database/migrations/20261009010000_admin_delete_user.sql`), called with
+  `supabase.rpc()`. It checks the caller is an active `osoa_eb` (not self,
+  not the last one), then deletes the login and profile in a single
+  transaction - nothing to deploy, and no half-finished deletes.
 
 - **`release-account-email/`** - calls `auth.admin.updateUserById()` with
   the service-role key to rename a deactivated user's *auth* email to a
-  `deleted-user-<id>@deleted.lingkod` placeholder, freeing the real email
-  for reuse without fully deleting the account. Built for the old
-  soft-delete design; **not currently called by any part of the app** now
-  that Remove User does a true delete instead (which frees the email as a
-  side effect of deleting the whole auth account, via
-  `permanently-erase-account` above). Left in place rather than deleted,
-  since removing an already-deployed Edge Function is an infrastructure
-  action, not a code change - safe to actually undeploy if it's confirmed
-  to have no remaining use.
+  `deleted-user-<id>@deleted.lingkod` placeholder. Built for the old
+  soft-delete design; **not called by any part of the app** and not
+  deployed. Kept only for reference.
 
-### Deploying `permanently-erase-account`
-
-**It must actually be deployed** - if it isn't, Supabase answers 404 to
-the browser's CORS preflight and Registered Users' Delete fails with
-"Failed to send a request to the Edge Function" (the 2026-10-09 bug).
-
-Deploy with JWT verification **off** (`--no-verify-jwt`, or "Enforce JWT
-verification" unchecked in the dashboard). The gateway's legacy JWT check
-doesn't work with this project's newer publishable/secret keys; the
-function verifies the caller's token itself and rejects anyone who isn't
-an active `osoa_eb`.
-
-Dashboard (no CLI needed): Edge Functions -> Deploy a new function -> Via
-Editor -> name it exactly `permanently-erase-account`, paste
-`functions/permanently-erase-account/index.ts`, Deploy -> then in its
-Details/Settings turn off "Enforce JWT verification".
-
-CLI (the CLI expects a `supabase/functions/<name>/` layout, so stage a copy):
-
-```powershell
-npx supabase login
-$tmp = Join-Path $env:TEMP "lingkod-fn-deploy"
-New-Item -ItemType Directory -Force "$tmp\supabase\functions\permanently-erase-account" | Out-Null
-Copy-Item backend\functions\permanently-erase-account\index.ts "$tmp\supabase\functions\permanently-erase-account\"
-npx supabase functions deploy permanently-erase-account --project-ref ydfmxqiqozapsyxfisog --no-verify-jwt --use-api --workdir $tmp
-```
-
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected by Supabase
-automatically - no secrets need to be set by hand.
+If an Edge Function is ever added: Dashboard -> Edge Functions -> Deploy a
+new function -> Via Editor, or the Supabase CLI (`supabase functions
+deploy <name>` from a folder with a `supabase/functions/<name>/` layout).
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
 
 Database schema and migrations live in `../database/`, not here.
